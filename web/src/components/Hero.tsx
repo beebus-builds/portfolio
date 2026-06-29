@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useRef } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
+import React from 'react';
+import { Canvas } from '@react-three/fiber';
 import { Float, MeshDistortMaterial, Sphere, OrbitControls } from '@react-three/drei';
 import { motion } from 'framer-motion';
 
@@ -24,7 +24,7 @@ function AnimatedSphere() {
 
 export default function Hero() {
   return (
-    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-zinc-950">
+    <section className="relative h-screen w-full flex items-center justify-center overflow-hidden bg-neutral-50 dark:bg-zinc-950 transition-colors">
       <div className="absolute inset-0 z-0">
         <Canvas camera={{ position: [0, 0, 5], fov: 75 }}>
           <ambientLight intensity={0.5} />
@@ -40,15 +40,15 @@ export default function Hero() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="text-6xl md:text-8xl font-bold text-white tracking-tighter"
+          className="text-6xl md:text-8xl font-bold text-zinc-900 dark:text-white tracking-tighter"
         >
-          Creative <span className="text-indigo-500">Developer</span>
+          Creative <span className="text-indigo-600 dark:text-indigo-500">Developer</span>
         </motion.h1>
         <motion.p 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="mt-6 text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto"
+          className="mt-6 text-zinc-500 dark:text-zinc-400 text-lg md:text-xl max-w-2xl mx-auto"
         >
           Crafting immersive digital experiences where art meets code.
         </motion.p>

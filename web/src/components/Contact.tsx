@@ -6,7 +6,7 @@ import { Send } from 'lucide-react';
 
 export default function Contact() {
   return (
-    <section id="contact" className="py-24 px-4 bg-zinc-950 text-white">
+    <section id="contact" className="py-24 px-4 bg-neutral-50 dark:bg-zinc-950 text-zinc-900 dark:text-white transition-colors">
       <div className="max-w-4xl mx-auto text-center">
         <motion.div 
           initial={{ opacity: 0, scale: 0.9 }}
@@ -14,8 +14,8 @@ export default function Contact() {
           viewport={{ once: true }}
           className="mb-16"
         >
-          <h2 className="text-4xl font-bold mb-4">Get In <span className="text-indigo-500">Touch</span></h2>
-          <p className="text-zinc-400">Have a project in mind or just want to say hello?</p>
+          <h2 className="text-4xl font-bold mb-4">Get In <span className="text-indigo-600 dark:text-indigo-500">Touch</span></h2>
+          <p className="text-zinc-500 dark:text-zinc-400">Have a project in mind or just want to say hello?</p>
         </motion.div>
 
         <motion.form 
@@ -29,7 +29,7 @@ export default function Contact() {
               <label className="text-sm font-mono text-zinc-500 ml-1">Name</label>
               <input 
                 type="text" 
-                className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors"
+                className="px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors"
                 placeholder="John Doe"
               />
             </div>
@@ -37,7 +37,7 @@ export default function Contact() {
               <label className="text-sm font-mono text-zinc-500 ml-1">Email</label>
               <input 
                 type="email" 
-                className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors"
+                className="px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors"
                 placeholder="john@example.com"
               />
             </div>
@@ -46,7 +46,7 @@ export default function Contact() {
             <label className="text-sm font-mono text-zinc-500 ml-1">Message</label>
             <textarea 
               rows={5} 
-              className="px-4 py-3 bg-zinc-900 border border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors resize-none"
+              className="px-4 py-3 bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl focus:outline-none focus:border-indigo-500 transition-colors resize-none"
               placeholder="Tell me about your project..."
             />
           </div>
