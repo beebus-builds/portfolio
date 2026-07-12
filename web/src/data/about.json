@@ -1,0 +1,9 @@
+{
+  "title": "Designing the Future",
+  "paragraphs": [
+    "I am a software engineer with a passion for blending technical precision with creative expression. My approach focuses on creating intuitive, high-performance web applications that leave a lasting impression.",
+    "With expertise in modern frameworks and a deep love for motion design, I bridge the gap between static interfaces and living experiences."
+  ],
+  "skills": ["React", "Next.js", "Three.js", "Tailwind"],
+  "imagePlaceholder": "Image / Creative Element"
+}

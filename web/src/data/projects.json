@@ -1,0 +1,34 @@
+[
+  {
+    "id": 1,
+    "title": "AI Creative Studio",
+    "description": "A platform generating 3D art using generative AI.",
+    "tags": ["React", "Three.js", "OpenAI"],
+    "link": "#",
+    "github": "#"
+  },
+  {
+    "id": 2,
+    "title": "Neural Nexus",
+    "description": "Interactive visualization of neural network layers.",
+    "tags": ["TypeScript", "D3.js", "Next.js"],
+    "link": "#",
+    "github": "#"
+  },
+  {
+    "id": 3,
+    "title": "Quantum Dash",
+    "description": "High-performance dashboard for quantum computing metrics.",
+    "tags": ["Rust", "Wasm", "Tailwind"],
+    "link": "#",
+    "github": "#"
+  },
+  {
+    "id": 4,
+    "title": "Ethereal UI",
+    "description": "A design system focused on glassmorphism and depth.",
+    "tags": ["Figma", "React", "Framer"],
+    "link": "#",
+    "github": "#"
+  }
+]

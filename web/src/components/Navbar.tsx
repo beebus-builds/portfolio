@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Home, User, Briefcase, Mail } from 'lucide-react';
 import ThemeToggle from './ThemeToggle';
 
-const NavItem = ({ icon: Icon, label, href }: { icon: React.ElementType; label: string; href: string }) => (
+const NavItem = ({ icon: Icon, label, href }: { icon: React.ComponentType<{ size?: number }>; label: string; href: string }) => (
   <motion.a
     href={href}
     whileHover={{ scale: 1.1, y: -5 }}
