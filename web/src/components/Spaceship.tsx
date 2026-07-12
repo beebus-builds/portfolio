@@ -5,12 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { audioManager } from '@/lib/audio';
 
-const ACCEL = 20;
-const FRICTION = 0.98;
-const ROT_SPEED = 2.5;
-const MAX_SPEED = 15;
-
-interface Zone {
+interface Planet {
   id: string;
   position: THREE.Vector3;
   label: string;
@@ -18,130 +13,165 @@ interface Zone {
 }
 
 export default function Spaceship({
-  position,
-  velocity,
-  zones,
-  onProximity,
+  targetPlanetId,
+  planets,
+  onArrival,
 }: {
-  position: React.MutableRefObject<THREE.Vector3>;
-  velocity: React.MutableRefObject<THREE.Vector3>;
-  zones: Zone[];
-  onProximity: (zoneId: string | null) => void;
+  targetPlanetId: string | null;
+  planets: Planet[];
+  onArrival: () => void;
 }) {
   const shipRef = useRef<THREE.Group>(null);
   const thrusterRef = useRef<THREE.Mesh>(null);
-  const keys = useRef<Set<string>>(new Set());
-  const lastZone = useRef<string | null>(null);
+  
+  const startPos = useRef(new THREE.Vector3(0, 0, 0));
+  const currentPos = useRef(new THREE.Vector3(0, 0, 0));
+  const flightProgress = useRef(1); // 0 to 1
+  const activeTargetId = useRef<string | null>(null);
+
+  // For orbit animation
+  const orbitAngle = useRef(0);
 
   useEffect(() => {
-    const down = (e: KeyboardEvent) => keys.current.add(e.key.toLowerCase());
-    const up = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
-    window.addEventListener('keydown', down);
-    window.addEventListener('keyup', up);
-    return () => {
-      window.removeEventListener('keydown', down);
-      window.removeEventListener('keyup', up);
-    };
-  }, []);
+    if (targetPlanetId && targetPlanetId !== activeTargetId.current) {
+      activeTargetId.current = targetPlanetId;
+      startPos.current.copy(currentPos.current);
+      flightProgress.current = 0;
+      audioManager.playThruster(1);
+    }
+  }, [targetPlanetId]);
 
   useFrame((state, delta) => {
-    const moveDir = new THREE.Vector3();
-    if (keys.current.has('w') || keys.current.has('arrowup')) moveDir.z -= 1;
-    if (keys.current.has('s') || keys.current.has('arrowdown')) moveDir.z += 1;
-    if (keys.current.has('a') || keys.current.has('arrowleft')) moveDir.x -= 1;
-    if (keys.current.has('d') || keys.current.has('arrowright')) moveDir.x += 1;
-
-    if (moveDir.lengthSq() > 0) {
-      moveDir.normalize();
-      
-      // Apply acceleration
-      velocity.current.x += moveDir.x * ACCEL * delta;
-      velocity.current.z += moveDir.z * ACCEL * delta;
-      
-      // Rotate ship to face direction of movement
-      const targetRot = Math.atan2(moveDir.x, -moveDir.z);
-      if (shipRef.current) {
-        shipRef.current.rotation.y = THREE.MathUtils.lerp(
-          shipRef.current.rotation.y,
-          targetRot,
-          delta * ROT_SPEED
-        );
-      }
-      
-      // Thruster effect
-      if (thrusterRef.current) {
-        thrusterRef.current.scale.setScalar(1 + Math.random() * 0.3);
-      }
-      audioManager.playThruster(0.5);
-    } else {
-      if (thrusterRef.current) {
-        thrusterRef.current.scale.setScalar(1);
-      }
-    }
-
-    // Apply friction and speed limit
-    velocity.current.multiplyScalar(FRICTION);
-    if (velocity.current.length() > MAX_SPEED) {
-      velocity.current.setLength(MAX_SPEED);
-    }
-
-    // Update position
-    position.current.add(velocity.current.clone().multiplyScalar(delta));
-
-    if (shipRef.current) {
-      shipRef.current.position.copy(position.current);
-    }
-
-    // Proximity check
-    let found: string | null = null;
-    for (const zone of zones) {
-      if (position.current.distanceTo(zone.position) < 5) {
-        found = zone.id;
-        break;
-      }
-    }
-    if (found !== lastZone.current) {
-      lastZone.current = found;
-      onProximity(found);
-    }
-
-    // Camera follow
-    const camOffset = new THREE.Vector3(0, 4, 8);
-    camOffset.applyQuaternion(shipRef.current?.quaternion || new THREE.Quaternion());
-    const camTarget = position.current.clone().add(camOffset);
-    state.camera.position.lerp(camTarget, 0.05);
-    state.camera.lookAt(position.current);
+    const targetPlanet = planets.find(p => p.id === targetPlanetId);
     
-    // Dynamic FOV based on speed
-    const speed = velocity.current.length();
-    state.camera.fov = THREE.MathUtils.lerp(40, 60, speed / MAX_SPEED);
-    state.camera.updateProjectionMatrix();
+    if (targetPlanet && flightProgress.current < 1) {
+      // Autopilot flight / Warp
+      flightProgress.current += delta * 0.5; // Flight takes ~2 seconds
+      
+      if (flightProgress.current >= 1) {
+        flightProgress.current = 1;
+        onArrival();
+      }
+
+      // Linear interpolation with Bezier arc for space curve
+      const t = flightProgress.current;
+      const easeT = t * t * (3 - 2 * t); // Smoothstep
+
+      const targetPos = targetPlanet.position.clone();
+      
+      // Calculate a curved arc in space
+      const midpoint = new THREE.Vector3().addVectors(startPos.current, targetPos).multiplyScalar(0.5);
+      midpoint.y += startPos.current.distanceTo(targetPos) * 0.25; // Arches upwards
+
+      // Quadratic Bezier curve formula: (1-t)^2 * p0 + 2(1-t)t * p1 + t^2 * p2
+      const omt = 1 - easeT;
+      const term0 = startPos.current.clone().multiplyScalar(omt * omt);
+      const term1 = midpoint.multiplyScalar(2 * omt * easeT);
+      const term2 = targetPos.multiplyScalar(easeT * easeT);
+      
+      currentPos.current.copy(term0).add(term1).add(term2);
+
+      if (shipRef.current) {
+        // Face the movement direction
+        const lookTarget = targetPos.clone();
+        shipRef.current.lookAt(lookTarget);
+        shipRef.current.position.copy(currentPos.current);
+      }
+
+      // Thruster flare scaling during warp
+      if (thrusterRef.current) {
+        thrusterRef.current.scale.set(1.5, 1.5, 3 + Math.sin(state.clock.elapsedTime * 20) * 0.5);
+      }
+
+      // Camera: Cinematic warp angle (Chase)
+      const offset = new THREE.Vector3(0, 2, 6).applyQuaternion(shipRef.current?.quaternion || new THREE.Quaternion());
+      const camTarget = currentPos.current.clone().add(offset);
+      state.camera.position.lerp(camTarget, 0.08);
+      state.camera.lookAt(currentPos.current);
+
+      // FOV Stretch on Warp speed
+      const speedFactor = Math.sin(t * Math.PI); // Peakes in the middle
+      const camera = state.camera as THREE.PerspectiveCamera;
+      camera.fov = THREE.MathUtils.lerp(45, 75, speedFactor);
+      camera.updateProjectionMatrix();
+
+    } else if (targetPlanet) {
+      // Stable Orbit upon arrival
+      orbitAngle.current += delta * 0.3;
+      const orbitRadius = 4;
+      
+      const orbitPos = new THREE.Vector3(
+        targetPlanet.position.x + Math.cos(orbitAngle.current) * orbitRadius,
+        targetPlanet.position.y + 0.5,
+        targetPlanet.position.z + Math.sin(orbitAngle.current) * orbitRadius
+      );
+      
+      currentPos.current.copy(orbitPos);
+
+      if (shipRef.current) {
+        shipRef.current.position.copy(orbitPos);
+        // Face the direction of the orbit tangentially
+        const tangent = new THREE.Vector3(
+          -Math.sin(orbitAngle.current),
+          0,
+          Math.cos(orbitAngle.current)
+        ).add(orbitPos);
+        shipRef.current.lookAt(tangent);
+      }
+
+      if (thrusterRef.current) {
+        thrusterRef.current.scale.set(1, 1, 1);
+      }
+
+      // Camera: Smooth Cinematic Orbit camera
+      const camOffset = new THREE.Vector3(
+        Math.cos(orbitAngle.current + 0.5) * 6,
+        2.5,
+        Math.sin(orbitAngle.current + 0.5) * 6
+      );
+      const camTarget = targetPlanet.position.clone().add(camOffset);
+      state.camera.position.lerp(camTarget, 0.05);
+      state.camera.lookAt(targetPlanet.position);
+    } else {
+      // Initial state: Float near center
+      orbitAngle.current += delta * 0.1;
+      currentPos.current.set(Math.cos(orbitAngle.current) * 2, 1, Math.sin(orbitAngle.current) * 2);
+      if (shipRef.current) {
+        shipRef.current.position.copy(currentPos.current);
+        shipRef.current.rotation.y += delta * 0.1;
+      }
+    }
   });
 
   return (
     <group ref={shipRef}>
-      {/* Ship Body */}
+      {/* Premium Metallic Spaceship */}
       <mesh position={[0, 0, 0]}>
-        <coneGeometry args={[0.3, 1.2, 4]} />
-        <meshStandardMaterial color="#ffffff" roughness={0.1} metalness={1} />
+        <coneGeometry args={[0.2, 1.2, 4]} />
+        <meshPhysicalMaterial 
+          color="#ffffff" 
+          metalness={1} 
+          roughness={0.05} 
+          clearcoat={1} 
+          clearcoatRoughness={0} 
+        />
       </mesh>
-      {/* Wings */}
-      <mesh position={[0, 0, 0.2]} rotation={[0, 0, Math.PI]}>
-        <boxGeometry args={[1.5, 0.1, 0.5]} />
-        <meshStandardMaterial color="#6366f1" roughness={0.1} metalness={1} />
+      {/* Ship Wings */}
+      <mesh position={[0, -0.05, 0.2]} rotation={[0, 0, Math.PI]}>
+        <boxGeometry args={[1.5, 0.03, 0.5]} />
+        <meshPhysicalMaterial color="#6366f1" metalness={1} roughness={0.1} />
       </mesh>
-      {/* Cockpit */}
-      <mesh position={[0, 0.2, -0.1]}>
-        <sphereGeometry args={[0.15, 16, 16]} />
-        <meshStandardMaterial color="#00ffff" transparent opacity={0.6} roughness={0} />
+      {/* High-tech Cockpit */}
+      <mesh position={[0, 0.12, -0.1]}>
+        <sphereGeometry args={[0.1, 16, 16]} />
+        <meshPhysicalMaterial color="#00ffff" transparent opacity={0.6} roughness={0} />
       </mesh>
-      {/* Thruster Flame */}
-      <mesh ref={thrusterRef} position={[0, 0, 0.6]}>
-        <cylinderGeometry args={[0.1, 0, 0.4, 8]} />
-        <meshBasicMaterial color="#6366f1" transparent opacity={0.8} />
+      {/* Hyper-drive engine flame */}
+      <mesh ref={thrusterRef} position={[0, 0, 0.6]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.06, 0, 0.4, 8]} />
+        <meshBasicMaterial color="#3b82f6" transparent opacity={0.9} />
       </mesh>
-      {/* Ship Light */}
-      <pointLight intensity={2} distance={4} color="#6366f1" position={[0, 0, -1]} />
+      <pointLight intensity={3} distance={5} color="#3b82f6" position={[0, 0, -1]} />
     </group>
   );
 }

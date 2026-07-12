@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Creative Portfolio | Software Engineer",
-  description: "Immersive digital experiences crafted with code and art.",
+  title: "Bibash Poudel | Galactic Portfolio",
+  description: "Exploring the intersection of BIT, 3D Art, and Software Engineering.",
 };
 
 export default function RootLayout({

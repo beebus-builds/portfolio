@@ -1,9 +1,10 @@
 {
-  "title": "Designing the Future",
+  "title": "The Architect of Digital Voids",
   "paragraphs": [
-    "I am a software engineer with a passion for blending technical precision with creative expression. My approach focuses on creating intuitive, high-performance web applications that leave a lasting impression.",
-    "With expertise in modern frameworks and a deep love for motion design, I bridge the gap between static interfaces and living experiences."
+    "I am Bibash Poudel, a 23-year-old technologist born in the serene landscapes of Sindhuli, Nepal. My journey into the digital realm is driven by a relentless curiosity to bridge the gap between complex logic and immersive art.",
+    "Currently pursuing a Bachelor of Information Technology (BIT) at Bhaktapur Multiple Campus, I specialize in crafting high-performance web architectures and experimental 3D interfaces.",
+    "As an intern at Smartsites Nepal, I apply academic rigor to real-world challenges, focusing on scalable solutions and cutting-edge user experiences. I believe that code is a canvas and the browser is my gallery."
   ],
-  "skills": ["React", "Next.js", "Three.js", "Tailwind"],
-  "imagePlaceholder": "Image / Creative Element"
+  "skills": ["React", "Next.js", "Three.js", "TypeScript", "Node.js", "Tailwind CSS"],
+  "imagePlaceholder": "Cybernetic Portrait"
 }
