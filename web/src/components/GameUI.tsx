@@ -8,7 +8,6 @@ interface AboutData {
   title: string;
   paragraphs: string[];
   skills: string[];
-  imagePlaceholder: string;
 }
 
 interface Project {
@@ -20,6 +19,37 @@ interface Project {
   github: string;
 }
 
+const PanelWrapper = ({ title, children, color, onClose }: { title: string; children: React.ReactNode; color: string; onClose: () => void }) => (
+  <motion.div
+    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+    animate={{ scale: 1, opacity: 1, y: 0 }}
+    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+    className={`relative bg-zinc-950/80 backdrop-blur-xl border-2 ${color} rounded-2xl shadow-[0_0_40px_-10px_rgba(0,0,0,0.5)] w-full max-w-2xl mx-4 max-h-[85vh] flex flex-col overflow-hidden`}
+  >
+    {/* Corner Accents */}
+    <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-white/30 rounded-tl-2xl" />
+    <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-white/30 rounded-tr-2xl" />
+    <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-white/30 rounded-bl-2xl" />
+    <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-white/30 rounded-br-2xl" />
+
+    <div className="flex items-center justify-between px-6 py-5 border-b border-white/10">
+      <div className="flex items-center gap-3">
+        <div className="w-2 h-2 rounded-full animate-pulse bg-white" />
+        <h2 className="text-lg font-mono font-bold text-white tracking-widest uppercase">{title}</h2>
+      </div>
+      <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors p-1">
+        <X size={20} />
+      </button>
+    </div>
+    <div className="flex-1 overflow-y-auto scrollbar-hide p-8">
+      {children}
+    </div>
+    <div className="px-6 py-3 bg-white/5 border-t border-white/10 text-center">
+      <span className="text-[10px] text-zinc-500 font-mono tracking-tighter">SYSTEM_STATUS: OPERATIONAL // ACCESS_GRANTED</span>
+    </div>
+  </motion.div>
+);
+
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const [data, setData] = useState<AboutData | null>(null);
   useEffect(() => {
@@ -27,21 +57,21 @@ function AboutPanel({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="h-full overflow-y-auto p-8">
-      <div className="max-w-2xl mx-auto">
-        <h2 className="text-3xl font-bold mb-4">
-          {data?.title ?? 'About'} <span className="text-indigo-500">Me</span>
-        </h2>
+    <div className="max-w-2xl mx-auto text-center">
+      <h3 className="text-4xl font-black text-white mb-6 tracking-tighter italic">
+        {data?.title ?? 'ARCHIVE_01'}
+      </h3>
+      <div className="space-y-4 text-zinc-400 text-sm leading-relaxed">
         {data?.paragraphs?.map((p, i) => (
-          <p key={i} className="text-zinc-400 text-base leading-relaxed mb-4">{p}</p>
+          <p key={i} className="opacity-80">{p}</p>
         ))}
-        <div className="flex gap-3 flex-wrap mt-6">
-          {(data?.skills ?? []).map(s => (
-            <span key={s} className="px-3 py-1.5 bg-zinc-800/50 border border-zinc-700/50 rounded-lg text-sm font-mono text-indigo-400">
-              {s}
-            </span>
-          ))}
-        </div>
+      </div>
+      <div className="flex gap-2 flex-wrap justify-center mt-8">
+        {(data?.skills ?? []).map(s => (
+          <span key={s} className="px-3 py-1 bg-white/5 border border-white/10 rounded-md text-xs font-mono text-indigo-400">
+            {s}
+          </span>
+        ))}
       </div>
     </div>
   );
@@ -54,32 +84,27 @@ function ProjectsPanel({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div className="h-full overflow-y-auto p-8">
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold mb-8">
-          Selected <span className="text-indigo-500">Works</span>
-        </h2>
-        <div className="grid gap-4">
-          {projects.map(p => (
-            <div key={p.id} className="p-5 bg-zinc-800/30 border border-zinc-700/50 rounded-xl hover:border-indigo-500/40 transition-colors">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="text-lg font-semibold text-white">{p.title}</h3>
-                <div className="flex gap-2">
-                  <a href={p.github} className="text-zinc-500 hover:text-white transition-colors"><Code size={16} /></a>
-                  <a href={p.link} className="text-zinc-500 hover:text-white transition-colors"><ExternalLink size={16} /></a>
-                </div>
-              </div>
-              <p className="text-zinc-400 text-sm mb-3">{p.description}</p>
-              <div className="flex gap-2 flex-wrap">
-                {p.tags.map(t => (
-                  <span key={t} className="text-xs font-mono px-2 py-1 bg-zinc-800 border border-zinc-700 text-zinc-400 rounded-full">
-                    {t}
-                  </span>
-                ))}
+    <div className="max-w-3xl mx-auto">
+      <div className="grid gap-4">
+        {projects.map(p => (
+          <div key={p.id} className="group p-5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all duration-300">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="text-lg font-bold text-white group-hover:text-indigo-400 transition-colors">{p.title}</h3>
+              <div className="flex gap-3">
+                <a href={p.github} className="text-zinc-500 hover:text-white transition-colors"><Code size={16} /></a>
+                <a href={p.link} className="text-zinc-500 hover:text-white transition-colors"><ExternalLink size={16} /></a>
               </div>
             </div>
-          ))}
-        </div>
+            <p className="text-zinc-400 text-xs mb-4 leading-relaxed">{p.description}</p>
+            <div className="flex gap-2 flex-wrap">
+              {p.tags.map(t => (
+                <span key={t} className="text-[10px] font-mono px-2 py-0.5 bg-white/10 border border-white/10 text-zinc-400 rounded">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -111,51 +136,45 @@ function ContactPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="h-full overflow-y-auto p-8">
-      <div className="max-w-xl mx-auto">
-        <h2 className="text-3xl font-bold mb-2">
-          Get In <span className="text-indigo-500">Touch</span>
-        </h2>
-        <p className="text-zinc-500 mb-8 text-sm">Have a project in mind? Drop a message.</p>
-        <form onSubmit={handleSubmit} className="grid gap-5">
-          <div className="grid md:grid-cols-2 gap-5">
-            <div>
-              <label className="text-xs font-mono text-zinc-500 mb-1 block">Name</label>
-              <input value={name} onChange={e => setName(e.target.value)} required
-                className="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl focus:outline-none focus:border-indigo-500 text-white text-sm" placeholder="John Doe" />
-            </div>
-            <div>
-              <label className="text-xs font-mono text-zinc-500 mb-1 block">Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
-                className="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl focus:outline-none focus:border-indigo-500 text-white text-sm" placeholder="john@example.com" />
-            </div>
+    <div className="max-w-xl mx-auto">
+      <form onSubmit={handleSubmit} className="grid gap-6">
+        <div className="grid md:grid-cols-2 gap-6">
+          <div>
+            <label className="text-[10px] font-mono text-zinc-500 uppercase mb-1 block">Identifier</label>
+            <input value={name} onChange={e => setName(e.target.value)} required
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-indigo-500 text-white text-sm transition-colors" placeholder="User Name" />
           </div>
           <div>
-            <label className="text-xs font-mono text-zinc-500 mb-1 block">Message</label>
-            <textarea value={message} onChange={e => setMessage(e.target.value)} required rows={4}
-              className="w-full px-4 py-2.5 bg-zinc-800/50 border border-zinc-700/50 rounded-xl focus:outline-none focus:border-indigo-500 text-white text-sm resize-none" />
+            <label className="text-[10px] font-mono text-zinc-500 uppercase mb-1 block">Comm_Link</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+              className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-indigo-500 text-white text-sm transition-colors" placeholder="email@void.com" />
           </div>
-          <button type="submit" disabled={status === 'loading'}
-            className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl font-medium hover:bg-indigo-500 transition-colors disabled:opacity-50 text-sm">
-            {status === 'loading' ? 'Sending...' : status === 'success' ? <><CheckCircle size={16} /> Sent!</> : status === 'error' ? <><AlertCircle size={16} /> Failed</> : <><Send size={16} /> Send Message</>}
-          </button>
-        </form>
-      </div>
+        </div>
+        <div>
+          <label className="text-[10px] font-mono text-zinc-500 uppercase mb-1 block">Transmission</label>
+          <textarea value={message} onChange={e => setMessage(e.target.value)} required rows={4}
+            className="w-full px-4 py-2 bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:border-indigo-500 text-white text-sm resize-none transition-colors" />
+        </div>
+        <button type="submit" disabled={status === 'loading'}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-500 transition-all disabled:opacity-50 text-xs uppercase tracking-widest">
+          {status === 'loading' ? 'TRANSMITTING...' : status === 'success' ? <><CheckCircle size={16} /> LINK ESTABLISHED</> : status === 'error' ? <><AlertCircle size={16} /> SIGNAL LOST</> : <><Send size={16} /> SEND SIGNAL</>}
+        </button>
+      </form>
     </div>
   );
 }
 
 export default function GameUI({ activeZone, isOpen, onClose }: { activeZone: string | null; isOpen: boolean; onClose: () => void }) {
   const zoneColors: Record<string, string> = {
-    about: 'border-purple-500/30',
-    projects: 'border-indigo-500/30',
-    contact: 'border-pink-500/30',
+    about: 'border-purple-500/50 shadow-purple-500/20',
+    projects: 'border-indigo-500/50 shadow-indigo-500/20',
+    contact: 'border-pink-500/50 shadow-pink-500/20',
   };
 
   const zoneTitles: Record<string, string> = {
-    about: 'About Me',
-    projects: 'Projects',
-    contact: 'Contact',
+    about: 'USER_CORE_DATA',
+    projects: 'PROJECT_REPOSITORY',
+    contact: 'COMMUNICATION_HUB',
   };
 
   return (
@@ -165,30 +184,17 @@ export default function GameUI({ activeZone, isOpen, onClose }: { activeZone: st
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-20 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-20 flex items-center justify-center bg-black/40 backdrop-blur-md"
         >
-          <motion.div
-            initial={{ scale: 0.9, y: 30, opacity: 0 }}
-            animate={{ scale: 1, y: 0, opacity: 1 }}
-            exit={{ scale: 0.9, y: 30, opacity: 0 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-            className={`bg-zinc-900/95 border ${zoneColors[activeZone] ?? 'border-zinc-700/50'} rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[80vh] flex flex-col overflow-hidden`}
+          <PanelWrapper 
+            title={zoneTitles[activeZone] ?? activeZone} 
+            color={zoneColors[activeZone] ?? 'border-zinc-700/50'} 
+            onClose={onClose}
           >
-            <div className="flex items-center justify-between px-6 py-4 border-b border-zinc-800/50">
-              <h2 className="text-lg font-bold text-white">{zoneTitles[activeZone] ?? activeZone}</h2>
-              <button onClick={onClose} className="text-zinc-500 hover:text-white transition-colors p-1">
-                <X size={18} />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0">
-              {activeZone === 'about' && <AboutPanel onClose={onClose} />}
-              {activeZone === 'projects' && <ProjectsPanel onClose={onClose} />}
-              {activeZone === 'contact' && <ContactPanel onClose={onClose} />}
-            </div>
-            <div className="px-6 py-3 border-t border-zinc-800/50 text-center">
-              <span className="text-xs text-zinc-600 font-mono">Press <kbd className="text-zinc-400 bg-zinc-800 px-1 rounded">E</kbd> or <kbd className="text-zinc-400 bg-zinc-800 px-1 rounded">Esc</kbd> to close</span>
-            </div>
-          </motion.div>
+            {activeZone === 'about' && <AboutPanel onClose={onClose} />}
+            {activeZone === 'projects' && <ProjectsPanel onClose={onClose} />}
+            {activeZone === 'contact' && <ContactPanel onClose={onClose} />}
+          </PanelWrapper>
         </motion.div>
       )}
     </AnimatePresence>
