@@ -27,23 +27,23 @@ html {
   scroll-behavior: smooth;
 }
 
+body {
+  overflow: hidden;
+}
+
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--background);
+  background: #09090b;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #a1a1aa;
+  background: #27272a;
   border-radius: 10px;
 }
 
-.dark ::-webkit-scrollbar-thumb {
-  background: #27272a;
-}
-
 ::-webkit-scrollbar-thumb:hover {
-  background: #71717a;
+  background: #3f3f46;
 }
