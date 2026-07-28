@@ -1,206 +1,163 @@
 "use client";
 
-import { useRef, useLayoutEffect, useMemo } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Stars, Float, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { GAME, PLANETS } from '@/lib/config';
 
-const planets: { id: string; position: [number, number, number]; color: string; label: string; emissive: string }[] = [
-  { id: 'about', position: [-25, 0, -25], color: '#a855f7', emissive: '#4a154b', label: 'S-1: CORE_MEMORIES' },
-  { id: 'skills', position: [25, 0, -25], color: '#3b82f6', emissive: '#0c2340', label: 'S-2: TECH_LAB' },
-  { id: 'experience', position: [30, 0, 15], color: '#10b981', emissive: '#0a3622', label: 'S-3: TEMPORAL_GRID' },
-  { id: 'projects', position: [-30, 0, 15], color: '#6366f1', emissive: '#1d1b4c', label: 'S-4: THE_FORGE' },
-  { id: 'contact', position: [0, 0, 35], color: '#ec4899', emissive: '#4c1d3c', label: 'S-5: SIGNAL_BEACON' },
-];
+interface PlanetData {
+  id: string;
+  position: THREE.Vector3;
+  label: string;
+  color: string;
+}
 
-function CentralStar() {
-  const ref = useRef<THREE.Mesh>(null);
-  useFrame((state) => {
-    if (ref.current) {
-      ref.current.scale.setScalar(1 + Math.sin(state.clock.elapsedTime * 0.8) * 0.05);
-    }
-  });
+interface UniverseProps {
+  gameState: 'menu' | 'playing' | 'orbit' | 'gameover';
+  shipPos: React.MutableRefObject<THREE.Vector3>;
+  onCollect: () => void;
+  onHit: () => void;
+  activeZone: string | null;
+  planets?: PlanetData[];
+}
 
+function Starfield() {
+  return <Stars radius={100} depth={50} count={GAME.STAR_COUNT} factor={4} saturation={0} fade speed={1} />;
+}
+
+function Nebula({ color, position }: { color: string; position: [number, number, number] }) {
   return (
-    <mesh ref={ref} position={[0, 0, 0]}>
-      <sphereGeometry args={[4.5, 32, 32]} />
-      <meshBasicMaterial color="#ffffff" />
-      <pointLight intensity={10} distance={150} color="#ffffff" />
-    </mesh>
+    <Float speed={1} rotationIntensity={0.5} floatIntensity={0.5}>
+      <mesh position={position}>
+        <sphereGeometry args={[15, 32, 32]} />
+        <meshBasicMaterial color={color} transparent opacity={0.05} blending={THREE.AdditiveBlending} />
+      </mesh>
+    </Float>
   );
 }
 
-function PlanetRings({ radius, color }: { radius: number; color: string }) {
-  const ref = useRef<THREE.Points>(null);
-  
-  useLayoutEffect(() => {
-    if (ref.current) {
-      const count = 300;
-      const positions = new Float32Array(count * 3);
-      for (let i = 0; i < count; i++) {
-        const angle = (i / count) * Math.PI * 2 + Math.random() * 0.1;
-        const dist = radius + (Math.random() - 0.5) * 1.5;
-        positions[i * 3] = Math.cos(angle) * dist;
-        positions[i * 3 + 1] = (Math.random() - 0.5) * 0.1;
-        positions[i * 3 + 2] = Math.sin(angle) * dist;
-      }
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-      ref.current.geometry = geometry;
-    }
-  }, [radius]);
-
-  useFrame(() => {
-    if (ref.current) {
-      ref.current.rotation.y += 0.003;
-    }
-  });
-
-  return (
-    <points ref={ref}>
-      <pointsMaterial size={0.08} color={color} transparent opacity={0.5} sizeAttenuation />
-    </points>
-  );
-}
-
-function CustomPlanet({ id, position, color, label, emissive, index }: { id: string; position: [number, number, number]; color: string; label: string; emissive: string; index: number }) {
-  const planetRef = useRef<THREE.Group>(null);
-  const coreRef = useRef<THREE.Mesh>(null);
-
+function Planet({ data }: { data: PlanetData }) {
+  const ref = useRef<THREE.Group>(null);
   useFrame((state) => {
-    if (planetRef.current) {
-      planetRef.current.rotation.y = state.clock.elapsedTime * 0.08;
-    }
-    if (coreRef.current) {
-      coreRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5 + index) * 0.15;
+    if (ref.current) {
+      ref.current.position.y = Math.sin(state.clock.elapsedTime * 0.3 + data.position.x) * 0.5;
+      ref.current.rotation.y += 0.002;
     }
   });
 
-  const baseColor = new THREE.Color(color);
-  const glowColor = new THREE.Color(emissive);
-
   return (
-    <group position={position} ref={planetRef}>
-      {/* Central Planet Sphere */}
-      <mesh ref={coreRef}>
-        <sphereGeometry args={[2.5, 32, 32]} />
-        <meshPhysicalMaterial 
-          color={baseColor} 
-          emissive={glowColor}
-          emissiveIntensity={1.5}
-          roughness={0.15} 
-          metalness={0.8}
-          clearcoat={1}
-          clearcoatRoughness={0.1}
-        />
+    <group ref={ref} position={data.position}>
+      <mesh>
+        <sphereGeometry args={[1.2, 32, 32]} />
+        <meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={0.3} roughness={0.2} metalness={0.8} />
       </mesh>
-
-      {/* Decorative Orbits depending on target */}
-      {id === 'projects' && <PlanetRings radius={5.5} color={color} />}
-      {id === 'skills' && <PlanetRings radius={4.5} color={color} />}
-      
-      {id === 'contact' && (
-        <mesh scale={1.22}>
-          <sphereGeometry args={[2.5, 12, 12]} />
-          <meshBasicMaterial color={color} wireframe transparent opacity={0.12} />
-        </mesh>
-      )}
-
-      {id === 'experience' && (
-        <mesh rotation={[Math.PI / 4, 0, 0]}>
-          <torusGeometry args={[3.8, 0.02, 8, 64]} />
-          <meshBasicMaterial color={color} transparent opacity={0.4} />
-        </mesh>
-      )}
-
-      {/* Atmosphere Envelope */}
-      <mesh scale={1.04}>
-        <sphereGeometry args={[2.5, 32, 32]} />
-        <meshBasicMaterial color={color} transparent opacity={0.04} side={THREE.BackSide} />
+      <mesh>
+        <sphereGeometry args={[1.6, 32, 32]} />
+        <meshBasicMaterial color={data.color} transparent opacity={0.1} />
       </mesh>
-
-      {/* Floating Orbital Label */}
-      <Text
-        position={[0, 4.2, 0]}
-        color={color}
-        fontSize={1.2}
-        anchorX="center"
-        anchorY="middle"
-        fillOpacity={0.8}
-      >
-        {label}
+      <mesh rotation={[Math.PI / 3, 0, 0]}>
+        <torusGeometry args={[1.8, 0.04, 8, 48]} />
+        <meshBasicMaterial color={data.color} transparent opacity={0.4} />
+      </mesh>
+      <Text position={[0, -2.2, 0]} color={data.color} fontSize={0.25} anchorX="center" anchorY="top" fillOpacity={0.8}>
+        {data.label}
       </Text>
     </group>
   );
 }
 
-function FloatingShards() {
-  const shards = useMemo(() => {
-    return Array.from({ length: 40 }, () => ({
-      pos: [ (Math.random() - 0.5) * 80, Math.random() * 25 + 2, (Math.random() - 0.5) * 80 ],
-      rot: [ Math.random() * Math.PI, Math.random() * Math.PI, Math.random() * Math.PI ],
-      scale: Math.random() * 0.4 + 0.1,
-    }));
-  }, []);
+export default function Universe({ gameState, shipPos, onCollect, onHit, activeZone, planets }: UniverseProps) {
+  const obstaclesRef = useRef<THREE.Group>(null);
+  const itemsRef = useRef<THREE.Group>(null);
+  
+  const objects = useRef<{ mesh: THREE.Mesh; type: 'asteroid' | 'core' }[]>([]);
+  const spawnTimer = useRef(0);
 
-  return (
-    <group>
-      {shards.map((s, i) => (
-        <mesh key={i} position={s.pos as [number, number, number]} rotation={s.rot as [number, number, number]} scale={s.scale}>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshPhysicalMaterial color="#050506" roughness={0} metalness={1} />
-        </mesh>
-      ))}
-    </group>
-  );
-}
+  useFrame((state, delta) => {
+    if (gameState !== 'playing') return;
 
-function CosmicDust() {
-  const pointsRef = useRef<THREE.Points>(null);
-  useLayoutEffect(() => {
-    if (pointsRef.current) {
-      const count = 4000;
-      const pos = new Float32Array(count * 3);
-      for (let i = 0; i < count * 3; i++) {
-        pos[i] = (Math.random() - 0.5) * 160;
+    spawnTimer.current += delta;
+    if (spawnTimer.current > GAME.UNIVERSE_SPAWN_INTERVAL) {
+      spawnObject();
+      spawnTimer.current = 0;
+    }
+
+    const currentObjects = [...objects.current];
+    currentObjects.forEach((obj) => {
+      obj.mesh.position.z += GAME.UNIVERSE_OBJECT_SPEED * delta;
+
+      const dist = new THREE.Vector2(obj.mesh.position.x - shipPos.current.x, obj.mesh.position.z - 0).length();
+      if (dist < GAME.UNIVERSE_COLLISION_DISTANCE) {
+        if (obj.type === 'asteroid') {
+          onHit();
+        } else {
+          onCollect();
+        }
+        sceneCleanup(obj.mesh);
       }
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      pointsRef.current.geometry = geometry;
-    }
-  }, []);
 
-  useFrame((state) => {
-    if (pointsRef.current) {
-      pointsRef.current.rotation.y += 0.00015;
-    }
+      if (obj.mesh.position.z > GAME.UNIVERSE_DESPAWN_Z) {
+        sceneCleanup(obj.mesh);
+      }
+    });
   });
 
-  return (
-    <points ref={pointsRef}>
-      <pointsMaterial size={0.08} color="#ffffff" transparent opacity={0.15} />
-    </points>
-  );
-}
+  const sceneCleanup = (mesh: THREE.Mesh) => {
+    mesh.removeFromParent();
+    mesh.geometry.dispose();
+    if (Array.isArray(mesh.material)) {
+      mesh.material.forEach(m => m.dispose());
+    } else {
+      mesh.material.dispose();
+    }
+    objects.current = objects.current.filter(o => o.mesh !== mesh);
+  };
 
-export default function Universe() {
+  const spawnObject = () => {
+    const isAsteroid = Math.random() > GAME.UNIVERSE_ASTEROID_CHANCE;
+    const xPos = (Math.random() - 0.5) * GAME.UNIVERSE_SPAWN_RANGE_X * 2;
+    const zPos = GAME.UNIVERSE_SPAWN_Z;
+    const color = isAsteroid ? '#444444' : '#6366f1';
+    
+    const mesh = new THREE.Mesh(
+      isAsteroid ? new THREE.IcosahedronGeometry(0.5, 0) : new THREE.SphereGeometry(0.3, 16, 16),
+      new THREE.MeshStandardMaterial({ 
+        color: color, 
+        emissive: isAsteroid ? '#000000' : color,
+        emissiveIntensity: isAsteroid ? 0 : 2,
+        roughness: 0.1,
+        metalness: 1
+      })
+    );
+    
+    mesh.position.set(xPos, 0, zPos);
+    
+    if (isAsteroid) {
+      obstaclesRef.current?.add(mesh);
+    } else {
+      itemsRef.current?.add(mesh);
+    }
+    
+    objects.current.push({ mesh, type: isAsteroid ? 'asteroid' : 'core' });
+  };
+
   return (
     <group>
-      <Stars radius={120} depth={50} count={15000} factor={4} saturation={0} fade speed={1} />
-      <CosmicDust />
-      <CentralStar />
-      <FloatingShards />
-      {planets.map((planet, i) => (
-        <CustomPlanet 
-          key={planet.id} 
-          id={planet.id}
-          position={planet.position} 
-          color={planet.color} 
-          emissive={planet.emissive}
-          label={planet.label} 
-          index={i} 
-        />
-      ))}
+      <Starfield />
+      <Nebula color="#4f46e5" position={[-30, 0, -40]} />
+      <Nebula color="#8b5cf6" position={[30, 10, -30]} />
+      <Nebula color="#ec4899" position={[0, -10, 30]} />
+      
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.5, 0]}>
+        <planeGeometry args={[100, 100]} />
+        <meshStandardMaterial color="#020203" roughness={0.1} metalness={1} />
+      </mesh>
+
+      <group ref={obstaclesRef} />
+      <group ref={itemsRef} />
+
+      {planets?.map(p => <Planet key={p.id} data={p} />)}
     </group>
   );
 }

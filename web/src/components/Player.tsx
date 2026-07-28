@@ -3,9 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
-
-const SPEED = 5;
-const BOUNDS = 12;
+import { GAME } from '@/lib/config';
 
 interface Zone {
   id: string;
@@ -51,12 +49,12 @@ export default function Player({
     const moving = dir.lengthSq() > 0;
     if (moving) {
       dir.normalize();
-      position.current.x += dir.x * SPEED * delta;
-      position.current.z += dir.z * SPEED * delta;
+      position.current.x += dir.x * GAME.PLAYER_SPEED * delta;
+      position.current.z += dir.z * GAME.PLAYER_SPEED * delta;
     }
 
-    position.current.x = Math.max(-BOUNDS, Math.min(BOUNDS, position.current.x));
-    position.current.z = Math.max(-BOUNDS, Math.min(BOUNDS, position.current.z));
+    position.current.x = Math.max(-GAME.PLAYER_BOUNDS, Math.min(GAME.PLAYER_BOUNDS, position.current.x));
+    position.current.z = Math.max(-GAME.PLAYER_BOUNDS, Math.min(GAME.PLAYER_BOUNDS, position.current.z));
 
     if (groupRef.current) {
       groupRef.current.position.copy(position.current);
@@ -65,7 +63,7 @@ export default function Player({
     let found: string | null = null;
     for (const zone of zones) {
       const dist = position.current.distanceTo(zone.position);
-      if (dist < 3) {
+      if (dist < GAME.PLAYER_PROXIMITY_DISTANCE) {
         found = zone.id;
         break;
       }
@@ -76,8 +74,8 @@ export default function Player({
     }
 
     // Floating animation
-    bobPhase.current += delta * 2;
-    const bobY = 0.6 + Math.sin(bobPhase.current) * 0.1;
+    bobPhase.current += delta * GAME.PLAYER_BOB_SPEED;
+    const bobY = 0.6 + Math.sin(bobPhase.current) * GAME.PLAYER_BOB_AMPLITUDE;
     
     if (groupRef.current) {
       groupRef.current.position.y = bobY;

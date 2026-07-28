@@ -4,142 +4,80 @@ import { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { audioManager } from '@/lib/audio';
-
-interface Planet {
-  id: string;
-  position: THREE.Vector3;
-  label: string;
-  color: string;
-}
+import { GAME } from '@/lib/config';
 
 export default function Spaceship({
-  targetPlanetId,
-  planets,
-  onArrival,
+  shipX,
+  gameState,
 }: {
-  targetPlanetId: string | null;
-  planets: Planet[];
-  onArrival: () => void;
+  shipX: React.MutableRefObject<THREE.Vector3>;
+  gameState: 'menu' | 'playing' | 'orbit' | 'gameover';
 }) {
   const shipRef = useRef<THREE.Group>(null);
   const thrusterRef = useRef<THREE.Mesh>(null);
-  
-  const startPos = useRef(new THREE.Vector3(0, 0, 0));
-  const currentPos = useRef(new THREE.Vector3(0, 0, 0));
-  const flightProgress = useRef(1); // 0 to 1
-  const activeTargetId = useRef<string | null>(null);
-
-  // For orbit animation
-  const orbitAngle = useRef(0);
+  const keys = useRef<Set<string>>(new Set());
+  const tilt = useRef(0);
 
   useEffect(() => {
-    if (targetPlanetId && targetPlanetId !== activeTargetId.current) {
-      activeTargetId.current = targetPlanetId;
-      startPos.current.copy(currentPos.current);
-      flightProgress.current = 0;
-      audioManager.playThruster(1);
-    }
-  }, [targetPlanetId]);
+    const down = (e: KeyboardEvent) => keys.current.add(e.key.toLowerCase());
+    const up = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
+    window.addEventListener('keydown', down);
+    window.addEventListener('keyup', up);
+    return () => {
+      window.removeEventListener('keydown', down);
+      window.removeEventListener('keyup', up);
+    };
+  }, []);
 
   useFrame((state, delta) => {
-    const targetPlanet = planets.find(p => p.id === targetPlanetId);
-    
-    if (targetPlanet && flightProgress.current < 1) {
-      // Autopilot flight / Warp
-      flightProgress.current += delta * 0.5; // Flight takes ~2 seconds
-      
-      if (flightProgress.current >= 1) {
-        flightProgress.current = 1;
-        onArrival();
-      }
+    let dir = 0;
+    if (keys.current.has('a') || keys.current.has('arrowleft')) dir -= 1;
+    if (keys.current.has('d') || keys.current.has('arrowright')) dir += 1;
 
-      // Linear interpolation with Bezier arc for space curve
-      const t = flightProgress.current;
-      const easeT = t * t * (3 - 2 * t); // Smoothstep
-
-      const targetPos = targetPlanet.position.clone();
-      
-      // Calculate a curved arc in space
-      const midpoint = new THREE.Vector3().addVectors(startPos.current, targetPos).multiplyScalar(0.5);
-      midpoint.y += startPos.current.distanceTo(targetPos) * 0.25; // Arches upwards
-
-      // Quadratic Bezier curve formula: (1-t)^2 * p0 + 2(1-t)t * p1 + t^2 * p2
-      const omt = 1 - easeT;
-      const term0 = startPos.current.clone().multiplyScalar(omt * omt);
-      const term1 = midpoint.multiplyScalar(2 * omt * easeT);
-      const term2 = targetPos.multiplyScalar(easeT * easeT);
-      
-      currentPos.current.copy(term0).add(term1).add(term2);
+    if (gameState === 'playing') {
+      // Manual steer during running phase
+      shipX.current.x += dir * GAME.SHIP_SENSITIVITY * delta;
+      shipX.current.x = THREE.MathUtils.clamp(shipX.current.x, -GAME.SHIP_BOUNDS, GAME.SHIP_BOUNDS);
+      tilt.current = THREE.MathUtils.lerp(tilt.current, -dir * GAME.SHIP_TILT_FACTOR, delta * 8);
 
       if (shipRef.current) {
-        // Face the movement direction
-        const lookTarget = targetPos.clone();
-        shipRef.current.lookAt(lookTarget);
-        shipRef.current.position.copy(currentPos.current);
+        shipRef.current.position.set(shipX.current.x, 0, 0);
+        shipRef.current.rotation.set(0, 0, tilt.current);
       }
 
-      // Thruster flare scaling during warp
+      // Smooth camera chase
+      const camTarget = new THREE.Vector3(
+        shipX.current.x * GAME.SHIP_CAMERA_OFFSET.x,
+        GAME.SHIP_CAMERA_OFFSET.y,
+        GAME.SHIP_CAMERA_OFFSET.z
+      );
+      state.camera.position.lerp(camTarget, GAME.CAMERA_LERP_SPEED);
+      state.camera.lookAt(shipX.current.x * GAME.SHIP_CAMERA_LOOKAHEAD.x, 0, GAME.SHIP_CAMERA_LOOKAHEAD.z);
+
       if (thrusterRef.current) {
         thrusterRef.current.scale.set(1.5, 1.5, 3 + Math.sin(state.clock.elapsedTime * 20) * 0.5);
       }
+      if (dir !== 0) audioManager.playThruster(0.3);
 
-      // Camera: Cinematic warp angle (Chase)
-      const offset = new THREE.Vector3(0, 2, 6).applyQuaternion(shipRef.current?.quaternion || new THREE.Quaternion());
-      const camTarget = currentPos.current.clone().add(offset);
-      state.camera.position.lerp(camTarget, 0.08);
-      state.camera.lookAt(currentPos.current);
-
-      // FOV Stretch on Warp speed
-      const speedFactor = Math.sin(t * Math.PI); // Peakes in the middle
-      const camera = state.camera as THREE.PerspectiveCamera;
-      camera.fov = THREE.MathUtils.lerp(45, 75, speedFactor);
-      camera.updateProjectionMatrix();
-
-    } else if (targetPlanet) {
-      // Stable Orbit upon arrival
-      orbitAngle.current += delta * 0.3;
-      const orbitRadius = 4;
+    } else if (gameState === 'orbit' || gameState === 'menu') {
+      // Passive float near center
+      shipX.current.x = THREE.MathUtils.lerp(shipX.current.x, 0, delta * 3);
+      tilt.current = THREE.MathUtils.lerp(tilt.current, 0, delta * 3);
       
-      const orbitPos = new THREE.Vector3(
-        targetPlanet.position.x + Math.cos(orbitAngle.current) * orbitRadius,
-        targetPlanet.position.y + 0.5,
-        targetPlanet.position.z + Math.sin(orbitAngle.current) * orbitRadius
-      );
-      
-      currentPos.current.copy(orbitPos);
+      const floatY = Math.sin(state.clock.elapsedTime * GAME.SHIP_ORBIT_FLOAT_SPEED) * GAME.SHIP_ORBIT_FLOAT_AMPLITUDE;
 
       if (shipRef.current) {
-        shipRef.current.position.copy(orbitPos);
-        // Face the direction of the orbit tangentially
-        const tangent = new THREE.Vector3(
-          -Math.sin(orbitAngle.current),
-          0,
-          Math.cos(orbitAngle.current)
-        ).add(orbitPos);
-        shipRef.current.lookAt(tangent);
+        shipRef.current.position.set(shipX.current.x, floatY, 0);
+        shipRef.current.rotation.set(0, 0, tilt.current);
       }
 
-      if (thrusterRef.current) {
-        thrusterRef.current.scale.set(1, 1, 1);
-      }
-
-      // Camera: Smooth Cinematic Orbit camera
-      const camOffset = new THREE.Vector3(
-        Math.cos(orbitAngle.current + 0.5) * 6,
-        2.5,
-        Math.sin(orbitAngle.current + 0.5) * 6
+      const camTarget = new THREE.Vector3(
+        GAME.ORBIT_CAMERA_POSITION.x,
+        GAME.ORBIT_CAMERA_POSITION.y,
+        GAME.ORBIT_CAMERA_POSITION.z
       );
-      const camTarget = targetPlanet.position.clone().add(camOffset);
-      state.camera.position.lerp(camTarget, 0.05);
-      state.camera.lookAt(targetPlanet.position);
-    } else {
-      // Initial state: Float near center
-      orbitAngle.current += delta * 0.1;
-      currentPos.current.set(Math.cos(orbitAngle.current) * 2, 1, Math.sin(orbitAngle.current) * 2);
-      if (shipRef.current) {
-        shipRef.current.position.copy(currentPos.current);
-        shipRef.current.rotation.y += delta * 0.1;
-      }
+      state.camera.position.lerp(camTarget, GAME.ORBIT_CAMERA_LERP_SPEED);
+      state.camera.lookAt(0, 0, -2);
     }
   });
 

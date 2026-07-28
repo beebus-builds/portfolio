@@ -1,15 +1,37 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+
+const AVAILABLE_COMMANDS = [
+  { cmd: '/warp <sector>', desc: 'Warp to a sector (about, skills, experience, projects, contact)' },
+  { cmd: '/scan', desc: 'Scan nearby sectors' },
+  { cmd: '/status', desc: 'Display ship status' },
+  { cmd: '/clear', desc: 'Clear terminal' },
+  { cmd: '/restart', desc: 'Return to main menu' },
+  { cmd: '/help', desc: 'Show available commands' },
+];
+
+const SECTORS = [
+  { id: 'about', label: 'S-1: CORE_MEMORIES' },
+  { id: 'skills', label: 'S-2: TECH_LAB' },
+  { id: 'experience', label: 'S-3: TEMPORAL_GRID' },
+  { id: 'projects', label: 'S-4: THE_FORGE' },
+  { id: 'contact', label: 'S-5: SIGNAL_BEACON' },
+];
 
 interface TerminalProps {
   onCommand: (cmd: string) => void;
+  shield?: number;
+  decryption?: number;
 }
 
-export default function Terminal({ onCommand }: TerminalProps) {
+export default function Terminal({ onCommand, shield = 100, decryption = 0 }: TerminalProps) {
   const [input, setInput] = useState('');
-  const [history, setHistory] = useState<string[]>(['SYSTEM ONLINE. WELCOME, OPERATOR.', 'TYPE /HELP FOR AVAILABLE COMMANDS.']);
+  const [history, setHistory] = useState<string[]>([
+    'SYSTEM ONLINE. WELCOME, OPERATOR.',
+    'TYPE /HELP FOR AVAILABLE COMMANDS.',
+    '',
+  ]);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -18,13 +40,49 @@ export default function Terminal({ onCommand }: TerminalProps) {
     }
   }, [history]);
 
+  const appendLines = useCallback((...lines: string[]) => {
+    setHistory(prev => [...prev, ...lines]);
+  }, []);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
 
-    const cmd = input.trim().toLowerCase();
-    setHistory(prev => [...prev, `> ${input}`, `EXECUTING: ${cmd}...`]);
-    onCommand(cmd);
+    const raw = input.trim();
+    const cmd = raw.toLowerCase();
+    const parts = cmd.split(/\s+/);
+    const base = parts[0];
+
+    if (base === '/help') {
+      appendLines(
+        `> ${raw}`,
+        'AVAILABLE COMMANDS:',
+        ...AVAILABLE_COMMANDS.map(c => `  ${c.cmd.padEnd(30)} ${c.desc}`),
+        '',
+      );
+    } else if (base === '/clear') {
+      setHistory([]);
+    } else if (base === '/status') {
+      appendLines(
+        `> ${raw}`,
+        `SHIELD: ${shield}%`,
+        `DECRYPTION: ${decryption}%`,
+        `SECTOR_NAV: ${SECTORS.map(s => s.id).join(', ')}`,
+        '',
+      );
+    } else if (base === '/scan') {
+      appendLines(
+        `> ${raw}`,
+        'SCANNING NEARBY SECTORS...',
+        ...SECTORS.map(s => `  ${s.id} -> ${s.label}`),
+        'SCAN COMPLETE.',
+        '',
+      );
+    } else {
+      appendLines(`> ${raw}`, `EXECUTING: ${cmd}...`);
+      onCommand(cmd);
+    }
+
     setInput('');
   };
 
@@ -44,11 +102,15 @@ export default function Terminal({ onCommand }: TerminalProps) {
           ref={scrollRef}
           className="h-32 overflow-y-auto p-4 font-mono text-[11px] text-indigo-300/80 space-y-1 scrollbar-hide"
         >
-          {history.map((line, i) => (
-            <div key={i} className={line.startsWith('>') ? 'text-white' : 'text-indigo-400/60'}>
-              {line}
-            </div>
-          ))}
+          {history.map((line, i) => {
+            if (line.startsWith('> ')) {
+              return <div key={i} className="text-white">{line}</div>;
+            }
+            if (line.startsWith('  /')) {
+              return <div key={i} className="text-indigo-400/80 pl-2">{line}</div>;
+            }
+            return <div key={i} className="text-indigo-400/60">{line}</div>;
+          })}
         </div>
 
         <form onSubmit={handleSubmit} className="p-3 border-t border-indigo-500/20 flex items-center gap-3 bg-zinc-900/50">

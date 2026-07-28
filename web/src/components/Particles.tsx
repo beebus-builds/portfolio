@@ -1,23 +1,21 @@
 "use client";
 
-import { useRef, useLayoutEffect } from 'react';
+import { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
 export default function Particles() {
   const pointsRef = useRef<THREE.Points>(null);
 
-  useLayoutEffect(() => {
-    if (pointsRef.current) {
-      const count = 150;
-      const pos = new Float32Array(count * 3);
-      for (let i = 0; i < count * 3; i++) {
-        pos[i] = (Math.random() - 0.5) * 30;
-      }
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-      pointsRef.current.geometry = geometry;
+  const geometry = useMemo(() => {
+    const count = 150;
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count * 3; i++) {
+      pos[i] = (Math.random() - 0.5) * 30;
     }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    return geo;
   }, []);
 
   useFrame((state) => {
@@ -28,7 +26,7 @@ export default function Particles() {
   });
 
   return (
-    <points ref={pointsRef}>
+    <points ref={pointsRef} geometry={geometry}>
       <pointsMaterial 
         size={0.05} 
         color="#6366f1" 

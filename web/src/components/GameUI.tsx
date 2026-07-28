@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, CheckCircle, AlertCircle, ExternalLink, Code, X, Cpu, Calendar, User, Globe } from 'lucide-react';
+import { Send, CheckCircle, AlertCircle, ExternalLink, Code, X, User } from 'lucide-react';
 
 // --- Types ---
 interface AboutData {
@@ -69,9 +69,31 @@ const PanelWrapper = ({ title, children, color, onClose }: { title: string; chil
 
 function AboutPanel({ onClose }: { onClose: () => void }) {
   const [data, setData] = useState<AboutData | null>(null);
+  const [error, setError] = useState(false);
   useEffect(() => {
-    fetch('/api/about').then(r => r.json()).then(setData).catch(() => {});
+    fetch('/api/about')
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
+      .then(setData)
+      .catch(() => setError(true));
   }, []);
+
+  if (error) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <AlertCircle className="text-red-400 mx-auto mb-4" size={40} />
+        <p className="text-zinc-400 font-mono text-sm">SIGNAL_LOST — UNABLE TO RETRIEVE CORE_MEMORIES</p>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="max-w-2xl mx-auto text-center py-12">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-zinc-500 font-mono text-xs tracking-widest">DECRYPTING_DATA_STREAM...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-2xl mx-auto text-center">
@@ -81,10 +103,10 @@ function AboutPanel({ onClose }: { onClose: () => void }) {
         </div>
       </div>
       <h3 className="text-4xl font-black text-white mb-6 tracking-tighter italic">
-        {data?.title ?? 'CORE_MEMORIES'}
+        {data.title}
       </h3>
       <div className="space-y-4 text-zinc-400 text-base leading-relaxed">
-        {data?.paragraphs?.map((p, i) => (
+        {data.paragraphs?.map((p, i) => (
           <p key={i} className="opacity-80">{p}</p>
         ))}
       </div>
@@ -161,9 +183,40 @@ function ExperiencePanel({ onClose }: { onClose: () => void }) {
 
 function ProjectsPanel({ onClose }: { onClose: () => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
   useEffect(() => {
-    fetch('/api/projects').then(r => r.json()).then(setProjects).catch(() => {});
+    fetch('/api/projects')
+      .then(r => { if (!r.ok) throw new Error('fetch failed'); return r.json(); })
+      .then(data => { setProjects(data); setLoading(false); })
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
+
+  if (loading) {
+    return (
+      <div className="text-center py-12">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-zinc-500 font-mono text-xs tracking-widest">LOADING_PROJECTS...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <AlertCircle className="text-red-400 mx-auto mb-4" size={40} />
+        <p className="text-zinc-400 font-mono text-sm">SIGNAL_LOST — UNABLE TO RETRIEVE PROJECT_DATA</p>
+      </div>
+    );
+  }
+
+  if (projects.length === 0) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-zinc-500 font-mono text-xs tracking-widest">NO_PROJECTS_FOUND // THE_FORGE_IS_EMPTY</p>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -179,7 +232,7 @@ function ProjectsPanel({ onClose }: { onClose: () => void }) {
           <p className="text-zinc-400 text-xs mb-4 leading-relaxed">{p.description}</p>
           <div className="flex gap-2 flex-wrap">
             {p.tags.map(t => (
-              <span key={t} className="text-[10px] font-mono px-2 py la-0.5 bg-white/5 border border-white/10 text-zinc-400 rounded">
+              <span key={t} className="text-[10px] font-mono px-2 py-0.5 bg-white/5 border border-white/10 text-zinc-400 rounded">
                 {t}
               </span>
             ))}

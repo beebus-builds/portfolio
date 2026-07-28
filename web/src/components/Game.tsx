@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { motion, AnimatePresence } from 'framer-motion';
 import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing';
@@ -12,24 +12,25 @@ import UniverseHUD from './UniverseHUD';
 import Terminal from './Terminal';
 import DecryptionGame from './DecryptionGame';
 import { audioManager } from '@/lib/audio';
+import { GAME, PLANETS } from '@/lib/config';
 
-export const planetData = [
-  { id: 'about', position: new THREE.Vector3(-20, 0, -30), label: 'S-1: CORE_MEMORIES', color: '#a855f7' },
-  { id: 'skills', position: new THREE.Vector3(20, 0, -25), label: 'S-2: TECH_LAB', color: '#3b82f6' },
-  { id: 'experience', position: new THREE.Vector3(30, 0, 15), label: 'S-3: TEMPORAL_GRID', color: '#10b981' },
-  { id: 'projects', position: new THREE.Vector3(-30, 0, 15), label: 'S-4: THE_FORGE', color: '#6366f1' },
-  { id: 'contact', position: new THREE.Vector3(0, 0, 35), label: 'S-5: SIGNAL_BEACON', color: '#ec4899' },
-];
+export const planetData = PLANETS.map(p => ({
+  ...p,
+  position: new THREE.Vector3(p.position.x, 0, p.position.z),
+}));
 
 export default function Game() {
+  const [gameState, setGameState] = useState<'menu' | 'playing' | 'orbit' | 'gameover'>('menu');
   const [targetPlanetId, setTargetPlanetId] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [isLinked, setIsLinked] = useState(false);
   const [interactedZone, setInteractedZone] = useState<string | null>(null);
-  const [isDecrypting, setIsDecrypting] = useState(false);
+  
+  // Game Stats
+  const [shield, setShield] = useState(100);
+  const [decryption, setDecryption] = useState(0);
 
   const playerPos = useRef(new THREE.Vector3(0, 0, 0));
-  const playerVel = useRef(new THREE.Vector3(0, 0, 0));
 
   const handleWarpSelect = useCallback((id: string) => {
     if (!isLinked) {
@@ -38,21 +39,33 @@ export default function Game() {
     }
     audioManager.playBlip();
     setTargetPlanetId(id);
+    setShield(100);
+    setDecryption(0);
+    setGameState('playing');
     setPanelOpen(false);
   }, [isLinked]);
 
-  const handleArrival = useCallback(() => {
-    if (targetPlanetId) {
-      setIsDecrypting(true);
-    }
-  }, [targetPlanetId]);
-
-  const handleDecryptionSuccess = useCallback(() => {
-    setIsDecrypting(false);
-    setInteractedZone(targetPlanetId);
-    setPanelOpen(true);
+  const handleCollect = useCallback(() => {
     audioManager.playBlip();
-  }, [targetPlanetId]);
+    setDecryption(prev => {
+      const next = prev + GAME.DECRYPTION_GAIN_PER_COLLECT;
+      if (next >= GAME.DECRYPTION_TARGET) {
+        setGameState('orbit');
+      }
+      return next;
+    });
+  }, []);
+
+  const handleHit = useCallback(() => {
+    audioManager.playThruster(1);
+    setShield(prev => {
+      const next = prev - GAME.SHIELD_LOSS_PER_HIT;
+      if (next <= 0) {
+        setGameState('gameover');
+      }
+      return next;
+    });
+  }, []);
 
   const handleCommand = useCallback((cmd: string) => {
     if (cmd.startsWith('/warp ')) {
@@ -60,13 +73,9 @@ export default function Game() {
       const planet = planetData.find(p => p.id === id || p.label.toLowerCase().includes(id));
       if (planet) {
         handleWarpSelect(planet.id);
-      } else {
-        // Error handled by terminal's internal history usually
       }
-    } else if (cmd === '/status') {
-      // Just a fluff command
-    } else if (cmd === '/help') {
-      // Just a fluff command
+    } else if (cmd === '/restart') {
+      setGameState('menu');
     }
   }, [handleWarpSelect]);
 
@@ -103,7 +112,7 @@ export default function Game() {
                 transition={{ delay: 0.6, duration: 0.8 }}
                 className="text-zinc-500 font-mono text-xs leading-relaxed"
               >
-                Operate the command deck. Warp to sectors. Decrypt the core.
+                A gamified odyssey. Collect data cores to decrypt sectors.
               </motion.p>
               <motion.button 
                 onClick={() => handleWarpSelect('about')}
@@ -111,7 +120,7 @@ export default function Game() {
                 whileTap={{ scale: 0.95 }}
                 className="px-10 py-4 bg-indigo-600 border border-indigo-400/30 text-white font-mono text-xs tracking-widest font-bold uppercase rounded-xl hover:bg-indigo-500 pointer-events-auto"
               >
-                INITIALIZE INTERFACE
+                LAUNCH MISSION
               </motion.button>
             </div>
           </motion.div>
@@ -123,16 +132,22 @@ export default function Game() {
         gl={{ antialias: false, stencil: false, depth: true }}
       >
         <color attach="background" args={['#000000']} />
-        <fog attach="fog" args={['#000000', 30, 140]} />
+        <fog attach="fog" args={['#000000', 10, 100]} />
         <ambientLight intensity={0.15} />
         <directionalLight position={[10, 20, 10]} intensity={1} />
         
-        <Universe />
+        <Universe 
+          gameState={gameState} 
+          shipPos={playerPos} 
+          onCollect={handleCollect} 
+          onHit={handleHit} 
+          activeZone={targetPlanetId} 
+          planets={planetData}
+        />
         
         <Spaceship 
-          targetPlanetId={targetPlanetId} 
-          planets={planetData} 
-          onArrival={handleArrival} 
+          gameState={gameState} 
+          shipX={playerPos} 
         />
         
         <EffectComposer>
@@ -151,18 +166,64 @@ export default function Game() {
           activeZone={targetPlanetId} 
           onWarpTrigger={handleWarpSelect}
           shipPosition={playerPos.current}
+          shield={shield}
+          decryption={decryption}
+          onRestart={() => setGameState('menu')}
         />
       )}
 
-      <Terminal onCommand={handleCommand} />
+      <Terminal onCommand={handleCommand} shield={shield} decryption={decryption} />
 
       <AnimatePresence>
-        {isDecrypting && (
-          <DecryptionGame 
-            sectorId={targetPlanetId || 'UNKNOWN'} 
-            onSuccess={handleDecryptionSuccess} 
-            onCancel={() => setIsDecrypting(false)} 
-          />
+        {gameState === 'gameover' && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          >
+            <div className="text-center space-y-6 max-w-md px-6">
+              <div className="w-16 h-16 mx-auto border-2 border-red-500/30 rounded-full flex items-center justify-center">
+                <span className="text-red-400 text-2xl font-mono">!</span>
+              </div>
+              <h2 className="text-3xl font-black text-white font-mono tracking-widest uppercase">SHIELD_OFFLINE</h2>
+              <p className="text-zinc-500 font-mono text-xs leading-relaxed">
+                CRITICAL DAMAGE SUSTAINED. MISSION TERMINATED.
+              </p>
+              <button 
+                onClick={() => { setGameState('menu'); setShield(100); setDecryption(0); }}
+                className="px-8 py-3 bg-red-600/80 border border-red-500/30 text-white font-mono text-xs tracking-widest uppercase rounded-xl hover:bg-red-600 transition-all"
+              >
+                RESTART MISSION
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {gameState === 'orbit' && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 backdrop-blur-sm"
+          >
+            <div className="text-center space-y-6">
+              <h2 className="text-3xl font-bold text-white font-mono tracking-widest uppercase">DECRYPTION COMPLETE</h2>
+              <p className="text-indigo-400 font-mono text-sm">S-S-S-SYNCING... ACCESS GRANTED</p>
+              <button 
+                onClick={() => {
+                  setInteractedZone(targetPlanetId);
+                  setPanelOpen(true);
+                  setGameState('menu');
+                }}
+                className="px-8 py-3 bg-indigo-600 text-white font-mono text-xs rounded-lg hover:bg-indigo-500"
+              >
+                ENTER SECTOR
+              </button>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
 
