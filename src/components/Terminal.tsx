@@ -16,7 +16,7 @@ const PAGE_ROUTES: Record<string, string> = {
   whoami: "/whoami",
 };
 
-export default function Terminal() {
+export default function Terminal({ variant = "fullscreen" }: { variant?: "fullscreen" | "section" }) {
   const [pulseGlow, setPulseGlow] = useState(false);
   const [gridOffset, setGridOffset] = useState(0);
   const [time, setTime] = useState("");
@@ -86,9 +86,9 @@ export default function Terminal() {
   }, []);
 
   return (
-    <div className="relative w-full h-screen flex items-center justify-center bg-terminal-900 overflow-hidden">
+    <div className={`relative w-full flex items-center justify-center bg-terminal-900 overflow-hidden ${variant === "fullscreen" ? "h-screen" : "min-h-[520px]"}`}>
       {/* Matrix rain background */}
-      <MatrixRain density={1.2} className="opacity-70" />
+      <MatrixRain density={variant === "fullscreen" ? 1.2 : 0.8} className="opacity-70" />
 
       {/* Gradient orbs */}
       <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-neon-400/5 blur-[150px]" />
@@ -113,7 +113,7 @@ export default function Terminal() {
 
       {/* Terminal panel */}
       <div
-        className="dark-surface relative z-10 w-full max-w-4xl mx-3 h-[calc(100vh-32px)] md:h-[calc(100vh-48px)] flex flex-col rounded-xl overflow-hidden transition-all duration-700"
+        className={`dark-surface relative z-10 w-full max-w-4xl mx-3 ${variant === "fullscreen" ? "h-[calc(100vh-32px)] md:h-[calc(100vh-48px)]" : "h-[520px]"} flex flex-col rounded-xl overflow-hidden transition-all duration-700`}
         style={{
           boxShadow: pulseGlow
             ? "0 0 40px rgba(74, 240, 255, 0.15), 0 0 80px rgba(74, 240, 255, 0.05), inset 0 0 40px rgba(74, 240, 255, 0.03)"

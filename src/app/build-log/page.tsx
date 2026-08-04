@@ -6,6 +6,8 @@ export const metadata = {
 };
 
 const entries = [
+  { date: "2026-08-03", title: "Navbar decluttered — 12 items down to 6", note: "The old statusline strip (numbered 01–12 segments, megamenu panels, online pulse) was too dense and gimmicky. Replaced with a clean, airy nav: six grouped top-level items (Blog, About, Work, Play, Connect, More), generous gaps, a thin neon underline on hover/active, compact single-column dropdowns, and a minimal right cluster (clock, GitHub icon, theme, ⌘K)." },
+
   { date: "2026-08-03", title: "Blog posts now publish straight to Neon", note: "Replaced the 'download a .md file' flow with real publishing. Posts live in Postgres — /admin/new publishes instantly, /blog + /blog/[slug] read live from the DB (dynamic routes), and there's a Manage Posts page to edit or delete. The old markdown post was migrated into the DB. /rss.xml and /sitemap.xml follow the same source." },
   { date: "2026-07-31", title: "Accessibility + light mode overhaul", note: "Every text-white/opacity class is now remapped for light mode (real contrast instead of invisible white-on-white), tiny 9–12px labels were bumped to a readable floor, the base font went from 15px to 17px, buttons/cards/code blocks got light-theme variants, and the terminal panels stay dark in both themes via a dark-surface scope." },
   { date: "2026-07-31", title: "Terminal is now a real shell", note: "Streaming output, interactive prompts, sudo with a password gate, ctrl+c/crtl+l, live cmatrix + nmap-style scans, shell operators (&&, ;, |, >), a writable filesystem (touch/mkdir/rm/echo>), man pages and history. Built a shared useTerminal hook so the landing terminal, floating widget, and playground all run the same engine." },

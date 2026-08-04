@@ -50,6 +50,13 @@ export default async function BlogPostPage({ params }: Params) {
         }}
       />
       <article className="thread">
+        {post.cover && (
+          <div className="relative aspect-[21/9] rounded-xl overflow-hidden border border-white/10 mb-8">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={post.cover} alt={post.title} className="w-full h-full object-cover" />
+          </div>
+        )}
+
         <section className="mb-8 thread-dot">
           <div className="section-accent" />
           <div className="flex items-center gap-3 flex-wrap">

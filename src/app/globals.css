@@ -218,6 +218,29 @@ body {
   color: var(--color-neon-400);
 }
 
+/* Clean nav link: thin animated underline */
+.nav-link {
+  position: relative;
+  transition: color 0.2s;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -7px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-neon-400);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s ease;
+}
+.nav-link:hover::after,
+.nav-link[aria-current="true"]::after {
+  transform: scaleX(1);
+}
+
 /* ─── Accent thread (connecting visual element) ────────── */
 
 .thread {
@@ -586,6 +609,32 @@ body {
   background: rgba(255,255,255,0.05);
   color: rgba(255,255,255,0.8);
   border-color: rgba(255,255,255,0.2);
+}
+
+/* ─── Editor toolbar button ----------------------------- */
+
+.toolbar-btn {
+  font-family: 'Courier New', monospace;
+  font-size: 0.625rem;
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+}
+.toolbar-btn:hover {
+  color: #4af0ff;
+  border-color: rgba(74,240,255,0.3);
+}
+
+[data-theme="light"] .toolbar-btn {
+  color: rgba(0,0,0,0.5);
+}
+[data-theme="light"] .toolbar-btn:hover {
+  color: #0891b2;
+  border-color: rgba(8,145,178,0.35);
 }
 
 /* ─── Back to top --------------------------------------- */

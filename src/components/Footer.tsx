@@ -4,6 +4,7 @@ const footerLinks = [
   { label: "Blog", href: "/blog" },
   { label: "Build Log", href: "/build-log" },
   { label: "Commands", href: "/commands" },
+  { label: "Chess", href: "/chess" },
   { label: "Algorithms", href: "/algorithms" },
   { label: "Fractals", href: "/fractals" },
   { label: "About", href: "/about" },

@@ -13,6 +13,7 @@ const items = [
   { label: "Education", desc: "Academic background", href: "/education" },
   { label: "Contact", desc: "Get in touch", href: "/contact" },
   { label: "Commands", desc: "Terminal playground", href: "/commands" },
+  { label: "Chess", desc: "Play the terminal", href: "/chess" },
   { label: "Algorithms", desc: "Pathfinding + sorting visualizer", href: "/algorithms" },
   { label: "Fractals", desc: "Mandelbrot explorer", href: "/fractals" },
   { label: "Tools", desc: "Curated tools", href: "/tools" },

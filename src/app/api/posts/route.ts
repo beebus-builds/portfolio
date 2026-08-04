@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { title, date, tags, color, excerpt, content, slug } = body as {
+    const { title, date, tags, color, excerpt, content, slug, cover } = body as {
       title?: string;
       date?: string;
       tags?: string[];
@@ -24,6 +24,7 @@ export async function POST(req: NextRequest) {
       excerpt?: string;
       content?: string;
       slug?: string;
+      cover?: string | null;
     };
 
     if (!title || !content) {
@@ -44,6 +45,7 @@ export async function POST(req: NextRequest) {
       excerpt: finalExcerpt,
       content,
       readingTime,
+      cover: cover || null,
     });
 
     return NextResponse.json({ ok: true, slug: finalSlug });

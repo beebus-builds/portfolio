@@ -1101,6 +1101,7 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
         contact: "/contact",
         algorithms: "/algorithms",
         fractals: "/fractals",
+        chess: "/chess",
       };
       const url = urls[target] || `/${target}`;
       ctx.push({ text: ` GET ${url} HTTP/1.1`, color: "white" });
@@ -1166,7 +1167,7 @@ function answerQuestion(q: string): string {
   }
 
   if (hit(["algorithm", "visual", "sort", "pathfind", "fractal"])) {
-    return "Interactive math & CS:\n  → /algorithms — live A*, Dijkstra, BFS + 4 sorting algos\n  → /fractals — Mandelbrot & Julia explorer\n  Go click some pixels. I'll wait.";
+    return "Interactive math & CS:\n  → /algorithms — live A*, Dijkstra, BFS + 4 sorting algos\n  → /fractals — Mandelbrot & Julia explorer\n  → /chess — full legal chess vs the engine\n  Go click some pixels. I'll wait.";
   }
 
   if (hit(["resume", "cv", "download"])) {

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FloatingTerminal from "@/components/FloatingTerminal";
+import ChatWidget from "@/components/ChatWidget";
 
 interface Props {
   children: React.ReactNode;
@@ -30,6 +31,7 @@ export default function PageShell({ children }: Props) {
       </main>
       <Footer />
       <FloatingTerminal />
+      <ChatWidget />
       <button
         onClick={scrollToTop}
         className={`back-to-top ${showTop ? "visible" : ""}`}

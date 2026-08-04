@@ -74,24 +74,36 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
         <div className="space-y-6">
           {filtered.map((post) => (
             <Link key={post.slug} href={`/blog/${post.slug}`}
-              className="neon-card block border border-white/5 rounded-xl p-6 bg-terminal-900/50 hover:border-white/10 transition-all group"
+              className="neon-card block border border-white/5 rounded-xl overflow-hidden bg-terminal-900/50 hover:border-white/10 transition-all group"
             >
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <h2 className="text-lg font-mono text-white tracking-wide group-hover:text-neon-400 transition-colors">
-                  {post.title}
-                </h2>
-                <span className="text-[10px] font-mono text-white/20 shrink-0">{post.date}</span>
-              </div>
-              <p className="text-sm font-mono text-white/40 leading-relaxed mb-3">
-                {post.excerpt}
-              </p>
-              <div className="flex items-center gap-3 flex-wrap">
-                {post.tags.map((t) => (
-                  <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded border border-white/10 text-white/30 bg-terminal-800/50">
-                    {t}
-                  </span>
-                ))}
-                <span className="text-[10px] font-mono text-white/20">{post.readingTime} min read</span>
+              {post.cover && (
+                <div className="relative aspect-[16/7] overflow-hidden">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={post.cover}
+                    alt={post.title}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+              )}
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <h2 className="text-lg font-mono text-white tracking-wide group-hover:text-neon-400 transition-colors">
+                    {post.title}
+                  </h2>
+                  <span className="text-[10px] font-mono text-white/20 shrink-0">{post.date}</span>
+                </div>
+                <p className="text-sm font-mono text-white/40 leading-relaxed mb-3">
+                  {post.excerpt}
+                </p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  {post.tags.map((t) => (
+                    <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded border border-white/10 text-white/30 bg-terminal-800/50">
+                      {t}
+                    </span>
+                  ))}
+                  <span className="text-[10px] font-mono text-white/20">{post.readingTime} min read</span>
+                </div>
               </div>
             </Link>
           ))}

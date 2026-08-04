@@ -7,6 +7,7 @@ export interface BlogPost {
   excerpt: string;
   content: string;
   readingTime: number;
+  cover?: string | null;
 }
 
 function parseFrontmatter(raw: string): { meta: Record<string, string>; body: string } {

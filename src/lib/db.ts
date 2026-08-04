@@ -9,6 +9,7 @@ export interface PostRow {
   excerpt: string;
   content: string;
   reading_time: number;
+  cover: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -42,6 +43,7 @@ export async function ensureSchema(): Promise<void> {
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS cover TEXT`);
 }
 
 function mapRow(row: PostRow) {
@@ -54,6 +56,7 @@ function mapRow(row: PostRow) {
     excerpt: row.excerpt,
     content: row.content,
     readingTime: row.reading_time,
+    cover: row.cover,
   };
 }
 
@@ -78,16 +81,17 @@ export async function upsertPost(input: {
   excerpt: string;
   content: string;
   readingTime: number;
+  cover?: string | null;
 }): Promise<void> {
   await ensureSchema();
   await query(
-    `INSERT INTO posts (slug, title, date, tags, color, excerpt, content, reading_time, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, now())
+    `INSERT INTO posts (slug, title, date, tags, color, excerpt, content, reading_time, cover, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, now())
      ON CONFLICT (slug)
      DO UPDATE SET title = EXCLUDED.title, date = EXCLUDED.date, tags = EXCLUDED.tags,
        color = EXCLUDED.color, excerpt = EXCLUDED.excerpt, content = EXCLUDED.content,
-       reading_time = EXCLUDED.reading_time, updated_at = now()`,
-    [input.slug, input.title, input.date, input.tags, input.color, input.excerpt, input.content, input.readingTime]
+       reading_time = EXCLUDED.reading_time, cover = EXCLUDED.cover, updated_at = now()`,
+    [input.slug, input.title, input.date, input.tags, input.color, input.excerpt, input.content, input.readingTime, input.cover || null]
   );
 }
 
