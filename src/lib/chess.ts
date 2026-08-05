@@ -535,19 +535,27 @@ export function pickAIMove(state: GameState, settings: AISettings): Move | null 
   if (moves.length === 0) return null;
   if (moves.length === 1) return moves[0];
 
-  let best: Move[] = [];
   let bestScore = -INF;
+  const scored: { move: Move; score: number }[] = [];
   for (const m of orderMoves(moves)) {
     const next = makeMove(state, m);
     const score = -negamax(next, settings.depth - 1, -INF, INF);
-    if (score > bestScore) {
-      bestScore = score;
-      best = [m];
-    } else if (score === bestScore && Math.random() < settings.randomness) {
-      best.push(m);
+    scored.push({ move: m, score });
+    if (score > bestScore) bestScore = score;
+  }
+
+  const noise = settings.randomness * 50;
+  let best: Move[] = [];
+  let top = -INF;
+  for (const { move, score } of scored) {
+    const adjusted = score + (Math.random() - 0.5) * noise;
+    if (adjusted > top) {
+      top = adjusted;
+      best = [move];
+    } else if (adjusted === top) {
+      best.push(move);
     }
   }
-  if (best.length === 0) best = moves;
   return best[Math.floor(Math.random() * best.length)];
 }
 
@@ -568,11 +576,17 @@ export function isInsufficientMaterial(state: GameState): boolean {
 }
 
 export function describeMove(move: Move): string {
-  const from = squareName(move.from);
-  const to = squareName(move.to);
-  const piece = move.piece.toUpperCase();
-  const suffix = move.captured ? "x" : "";
   if (move.isCastle) return move.to > move.from ? "O-O" : "O-O-O";
+  const piece = move.piece.toUpperCase();
+  const to = squareName(move.to);
   const promo = move.promotion ? "=" + move.promotion.toUpperCase() : "";
-  return `${piece === "P" ? "" : piece}${from}${suffix}${to}${promo}`;
+  if (move.piece === "p") {
+    if (move.captured) {
+      const fromFile = FILES[move.from & 7];
+      return `${fromFile}x${to}${promo}`;
+    }
+    return `${to}${promo}`;
+  }
+  const capture = move.captured ? "x" : "";
+  return `${piece}${capture}${to}${promo}`;
 }

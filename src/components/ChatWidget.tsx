@@ -14,7 +14,7 @@ interface Message {
 const GREETING: Message = {
   id: 0,
   role: "nova",
-  text: "Namaste! 🙏 I'm NOVA — Bibash's custom AI, trained on everything on this site with a self-built retrieval engine (no third-party models).\n\nAsk me about his projects, skills, education, Nepal, or anything on the site.",
+  text: "Hi! I'm Uvo, Bibash's AI. Ask me about his projects, skills, education, or Nepal.",
   suggestions: [
     "What projects has he built?",
     "What are his skills?",
@@ -37,8 +37,43 @@ export default function ChatWidget() {
   const [thinking, setThinking] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>(INITIAL_SUGGESTIONS);
   const idRef = useRef(1);
+  const lastSpokenIdRef = useRef<number | null>(null);
   const bodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const lastMsg = messages[messages.length - 1];
+    if (
+      lastMsg &&
+      lastMsg.role === "nova" &&
+      lastMsg.id !== lastSpokenIdRef.current &&
+      "speechSynthesis" in window
+    ) {
+      const speak = () => {
+        const utterance = new SpeechSynthesisUtterance(lastMsg.text);
+        
+        const voices = window.speechSynthesis.getVoices();
+        const preferredVoice = voices.find(v => 
+          v.name.includes("Google") || 
+          v.name.includes("Natural") || 
+          v.name.includes("Microsoft")
+        );
+        
+        if (preferredVoice) utterance.voice = preferredVoice;
+        utterance.pitch = 0.95;
+        utterance.rate = 0.95;
+        
+        window.speechSynthesis.speak(utterance);
+        lastSpokenIdRef.current = lastMsg.id;
+      };
+
+      if (window.speechSynthesis.getVoices().length === 0) {
+        window.speechSynthesis.addEventListener("voiceschanged", speak, { once: true });
+      } else {
+        speak();
+      }
+    }
+  }, [messages]);
 
   useEffect(() => {
     if (isOpen && bodyRef.current) {
@@ -111,19 +146,19 @@ export default function ChatWidget() {
       {/* Floating button — left of the terminal button */}
       <button
         onClick={isOpen ? close : open}
-        className="fixed bottom-4 right-20 z-[90] w-12 h-12 rounded-full border border-neon-400/30 flex items-center justify-center hover:bg-neon-400/20 transition-all shadow-lg shadow-neon-400/10"
+        className="fixed bottom-4 right-20 z-[90] w-16 h-16 rounded-full border-2 border-neon-400/50 flex items-center justify-center transition-all shadow-lg shadow-neon-400/20 overflow-hidden group hover:scale-105 active:scale-95"
         style={{ background: "rgba(74,240,255,0.08)" }}
-        title={isOpen ? "Close AI chat" : "Chat with NOVA AI"}
-        aria-label={isOpen ? "Close AI chat" : "Chat with NOVA AI"}
+        title={isOpen ? "Close AI chat" : "Chat with Uvo AI"}
+        aria-label={isOpen ? "Close AI chat" : "Chat with Uvo AI"}
       >
         {isOpen ? (
-          <svg className="w-5 h-5 text-neon-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-          </svg>
+          <div className="text-neon-400 text-3xl font-light">×</div>
         ) : (
-          <svg className="w-5 h-5 text-neon-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h.01M12 10h.01M16 10h.01M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
+          <img
+            src="/Bibash Bot.png"
+            alt="Bibash"
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
         )}
       </button>
 
@@ -142,7 +177,7 @@ export default function ChatWidget() {
             style={{ background: "linear-gradient(90deg, rgba(74,240,255,0.06), transparent)" }}
           >
             <span className="text-neon-400 text-xs glow-neon">●</span>
-            <span className="text-[10px] font-mono text-neon-400/70 tracking-wider">NOVA — trained on this site</span>
+            <span className="text-[10px] font-mono text-neon-400/70 tracking-wider">Uvo — trained on this site</span>
             <div className="flex-1" />
             <button onClick={close} className="text-white/30 hover:text-white text-xs font-mono" aria-label="Close chat">×</button>
           </div>
@@ -193,7 +228,7 @@ export default function ChatWidget() {
                 style={{ background: "rgba(255,255,255,0.03)" }}
               >
                 <span className="text-xs font-mono text-white/40">
-                  <span className="text-neon-400">NOVA</span> is thinking
+                  <span className="text-neon-400">Uvo</span> is thinking
                   <span className="caret-blink text-neon-400">▊</span>
                 </span>
               </div>

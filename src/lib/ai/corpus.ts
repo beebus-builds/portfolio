@@ -19,7 +19,7 @@ export const CORPUS: KnowledgeChunk[] = [
     title: "Who is Bibash",
     text: "Bibash Poudel is a 23-year-old developer from Sindhuli, Nepal. He is a Developer Intern at Smartsites Nepal and studies a Bachelor of Information Technology (BIT) at Bhaktapur Multiple Campus. He builds for the web, turning ideas into interactive experiences. His motto is 'Code is a canvas, the browser is my gallery.' He describes himself as the Architect of Digital Voids.",
     answer:
-      "Bibash Poudel — 23-year-old developer from the hills of Sindhuli, Nepal.\n\nCurrently: Developer Intern at Smartsites Nepal\nStudying: BIT at Bhaktapur Multiple Campus\nMotto: \"Code is a canvas, the browser is my gallery.\"\n\nHe builds for the web, turning ideas into interactive experiences with clean code and thoughtful design.",
+      "Bibash Poudel is a 23-year-old developer living in the hills of Sindhuli, Nepal. Right now, he's honing his craft as a Developer Intern at Smartsites Nepal while pursuing his BIT degree. He loves turning ideas into interactive web experiences—his mantra is, 'Code is a canvas, the browser is my gallery.'",
     source: "/about",
   },
   {
@@ -28,7 +28,7 @@ export const CORPUS: KnowledgeChunk[] = [
     title: "Profile at a glance",
     text: "Bibash Poudel is from Sindhuli, Nepal, age 23, role Developer Intern at Smartsites Nepal, studying BIT at Bhaktapur Multiple Campus, timezone Asia/Kathmandu UTC+5:45, languages Nepali native and English fluent.",
     answer:
-      "Name: Bibash Poudel\nFrom: Sindhuli, Nepal\nRole: Developer Intern @ Smartsites Nepal\nStudy: BIT @ Bhaktapur Multiple Campus\nAge: 23\nTimezone: Asia/Kathmandu (UTC+5:45)\nLanguages: Nepali (native), English (fluent)",
+      "Here's the quick scoop on Bibash: He's a 23-year-old developer from Sindhuli, Nepal. He's juggling his BIT studies at Bhaktapur Multiple Campus with his internship over at Smartsites Nepal. He's fluent in Nepali and English, and he's based in the Asia/Kathmandu timezone.",
     source: "/whoami",
   },
   {
@@ -311,7 +311,7 @@ export const SMALLTALK: KnowledgeChunk[] = [
     title: "Greeting",
     text: "Hello hi hey namaste greeting welcome visitor",
     answer:
-      "Namaste! 🙏 Welcome to DevVerse.\n\nI'm NOVA — Bibash's custom AI, trained on everything on this site. Ask me about his projects, skills, education, Nepal, or just explore. What would you like to know?",
+      "Namaste! 🙏 Welcome to DevVerse. I'm Uvo, Bibash's AI companion. I know this site inside out—what can I help you find today?",
   },
   {
     id: "thanks",
@@ -319,7 +319,7 @@ export const SMALLTALK: KnowledgeChunk[] = [
     title: "Thanks",
     text: "thank thanks thx appreciate grateful",
     answer:
-      "You're welcome! 🙏 If you liked something on the site, Bibash would love to hear it — the /guestbook is open.",
+      "You're very welcome! 🙏 If something caught your eye, Bibash would love to hear your thoughts—the /guestbook is always open.",
   },
   {
     id: "bye",
@@ -327,23 +327,23 @@ export const SMALLTALK: KnowledgeChunk[] = [
     title: "Farewell",
     text: "bye goodbye see you farewell later",
     answer:
-      "Dhanyabad for stopping by! 🙏 The terminal stays open if you want to explore more. फेरि भेटौँला — see you again.",
+      "Dhanyabad for stopping by! 🙏 The terminal is always open if you're curious about anything else. फेरि भेटौँला — see you again soon!",
   },
   {
     id: "help",
     keywords: ["help", "what can", "can you do", "how to use", "what do you know", "abilities"],
-    title: "What NOVA can do",
+    title: "What Uvo can do",
     text: "help what can you do abilities questions about bibash",
     answer:
-      "I can answer questions about Bibash — his projects, skills, education, journey, Nepal, contact details, blog, and more. I was trained on this site's own data, so no external AI is involved.\n\nTry asking: \"what projects has he built?\", \"what are his skills?\", \"how do I contact him?\", or \"tell me about Nepal\".",
+      "I'm here to help you get to know Bibash. You can ask me about his tech stack, his favorite projects, or what life is like in Nepal. Want a quick rundown of his best projects or maybe his skill set?",
   },
   {
     id: "who-made",
     keywords: ["who made", "who created", "who built you", "your creator", "made you", "trained you", "built you", "who are you", "what are you"],
-    title: "Who made NOVA",
+    title: "Who made Uvo",
     text: "who made created built you creator",
     answer:
-      "I was designed and built by Bibash Poudel — trained on his own site data with a custom TF-IDF retrieval engine. No third-party AI models, fully self-contained. 🤖",
+      "Bibash built me himself! I'm running on a custom engine that's exclusively trained on his own data—no external AI magic here, just pure site-local knowledge. Pretty cool, right? 🤖",
   },
   {
     id: "compliment",

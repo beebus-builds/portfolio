@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import dynamic from "next/dynamic";
 import PageShell from "@/components/PageShell";
 import {
   FILES,
@@ -20,7 +21,11 @@ import {
   type PieceType,
 } from "@/lib/chess";
 
+const ChessBoardThreeJS = dynamic(() => import("@/components/chess/ChessBoardThreeJS"), { ssr: false });
+const ChessBoardHybrid = dynamic(() => import("@/components/chess/ChessBoardHybrid"), { ssr: false });
+
 type Difficulty = "easy" | "medium" | "hard";
+type ViewMode = "2d" | "perspective" | "isometric" | "3d" | "hybrid";
 
 const DIFFICULTY: Record<Difficulty, { depth: number; randomness: number }> = {
   easy: { depth: 1, randomness: 0.7 },
@@ -39,6 +44,8 @@ export default function ChessPage() {
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [thinking, setThinking] = useState(false);
   const [boardFlipped, setBoardFlipped] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("2d");
+  const boardWrapRef = useRef<HTMLDivElement>(null);
   const busyRef = useRef(false);
   const genRef = useRef(0);
 
@@ -79,6 +86,37 @@ export default function ChessPage() {
   useEffect(() => {
     if (aiTurn) aiMove();
   }, [aiTurn, aiMove]);
+
+  useEffect(() => {
+    const el = boardWrapRef.current;
+    if (!el) return;
+    const is3d = viewMode === "perspective" || viewMode === "isometric" || viewMode === "hybrid";
+    if (!is3d) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = el.getBoundingClientRect();
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      const baseRx = 50;
+      const rx = baseRx - y * 10;
+      const rz = viewMode === "isometric" ? -45 + x * 10 : x * 6;
+      el.style.setProperty("--rx", `${rx}deg`);
+      el.style.setProperty("--rz", `${rz}deg`);
+    };
+
+    const handleMouseLeave = () => {
+      const rz = viewMode === "isometric" ? -45 : 0;
+      el.style.setProperty("--rx", "50deg");
+      el.style.setProperty("--rz", `${rz}deg`);
+    };
+
+    el.addEventListener("mousemove", handleMouseMove);
+    el.addEventListener("mouseleave", handleMouseLeave);
+    return () => {
+      el.removeEventListener("mousemove", handleMouseMove);
+      el.removeEventListener("mouseleave", handleMouseLeave);
+    };
+  }, [viewMode]);
 
   const captured = useMemo(() => {
     const byWhite: PieceType[] = [];
@@ -202,6 +240,14 @@ export default function ChessPage() {
     return rows;
   }, [game.history]);
 
+  const moveListRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (moveListRef.current) {
+      moveListRef.current.scrollTop = moveListRef.current.scrollHeight;
+    }
+  }, [movesList]);
+
   const statusLabel = (() => {
     if (status.kind === "checkmate") {
       return status.winner === aiColor ? "Checkmate — you win!" : "Checkmate — AI wins";
@@ -238,65 +284,104 @@ export default function ChessPage() {
       <div className="grid gap-6 lg:grid-cols-[minmax(0,520px)_minmax(0,320px)]">
         <div className="space-y-4">
           <div className="neon-card border border-white/5 rounded-xl bg-terminal-900/80 p-3">
-            <div className="relative aspect-square w-full select-none">
-              <div className="grid grid-cols-8 h-full w-full rounded-lg overflow-hidden">
-                {boardSquares.map((idx, pos) => {
-                  const piece = game.board[idx];
-                  const isLight = ((idx & 7) + (idx >> 3)) % 2 === 0;
-                  const isLast = game.lastMove && (game.lastMove.from === idx || game.lastMove.to === idx);
-                  const isSel = selected === idx;
-                  const isTarget = legalTargets.has(idx);
-                  const isCheck = inCheckKing === idx;
-                  const showCol = pos % 8 === 0;
-                  const showRow = pos >= 56;
-                  const coord = squareName(idx);
-                  return (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleSquareClick(idx)}
-                      className={`relative flex items-center justify-center aspect-square ${isLight ? light : dark} ${
-                        isLast ? "bg-neon-400/10" : ""
-                      } ${isSel ? "bg-neon-400/20 ring-2 ring-inset ring-neon-400/70" : ""}`}
-                      aria-label={coord}
-                    >
-                      {(showCol || showRow) && (
-                        <span
-                          className={`absolute text-[9px] font-mono leading-none text-white/25 ${
-                            showRow ? "bottom-1 right-1" : "top-1 left-1"
-                          }`}
-                        >
-                          {showCol ? 8 - (idx >> 3) : FILES[idx & 7]}
-                        </span>
-                      )}
-                      {isCheck && (
-                        <span className="absolute inset-0 ring-2 ring-inset ring-red-500/70 rounded-sm animate-pulse" />
-                      )}
-                      {piece && (
-                        <span
-                          className={`relative leading-none text-[clamp(1.6rem,10vw,3rem)] ${
-                            piece.color === "w"
-                              ? "text-[#f5f2ea] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]"
-                              : "text-[#1a1f26] drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]"
-                          }`}
-                        >
-                          {PIECE_UNICODE[piece.color + piece.type]}
-                        </span>
-                      )}
-                      {isTarget && !piece && (
-                        <span className="absolute w-3.5 h-3.5 rounded-full bg-neon-400/60" />
-                      )}
-                      {isTarget && piece && (
-                        <span className="absolute inset-0 ring-4 ring-inset ring-neon-400/50 rounded-sm" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
+            <div
+              ref={boardWrapRef}
+              className={`relative aspect-square w-full select-none ${
+                viewMode !== "2d" && viewMode !== "3d" ? "chess-board-3d-wrap" : ""
+              }`}
+              style={{ "--rx": "50deg", "--rz": viewMode === "isometric" ? "-45deg" : "0deg" } as React.CSSProperties}
+            >
+              {viewMode === "3d" ? (
+                <ChessBoardThreeJS
+                  game={game}
+                  selected={selected}
+                  legalTargets={legalTargets}
+                  inCheckKing={inCheckKing}
+                  lastMove={game.lastMove}
+                  boardFlipped={boardFlipped}
+                  onSquareClick={handleSquareClick}
+                />
+              ) : (
+                <div
+                  key={boardFlipped ? "f" : "n"}
+                  className={`chess-board-3d-grid ${
+                    viewMode === "perspective"
+                      ? "mode-perspective"
+                      : viewMode === "isometric"
+                        ? "mode-isometric"
+                        : viewMode === "hybrid"
+                          ? "mode-hybrid"
+                          : ""
+                  } grid grid-cols-8 h-full w-full rounded-lg overflow-hidden chess-board-flip`}
+                >
+                  {boardSquares.map((idx, pos) => {
+                    const piece = game.board[idx];
+                    const isLight = ((idx & 7) + (idx >> 3)) % 2 === 0;
+                    const isLast = game.lastMove && (game.lastMove.from === idx || game.lastMove.to === idx);
+                    const isSel = selected === idx;
+                    const isTarget = legalTargets.has(idx);
+                    const isCheck = inCheckKing === idx;
+                    const isLanded = game.lastMove?.to === idx && game.history.length > 0;
+                    const isCaptureLanding = isLanded && game.lastMove?.captured;
+                    const showCol = pos % 8 === 0;
+                    const showRow = pos >= 56;
+                    const coord = squareName(idx);
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => handleSquareClick(idx)}
+                        className={`chess-square relative flex items-center justify-center aspect-square ${isLight ? light : dark} ${
+                          isLast ? "bg-neon-400/10" : ""
+                        } ${isSel ? "bg-neon-400/20 ring-2 ring-inset ring-neon-400/70 chess-square-selected" : ""} ${
+                          isCaptureLanding ? "chess-capture-flash" : ""
+                        } ${viewMode !== "2d" ? "chess-square-3d" : ""}`}
+                        aria-label={coord}
+                      >
+                        {(showCol || showRow) && (
+                          <span
+                            className={`absolute text-[9px] font-mono leading-none text-white/25 ${
+                              showRow ? "bottom-1 right-1" : "top-1 left-1"
+                            }`}
+                          >
+                            {showCol ? 8 - (idx >> 3) : FILES[idx & 7]}
+                          </span>
+                        )}
+                        {isCheck && (
+                          <span className="absolute inset-0 ring-2 ring-inset ring-red-500/70 rounded-sm chess-check-pulse" />
+                        )}
+                        {piece && (
+                          <span
+                            className={`relative leading-none text-[clamp(1.6rem,10vw,3rem)] ${
+                              piece.color === "w"
+                                ? "text-[#f5f2ea] drop-shadow-[0_2px_3px_rgba(0,0,0,0.9)]"
+                                : "text-[#1a1f26] drop-shadow-[0_0_3px_rgba(255,255,255,0.4)]"
+                            } ${isLanded ? "chess-piece-land" : ""} ${
+                              viewMode !== "2d" ? "chess-piece-float" : ""
+                            }`}
+                          >
+                            {PIECE_UNICODE[piece.color + piece.type]}
+                          </span>
+                        )}
+                        {isTarget && !piece && (
+                          <span className="absolute w-3.5 h-3.5 rounded-full bg-neon-400/60 chess-dot-pulse" />
+                        )}
+                        {isTarget && piece && (
+                          <span className="absolute inset-0 ring-4 ring-inset ring-neon-400/50 rounded-sm" />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {viewMode === "hybrid" && (
+                <ChessBoardHybrid game={game} boardFlipped={boardFlipped} />
+              )}
 
               {pendingPromotion && promoteTargets && (
-                <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-lg z-10">
-                  <div className="bg-terminal-900 border border-white/10 rounded-xl p-5 text-center">
+                <div className="absolute inset-0 bg-black/70 flex items-center justify-center rounded-lg z-10 chess-overlay">
+                  <div className="bg-terminal-900 border border-white/10 rounded-xl p-5 text-center chess-overlay-text">
                     <p className="text-xs font-mono text-white/50 mb-4">Promote pawn</p>
                     <div className="flex gap-2">
                       {(PROMOTION_PIECES as PieceType[]).map((t) => (
@@ -304,7 +389,7 @@ export default function ChessPage() {
                           key={t}
                           type="button"
                           onClick={() => handlePromotion(t)}
-                          className="w-14 h-14 rounded-lg bg-white/5 hover:bg-neon-400/20 border border-white/10 flex items-center justify-center text-3xl text-[#f5f2ea] transition-colors"
+                          className="w-14 h-14 rounded-lg bg-white/5 hover:bg-neon-400/20 hover:scale-110 active:scale-95 border border-white/10 hover:border-neon-400/40 flex items-center justify-center text-3xl text-[#f5f2ea] transition-all duration-200"
                         >
                           {PIECE_UNICODE[game.turn + t]}
                         </button>
@@ -316,13 +401,51 @@ export default function ChessPage() {
 
               {thinking && (
                 <div className="absolute inset-0 bg-black/40 rounded-lg flex items-center justify-center z-10 pointer-events-none">
-                  <span className="text-xs font-mono text-neon-400 animate-pulse">thinking…</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="chess-thinking-dot" />
+                    <span className="chess-thinking-dot" />
+                    <span className="chess-thinking-dot" />
+                  </span>
+                </div>
+              )}
+
+              {over && (
+                <div className="absolute inset-0 bg-black/60 backdrop-blur-sm rounded-lg flex flex-col items-center justify-center z-20 chess-overlay">
+                  <div className="chess-overlay-text text-center px-6">
+                    <p className={`text-2xl font-mono mb-1 ${
+                      status.kind === "checkmate" && status.winner === aiColor
+                        ? "text-neon-400"
+                        : status.kind === "checkmate"
+                          ? "text-gold-400"
+                          : "text-white/70"
+                    }`}>
+                      {status.kind === "checkmate"
+                        ? (status.winner === aiColor ? "You Win!" : "AI Wins!")
+                        : status.kind === "stalemate"
+                          ? "Stalemate"
+                          : "Draw"}
+                    </p>
+                    <p className="text-xs font-mono text-white/40 mb-6">
+                      {status.kind === "checkmate"
+                        ? "Checkmate"
+                        : status.kind === "stalemate"
+                          ? "No legal moves available"
+                          : "Insufficient material"}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={newGame}
+                      className="btn-neon px-6 py-2.5 text-sm font-mono rounded-lg"
+                    >
+                      New Game
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
             <button type="button" onClick={newGame} className="btn-neon px-4 py-2 text-xs font-mono rounded-lg">
               New game
             </button>
@@ -330,7 +453,7 @@ export default function ChessPage() {
               type="button"
               onClick={undo}
               disabled={game.history.length === 0}
-              className="btn-ghost px-4 py-2 text-xs font-mono rounded-lg disabled:opacity-30"
+              className="btn-ghost px-4 py-2 text-xs font-mono rounded-lg disabled:opacity-30 disabled:cursor-not-allowed"
             >
               Undo
             </button>
@@ -347,13 +470,38 @@ export default function ChessPage() {
                   key={d}
                   type="button"
                   onClick={() => setDifficulty(d)}
-                  className={`px-3 py-1.5 text-[10px] font-mono rounded-md border transition-colors capitalize ${
+                  className={`px-3 py-1.5 text-[10px] font-mono rounded-md border transition-all duration-200 capitalize ${
                     difficulty === d
-                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400"
-                      : "border-white/10 text-white/40 hover:text-white/70"
+                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400 shadow-[0_0_8px_rgba(74,240,255,0.1)]"
+                      : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
                   }`}
                 >
                   {d}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-[10px] font-mono text-white/30 uppercase tracking-wider">View</span>
+            <div className="flex items-center gap-1">
+              {([
+                ["2d", "2D"],
+                ["perspective", "Perspective"],
+                ["isometric", "Isometric"],
+                ["3d", "Full 3D"],
+                ["hybrid", "Hybrid"],
+              ] as [ViewMode, string][]).map(([v, label]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setViewMode(v)}
+                  className={`px-3 py-1.5 text-[10px] font-mono rounded-md border transition-all duration-200 ${
+                    viewMode === v
+                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400 shadow-[0_0_8px_rgba(74,240,255,0.1)]"
+                      : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
+                  }`}
+                >
+                  {label}
                 </button>
               ))}
             </div>
@@ -367,18 +515,24 @@ export default function ChessPage() {
                 <span
                   className={`inline-block w-2.5 h-2.5 rounded-full ${game.turn === "w" ? "bg-white" : "bg-white/30"}`}
                 />
-                <span className="text-xs font-mono text-white/60">{statusLabel}</span>
+                <span className="text-xs font-mono text-white/60 chess-status-flash" key={statusLabel}>{statusLabel}</span>
               </div>
-              {thinking && <span className="text-[10px] font-mono text-neon-400 animate-pulse">engine thinking…</span>}
+              {thinking && (
+                <span className="flex items-center gap-1 ml-2">
+                  <span className="chess-thinking-dot" />
+                  <span className="chess-thinking-dot" />
+                  <span className="chess-thinking-dot" />
+                </span>
+              )}
             </div>
 
             <div className="text-xs font-mono space-y-2">
               <div className="flex items-center gap-2">
                 <span className="text-white/30 w-8 shrink-0">You</span>
                 <div className="flex flex-wrap gap-0.5">
-                  {captured.byWhite.map((p, i) => (
-                    <span key={i} className={aiColor === "w" ? "text-[#f5f2ea]" : "text-[#8a93a3]"}>
-                      {PIECE_UNICODE[aiColor + p]}
+                  {(aiColor === "b" ? captured.byWhite : captured.byBlack).map((p, i) => (
+                    <span key={`${p}-${i}`} className="text-[#8a93a3] chess-captured-new">
+                      {PIECE_UNICODE[(aiColor === "b" ? "b" : "w") + p]}
                     </span>
                   ))}
                   {captured.advantage > 0 && (
@@ -389,9 +543,9 @@ export default function ChessPage() {
               <div className="flex items-center gap-2">
                 <span className="text-white/30 w-8 shrink-0">AI</span>
                 <div className="flex flex-wrap gap-0.5">
-                  {captured.byBlack.map((p, i) => (
-                    <span key={i} className={aiColor === "b" ? "text-[#f5f2ea]" : "text-[#8a93a3]"}>
-                      {PIECE_UNICODE[aiColor === "b" ? "w" : "b" + p]}
+                  {(aiColor === "b" ? captured.byBlack : captured.byWhite).map((p, i) => (
+                    <span key={`${p}-${i}`} className="text-[#f5f2ea] chess-captured-new">
+                      {PIECE_UNICODE[(aiColor === "b" ? "w" : "b") + p]}
                     </span>
                   ))}
                   {captured.advantage < 0 && (
@@ -407,10 +561,10 @@ export default function ChessPage() {
                 <button
                   type="button"
                   onClick={() => playAs("w")}
-                  className={`flex-1 px-2 py-1.5 text-[10px] font-mono rounded-md border transition-colors ${
+                  className={`flex-1 px-2 py-1.5 text-[10px] font-mono rounded-md border transition-all duration-200 ${
                     aiColor === "b"
-                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400"
-                      : "border-white/10 text-white/40 hover:text-white/70"
+                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400 shadow-[0_0_8px_rgba(74,240,255,0.1)]"
+                      : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
                   }`}
                 >
                   Play White
@@ -418,10 +572,10 @@ export default function ChessPage() {
                 <button
                   type="button"
                   onClick={() => playAs("b")}
-                  className={`flex-1 px-2 py-1.5 text-[10px] font-mono rounded-md border transition-colors ${
+                  className={`flex-1 px-2 py-1.5 text-[10px] font-mono rounded-md border transition-all duration-200 ${
                     aiColor === "w"
-                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400"
-                      : "border-white/10 text-white/40 hover:text-white/70"
+                      ? "border-neon-400/60 bg-neon-400/10 text-neon-400 shadow-[0_0_8px_rgba(74,240,255,0.1)]"
+                      : "border-white/10 text-white/40 hover:text-white/70 hover:border-white/20"
                   }`}
                 >
                   Play Black
@@ -435,14 +589,22 @@ export default function ChessPage() {
             {movesList.length === 0 ? (
               <p className="text-xs font-mono text-white/20">No moves yet.</p>
             ) : (
-              <div className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 text-xs font-mono max-h-56 overflow-y-auto">
-                {movesList.map((row) => (
-                  <div key={row.n} className="contents">
-                    <span className="text-white/25">{row.n}.</span>
-                    <span className="text-white/70">{row.w}</span>
-                    <span className="text-white/40">{row.b ?? ""}</span>
-                  </div>
-                ))}
+              <div ref={moveListRef} className="grid grid-cols-[auto_1fr_1fr] gap-x-3 gap-y-1 text-xs font-mono max-h-56 overflow-y-auto">
+                {movesList.map((row, i) => {
+                  const isLastRow = i === movesList.length - 1;
+                  const hasBlackMove = !!row.b;
+                  return (
+                    <div key={row.n} className={`contents ${isLastRow ? "chess-move-new" : ""}`}>
+                      <span className="text-white/25">{row.n}.</span>
+                      <span className={isLastRow && !hasBlackMove ? "text-neon-400/80" : "text-white/70"}>
+                        {row.w}
+                      </span>
+                      <span className={isLastRow && hasBlackMove ? "text-neon-400/80" : "text-white/40"}>
+                        {row.b ?? ""}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
