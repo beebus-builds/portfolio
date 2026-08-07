@@ -29,7 +29,7 @@ export const CORPUS: KnowledgeChunk[] = [
     text: "Bibash Poudel is from Sindhuli, Nepal, age 23, role Developer Intern at Smartsites Nepal, studying BIT at Bhaktapur Multiple Campus, timezone Asia/Kathmandu UTC+5:45, languages Nepali native and English fluent.",
     answer:
       "Here's the quick scoop on Bibash: He's a 23-year-old developer from Sindhuli, Nepal. He's juggling his BIT studies at Bhaktapur Multiple Campus with his internship over at Smartsites Nepal. He's fluent in Nepali and English, and he's based in the Asia/Kathmandu timezone.",
-    source: "/whoami",
+    source: "/about",
   },
   {
     id: "journey",
@@ -181,7 +181,7 @@ export const CORPUS: KnowledgeChunk[] = [
     text: "Nepal is Bibash's home country, land of mountains, culture and code. Highest peak Mount Everest 8848m, 4 UNESCO heritage sites, only non-rectangular flag, timezone UTC+5:45. Home is Sindhuli with views of the Himalayas, and he studies in Kathmandu's Bhaktapur.",
     answer:
       "Nepal — land of mountains, culture & code 🇳🇵\n\n→ Home: Sindhuli, with views of the Himalayas\n→ Highest peak: Mount Everest, 8,848m\n→ 4 UNESCO heritage sites, including Lumbini (birthplace of Buddha)\n→ The only non-rectangular national flag in the world\n→ Timezone UTC+5:45 — one of only two 45-minute offsets on Earth",
-    source: "/nepal",
+    source: "/about",
   },
   {
     id: "nepal-culture",
@@ -190,7 +190,7 @@ export const CORPUS: KnowledgeChunk[] = [
     text: "Nepali is the official language of Nepal spoken by 45 percent as mother tongue. Dashain and Tihar are the biggest festivals. Dal Bhat is the daily staple, momos and sel roti are favorites. Nepal has over 50 festivals annually.",
     answer:
       "Culture & cuisine:\n→ Languages: Nepali (नेपाली) is official; 120+ languages spoken\n→ Festivals: Dashain and Tihar are the biggest — 50+ festivals a year\n→ Food: Dal Bhat is the staple; momos, sel roti, and gundruk are favorites\n→ Arts: folk music, classical dance, and Newar woodcarving",
-    source: "/nepal",
+    source: "/about",
   },
   {
     id: "nepal-dev-scene",
@@ -199,7 +199,7 @@ export const CORPUS: KnowledgeChunk[] = [
     text: "Nepal's tech scene is growing rapidly with 2000 plus IT graduates yearly, 500 plus tech startups, and a remote-first work culture. Nepal is the 3rd largest remittance economy in South Asia.",
     answer:
       "Nepal's dev ecosystem:\n→ 2,000+ IT graduates yearly\n→ 500+ tech startups\n→ Remote-first, young, and ambitious\n→ 3rd largest remittance economy in South Asia\n\n\"Software from the Himalayas — built with altitude attitude.\"",
-    source: "/nepal",
+    source: "/about",
   },
   {
     id: "namaste",
@@ -208,7 +208,7 @@ export const CORPUS: KnowledgeChunk[] = [
     text: "Namaste is the Nepali welcome. Namaskar means may your day be auspicious. स्वागत छ means welcome.",
     answer:
       "Namaste! 🙏 स्वागत छ — welcome to this digital space.\n\nNamaskar — आजको दिन शुभ रहोस् (may your day be auspicious).",
-    source: "/namaste",
+    source: "/",
   },
   {
     id: "blog",
@@ -220,33 +220,6 @@ export const CORPUS: KnowledgeChunk[] = [
     source: "/blog",
   },
   {
-    id: "build-log",
-    keywords: ["build log", "changelog", "diary", "progress", "log", "updates", "dev diary"],
-    title: "Build log",
-    text: "The build log is a developer diary of decisions, experiments and progress. Recent entries cover the decluttered navbar, Neon database publishing, accessibility and light mode overhaul, the terminal shell, algorithms visualizer, and WebRTC calling.",
-    answer:
-      "The Build Log is a dev diary — honest notes on what Bibash built and why.\n\nRecent highlights:\n→ Navbar decluttered from 12 items down to 6\n→ Blog posts publish straight to Neon Postgres\n→ Accessibility + light mode overhaul\n→ A real shell with streaming output\n→ WebRTC calling pipeline",
-    source: "/build-log",
-  },
-  {
-    id: "algorithms",
-    keywords: ["algorithm", "visualizer", "pathfinding", "sorting", "astar", "a star", "dijkstra", "bfs", "maze"],
-    title: "Algorithms visualizer",
-    text: "The algorithms page has A* Dijkstra BFS pathfinding with a paintable maze grid and four sorting algorithms with live bar animation. All rendered client-side on canvas.",
-    answer:
-      "Yes! The interactive visualizer at /algorithms has:\n→ A*, Dijkstra, and BFS pathfinding on a paintable maze\n→ 4 sorting algorithms with live bar animation\n\nGo click some pixels — Bibash will wait.",
-    source: "/algorithms",
-  },
-  {
-    id: "fractals",
-    keywords: ["fractal", "mandelbrot", "julia", "explorer", "zoom", "canvas"],
-    title: "Fractal explorer",
-    text: "The fractals page is an interactive Mandelbrot and Julia explorer rendered client-side on canvas, with zoom and palette options.",
-    answer:
-      "The Mandelbrot & Julia explorer lives at /fractals — zoomable, palette-switchable, and rendered live on canvas.",
-    source: "/fractals",
-  },
-  {
     id: "chess",
     keywords: ["chess", "play", "game", "board", "opponent", "minimax"],
     title: "Chess game",
@@ -256,22 +229,13 @@ export const CORPUS: KnowledgeChunk[] = [
     source: "/chess",
   },
   {
-    id: "guestbook",
-    keywords: ["guestbook", "sign", "message", "leave", "feedback"],
-    title: "Guestbook",
-    text: "The guestbook at /guestbook lets visitors leave a name and a message. It persists in the browser.",
-    answer:
-      "Yes! The /guestbook is open — leave a name and a message, and it stays right there.",
-    source: "/guestbook",
-  },
-  {
     id: "resume",
     keywords: ["resume", "cv", "download", "hire me"],
     title: "Resume",
-    text: "Bibash's resume is downloadable as /resume.pdf and linked from the whoami page.",
+    text: "Bibash's resume is downloadable at /resume.pdf.",
     answer:
-      "You can download Bibash's resume at /resume.pdf, or grab it from the /whoami page.",
-    source: "/whoami",
+      "You can download Bibash's resume at /resume.pdf.",
+    source: "/",
   },
   {
     id: "terminal",
@@ -283,22 +247,13 @@ export const CORPUS: KnowledgeChunk[] = [
     source: "/commands",
   },
   {
-    id: "call",
-    keywords: ["call", "video", "audio", "webrtc", "chat with", "talk"],
-    title: "WebRTC calling",
-    text: "Bibash built a WebRTC calling pipeline with a Python WebSocket signaling server on port 8001 paired with Next.js on 3001. Visitors can call Bibash through the floating terminal.",
-    answer:
-      "There's a real WebRTC call pipeline — hit the 📞 or 📹 button in the floating terminal to try an audio or video call (when Bibash is around).",
-    source: "/call-agent",
-  },
-  {
     id: "how-built",
     keywords: ["built", "tech stack", "how", "nextjs", "react", "framework", "made with", "website", "site", "technology used", "whats this"],
     title: "How the site is built",
-    text: "This portfolio is built with Next.js 16, React 19, TypeScript, and Tailwind CSS. Blog posts publish to a Neon Postgres database. It features a terminal shell, AI companion, WebRTC calling, and algorithm visualizers.",
+    text: "This portfolio is built with Next.js 16, React 19, TypeScript, and Tailwind CSS. Blog posts publish to a Neon Postgres database. It features a terminal shell and a custom site-local AI companion.",
     answer:
-      "This site is built with Next.js 16, React 19, TypeScript, and Tailwind CSS.\n\nHighlights: a full terminal shell as the homepage, blog posts in Neon Postgres, a WebRTC call pipeline, algorithm/fractal visualizers, and now this custom AI — all running locally with zero external model APIs.",
-    source: "/build-log",
+      "This site is built with Next.js 16, React 19, TypeScript, and Tailwind CSS.\n\nHighlights: a full terminal shell as the homepage, blog posts in Neon Postgres, an interactive 3D chess game, and this custom AI — all running locally with zero external model APIs.",
+    source: "/",
   },
 ];
 
@@ -319,7 +274,7 @@ export const SMALLTALK: KnowledgeChunk[] = [
     title: "Thanks",
     text: "thank thanks thx appreciate grateful",
     answer:
-      "You're very welcome! 🙏 If something caught your eye, Bibash would love to hear your thoughts—the /guestbook is always open.",
+      "You're very welcome! 🙏 If something caught your eye, Bibash would love to hear from you — the /contact page is always open.",
   },
   {
     id: "bye",

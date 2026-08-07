@@ -126,12 +126,9 @@ export default function ProjectPage({ params }: { params: { slug: string } }) {
         </section>
       </div>
 
-      <div className="mt-12 flex items-center justify-between flex-wrap gap-4">
+      <div className="mt-12">
         <Link href="/projects" className="text-xs font-mono text-neon-400 hover:underline">
           ← All Projects
-        </Link>
-        <Link href="/random" className="text-xs font-mono text-white/40 hover:text-white transition-colors">
-          Surprise me →
         </Link>
       </div>
     </PageShell>

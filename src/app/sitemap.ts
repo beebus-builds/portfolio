@@ -7,23 +7,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const staticPages = [
     "",
     "/about",
-    "/algorithms",
     "/blog",
-    "/build-log",
-    "/code",
-    "/commands",
     "/chess",
+    "/commands",
     "/contact",
     "/education",
-    "/fractals",
-    "/guestbook",
-    "/namaste",
-    "/nepal",
     "/projects",
-    "/random",
     "/skills",
-    "/tools",
-    "/whoami",
   ];
 
   const now = new Date();

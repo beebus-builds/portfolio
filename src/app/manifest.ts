@@ -17,7 +17,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
     shortcuts: [
-      { name: "Terminal", url: "/", description: "Open the terminal" },
+      { name: "Terminal", url: "/commands", description: "Open the terminal" },
       { name: "About", url: "/about", description: "About Bibash" },
       { name: "Projects", url: "/projects", description: "View projects" },
       { name: "Contact", url: "/contact", description: "Get in touch" },

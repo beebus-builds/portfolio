@@ -2,22 +2,13 @@ import Link from "next/link";
 
 const footerLinks = [
   { label: "Blog", href: "/blog" },
-  { label: "Build Log", href: "/build-log" },
-  { label: "Commands", href: "/commands" },
+  { label: "Terminal", href: "/commands" },
   { label: "Chess", href: "/chess" },
-  { label: "Algorithms", href: "/algorithms" },
-  { label: "Fractals", href: "/fractals" },
   { label: "About", href: "/about" },
   { label: "Projects", href: "/projects" },
   { label: "Skills", href: "/skills" },
-  { label: "Tools", href: "/tools" },
   { label: "Contact", href: "/contact" },
-  { label: "Guestbook", href: "/guestbook" },
   { label: "Education", href: "/education" },
-  { label: "Nepal", href: "/nepal" },
-  { label: "Namaste", href: "/namaste" },
-  { label: "Whoami", href: "/whoami" },
-  { label: "Random", href: "/random" },
 ];
 
 const socialLinks = [

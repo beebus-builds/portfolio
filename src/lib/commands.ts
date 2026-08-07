@@ -645,7 +645,7 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
         ["237", "nginx", "0.2"],
         ["412", "next-server", "2.4"],
         ["569", "node", "3.1"],
-        ["612", "call_server", "0.8"],
+        ["612", "chess-engine", "0.8"],
         ["701", "matrix-rain", "1.9"],
         ["823", "bash", "0.0"],
       ];
@@ -675,7 +675,7 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
         { text: applyNova(""), color: "white" },
         { text: applyNova("   PID  USER      %CPU  %MEM     TIME+  COMMAND"), color: "#4af0ff" },
         { text: applyNova(`  ${412 + Math.floor(Math.random() * 20)}  visitor    4.9   3.2   0:12.34 next-server`), color: "white" },
-        { text: applyNova(`  612  visitor    2.1   1.8   0:04.11 call_server`), color: "white" },
+        { text: applyNova(`  612  visitor    2.1   1.8   0:04.11 chess-engine`), color: "white" },
         { text: applyNova(` 823  visitor    0.3   0.4   0:00.19 bash`), color: "white" },
       ];
     },
@@ -702,7 +702,6 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
     handler: () => [
       { text: applyNova(" Proto Recv-Q Send-Q Local Address           Foreign Address         State"), color: "#4af0ff" },
       { text: applyNova(" tcp        0      0 0.0.0.0:3001            0.0.0.0:*               LISTEN"), color: "white" },
-      { text: applyNova(" tcp        0      0 0.0.0.0:8001            0.0.0.0:*               LISTEN"), color: "white" },
       { text: applyNova(" tcp        0      0 127.0.0.1:3001          127.0.0.1:53421         ESTABLISHED"), color: "white" },
       { text: applyNova(" tcp        0      0 192.168.1.23:3001       103.86.99.12:443        ESTABLISHED"), color: "white" },
       { text: applyNova(" udp        0      0 0.0.0.0:5353            0.0.0.0:*"), color: "white" },
@@ -1099,9 +1098,8 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
         about: "/about",
         skills: "/skills",
         contact: "/contact",
-        algorithms: "/algorithms",
-        fractals: "/fractals",
         chess: "/chess",
+        commands: "/commands",
       };
       const url = urls[target] || `/${target}`;
       ctx.push({ text: ` GET ${url} HTTP/1.1`, color: "white" });
@@ -1151,11 +1149,11 @@ function answerQuestion(q: string): string {
   }
 
   if (hit(["nepal", "country", "himayla", "himalaya", "everest", "kathmandu", "sindhuli"])) {
-    return "Nepal — land of mountains and code:\n  → Home: Sindhuli, with views of the Himalayas\n  → Capital: Kathmandu (Bhaktapur Multiple Campus)\n  → Highest peak: Everest, 8,848m\n  → Timezone: UTC+5:45, 45 minutes ahead of the world\n  → Tech scene: young, remote-first, and growing fast\n\n  Run 'nepal' or visit /nepal for more.";
+    return "Nepal — land of mountains and code:\n  → Home: Sindhuli, with views of the Himalayas\n  → Capital: Kathmandu (Bhaktapur Multiple Campus)\n  → Highest peak: Everest, 8,848m\n  → Timezone: UTC+5:45, 45 minutes ahead of the world\n  → Tech scene: young, remote-first, and growing fast";
   }
 
   if (hit(["who", "bibash", "about", "name", "yourself", "developer"])) {
-    return "Bibash Poudel:\n  → 23-year-old developer from Sindhuli, Nepal\n  → Intern at Smartsites Nepal\n  → BIT at Bhaktapur Multiple Campus\n  → Motto: \"Code is a canvas, the browser is my gallery.\"\n\n  Run 'about' or 'whoami' for the full identity card.";
+    return "Bibash Poudel:\n  → 23-year-old developer from Sindhuli, Nepal\n  → Intern at Smartsites Nepal\n  → BIT at Bhaktapur Multiple Campus\n  → Motto: \"Code is a canvas, the browser is my gallery.\"\n\n  Run 'about' for the full identity card.";
   }
 
   if (hit(["blog", "write", "post"])) {
@@ -1166,19 +1164,15 @@ function answerQuestion(q: string): string {
     return "Education:\n  → Bachelor of Information Technology (BIT)\n  → Bhaktapur Multiple Campus\n  → Expected graduation: 2026\n\n  Run 'education' for details.";
   }
 
-  if (hit(["algorithm", "visual", "sort", "pathfind", "fractal"])) {
-    return "Interactive math & CS:\n  → /algorithms — live A*, Dijkstra, BFS + 4 sorting algos\n  → /fractals — Mandelbrot & Julia explorer\n  → /chess — full legal chess vs the engine\n  Go click some pixels. I'll wait.";
+  if (hit(["chess", "play", "game", "board", "minimax"])) {
+    return "Chess is live at /chess — a fully legal engine in the browser.\n  Castling, en passant, promotion, and a minimax opponent\n  at easy / medium / hard. Play as white or black.";
   }
 
   if (hit(["resume", "cv", "download"])) {
-    return "My resume is available:\n  → Download at /resume.pdf\n  → Or find the link on the /whoami page.";
+    return "My resume is available:\n  → Download at /resume.pdf";
   }
 
-  if (hit(["guestbook", "sign", "message", "leave"])) {
-    return "Yes! The /guestbook is open.\n  Leave a name and a message — it persists in your browser.";
-  }
-
-  return "Hmm, I'm not sure about that one.\n  Try asking about projects, skills, contact, Nepal, education, or the blog.\n  Or just type 'help' — the terminal has plenty to explore.";
+  return "Hmm, I'm not sure about that one.\n  Try asking about projects, skills, contact, Nepal, education, chess, or the blog.\n  Or just type 'help' — the terminal has plenty to explore.";
 }
 
 // ─── Shell parsing ─────────────────────────────────────────────────
@@ -1341,7 +1335,7 @@ async function runCommandInternal(input: string, ctx: CommandContext): Promise<C
 
 // ─── Page Commands ─────────────────────────────────────────────────────
 
-const PAGE_COMMANDS = new Set(["about", "projects", "skills", "contact", "education", "namaste", "nepal", "whoami", "blog", "tools", "commands", "guestbook"]);
+const PAGE_COMMANDS = new Set(["about", "projects", "skills", "contact", "education", "blog", "commands", "chess"]);
 
 export function isPageCommand(name: string): boolean {
   return PAGE_COMMANDS.has(name);

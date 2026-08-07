@@ -14,16 +14,6 @@ const items = [
   { label: "Contact", desc: "Get in touch", href: "/contact" },
   { label: "Commands", desc: "Terminal playground", href: "/commands" },
   { label: "Chess", desc: "Play the terminal", href: "/chess" },
-  { label: "Algorithms", desc: "Pathfinding + sorting visualizer", href: "/algorithms" },
-  { label: "Fractals", desc: "Mandelbrot explorer", href: "/fractals" },
-  { label: "Tools", desc: "Curated tools", href: "/tools" },
-  { label: "Guestbook", desc: "Leave a message", href: "/guestbook" },
-  { label: "Build Log", desc: "Dev diary", href: "/build-log" },
-  { label: "Surprise", desc: "Random project", href: "/random" },
-  { label: "Code", desc: "Code snippets", href: "/code" },
-  { label: "Nepal", desc: "My country", href: "/nepal" },
-  { label: "Namaste", desc: "Nepali welcome", href: "/namaste" },
-  { label: "Whoami", desc: "Identity card", href: "/whoami" },
 ];
 
 export default function CommandPalette() {

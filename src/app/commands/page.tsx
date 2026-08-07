@@ -9,13 +9,9 @@ const PAGE_ROUTES: Record<string, string> = {
   skills: "/skills",
   contact: "/contact",
   education: "/education",
-  nepal: "/nepal",
-  namaste: "/namaste",
-  whoami: "/whoami",
   blog: "/blog",
-  tools: "/tools",
+  chess: "/chess",
   commands: "/commands",
-  guestbook: "/guestbook",
 };
 
 export default function CommandsPage() {

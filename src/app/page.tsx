@@ -81,10 +81,10 @@ export default async function Home() {
           <Terminal variant="section" />
           <p className="mt-4 text-[10px] font-mono text-white/30">
             Type <span className="text-neon-400/60">help</span> to start — or run{" "}
-            <span className="text-neon-400/60">about</span>, <span className="text-neon-400/60">projects</span>,{" "}
-            <span className="text-neon-400/60">whoami</span>, <span className="text-neon-400/60">nepal</span>. Everything
-            works, including <span className="text-neon-400/60">mail</span> and{" "}
-            <span className="text-neon-400/60">call</span>.
+            <span className="text-neon-400/60">about</span>,{" "}
+            <span className="text-neon-400/60">projects</span>,{" "}
+            <span className="text-neon-400/60">skills</span>, or ask{" "}
+            <span className="text-neon-400/60">ask</span> anything to the AI companion.
           </p>
         </div>
       </section>

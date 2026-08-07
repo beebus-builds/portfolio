@@ -6,7 +6,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/admin", "/call-agent", "/api/"],
+        disallow: ["/admin", "/api/"],
       },
     ],
     sitemap: "https://bibashpoudel.dev/sitemap.xml",

@@ -11,9 +11,9 @@ const PAGE_ROUTES: Record<string, string> = {
   skills: "/skills",
   contact: "/contact",
   education: "/education",
-  nepal: "/nepal",
-  namaste: "/namaste",
-  whoami: "/whoami",
+  blog: "/blog",
+  chess: "/chess",
+  commands: "/commands",
 };
 
 export default function Terminal({ variant = "fullscreen" }: { variant?: "fullscreen" | "section" }) {

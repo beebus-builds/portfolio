@@ -25,35 +25,9 @@ const navItems = [
       { title: "Education", href: "/education" },
     ],
   },
-  {
-    label: "Play",
-    href: "/commands",
-    links: [
-      { title: "Terminal", href: "/commands" },
-      { title: "Chess", href: "/chess" },
-      { title: "Algorithms", href: "/algorithms" },
-      { title: "Fractals", href: "/fractals" },
-    ],
-  },
-  {
-    label: "Connect",
-    href: "/contact",
-    links: [
-      { title: "Contact", href: "/contact" },
-      { title: "Guestbook", href: "/guestbook" },
-      { title: "Whoami", href: "/whoami" },
-    ],
-  },
-  {
-    label: "More",
-    href: "/tools",
-    links: [
-      { title: "Tools", href: "/tools" },
-      { title: "Nepal", href: "/nepal" },
-      { title: "Build Log", href: "/build-log" },
-      { title: "Surprise", href: "/random" },
-    ],
-  },
+  { label: "Terminal", href: "/commands", links: [] },
+  { label: "Chess", href: "/chess", links: [] },
+  { label: "Contact", href: "/contact", links: [] },
 ];
 
 export default function Header() {

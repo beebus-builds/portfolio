@@ -6,7 +6,7 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  allowedDevOrigins: ['192.168.1.96', '.ngrok-free.app', '.ngrok.io'],
+  allowedDevOrigins: ['192.168.1.96'],
 };
 
 module.exports = nextConfig;
