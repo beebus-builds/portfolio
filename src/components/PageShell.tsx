@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import FloatingTerminal from "@/components/FloatingTerminal";
 import ChatWidget from "@/components/ChatWidget";
 
 interface Props {
@@ -30,7 +29,6 @@ export default function PageShell({ children }: Props) {
         </div>
       </main>
       <Footer />
-      <FloatingTerminal />
       <ChatWidget />
       <button
         onClick={scrollToTop}

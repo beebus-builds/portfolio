@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import Terminal from "@/components/Terminal";
 import ChatWidget from "@/components/ChatWidget";
+import MouseScroll from "@/components/MouseScroll";
 import { projects } from "@/lib/projects";
 import { getBlogPosts } from "@/lib/posts";
 
@@ -39,40 +40,62 @@ export default async function Home() {
       <Header />
 
       {/* ─── Intro ───────────────────────────────────────────── */}
-      <section className="relative overflow-hidden">
-        <div className="max-w-6xl mx-auto px-4 py-20 md:py-28">
-          <div className="max-w-3xl">
-            <div className="section-accent" />
-            <p className="text-xs font-mono text-neon-400/70 mb-4">
-              <span className="shape-dot inline-block mr-2" />
-              {new Date().getFullYear()} — Nepal Dev Terminal
-            </p>
-            <h1 className="text-4xl md:text-6xl font-mono font-bold text-white leading-tight tracking-tight">
-              Hi, I&apos;m{" "}
-              <span className="text-neon-400 glow-neon">Bibash Poudel</span>
+      <section className="relative overflow-hidden min-h-[90vh] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 py-20 md:py-28 grid md:grid-cols-12 gap-12 items-center">
+          
+          {/* Left: Narrative Copy */}
+          <div className="md:col-span-7">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="shape-square" />
+              <p className="text-xs font-mono text-neon-400/80 tracking-widest uppercase">
+                Building from the Himalayas
+              </p>
+            </div>
+            
+            <h1 className="text-5xl md:text-7xl font-mono font-bold text-white leading-[1.1] tracking-tighter">
+              <span className="block text-white/90">Sindhuli to</span>
+              <span className="text-[var(--color-neon-400)] glow-neon">the Web.</span>
             </h1>
-            <p className="mt-6 text-base md:text-lg font-mono text-white/50 max-w-xl leading-relaxed">
-              A developer from the hills of Sindhuli, Nepal. I build for the web — turning ideas
-              into interactive experiences with clean code and thoughtful design. Right now that
-              means full-stack work with React, Next.js, and TypeScript.
+            
+            <p className="mt-8 text-lg font-mono text-white/50 max-w-xl leading-relaxed">
+              I'm Bibash. I bridge technical complexity with quiet, performant interfaces. 
+              Currently crafting full-stack experiences with Next.js, and obsessing over 
+              the subtle details that make software actually <em>feel</em> human.
             </p>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
+            
+            <div className="mt-10 flex flex-wrap items-center gap-4">
               <Link href="/projects" className="btn-neon text-sm">
-                View Projects →
+                Explore Projects
               </Link>
               <Link href="/contact" className="btn-ghost text-sm">
-                Get in Touch
-              </Link>
-              <Link href="/resume.pdf" target="_blank" rel="noopener noreferrer" className="btn-ghost text-sm">
-                Resume ↓
+                Say Hello
               </Link>
             </div>
           </div>
+
+          {/* Right: Tactile Artifact */}
+          <div className="md:col-span-5 relative">
+            <div className="neon-card border border-[var(--color-terminal-700)] p-8 bg-[var(--color-terminal-900)] rotate-2 hover:rotate-0 transition-transform duration-500">
+              <div className="flex items-center gap-2 mb-6">
+                <div className="w-2 h-2 rounded-full bg-[var(--color-neon-400)] animate-pulse" />
+                <span className="text-[10px] font-mono text-[var(--color-terminal-text)] uppercase tracking-widest">Live Status</span>
+              </div>
+              <h3 className="text-sm font-mono text-white mb-2">Building: DevVerse Core</h3>
+              <p className="text-xs font-mono text-white/40 leading-relaxed mb-6">
+                Refactoring the terminal state machine for better performance. 
+                Focusing on reducing main-thread blocking time.
+              </p>
+              <div className="text-[10px] font-mono text-[var(--color-terminal-text)]/30 border-t border-white/5 pt-4">
+                LAST COMMIT: 14m ago · github.com/bibash
+              </div>
+            </div>
+          </div>
         </div>
+        <MouseScroll />
       </section>
 
       {/* ─── Terminal (the real homepage experience) ────────── */}
-      <section className="thread">
+      <section className="thread" id="terminal">
         <div className="max-w-6xl mx-auto px-4 py-8">
           <div className="thread-dot">
             <div className="section-accent" />

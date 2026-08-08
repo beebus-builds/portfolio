@@ -1,24 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#0a0a1a"/>
-      <stop offset="100%" stop-color="#0f0f2a"/>
+      <stop offset="0%" stop-color="#0d0d24"/>
+      <stop offset="100%" stop-color="#15153a"/>
     </linearGradient>
-    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+    <linearGradient id="edge" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#4af0ff"/>
-      <stop offset="100%" stop-color="#00d4ff"/>
+      <stop offset="55%" stop-color="#2fd8ff"/>
+      <stop offset="100%" stop-color="#7d5cff"/>
     </linearGradient>
   </defs>
-  <rect width="512" height="512" rx="80" fill="url(#bg)"/>
-  <rect x="20" y="20" width="472" height="472" rx="60" fill="none" stroke="url(#accent)" stroke-width="4" opacity="0.3"/>
-  <!-- Terminal prompt -->
-  <text x="256" y="200" font-family="monospace" font-size="48" fill="#4af0ff" text-anchor="middle" font-weight="bold">~$</text>
-  <!-- Cursor blink -->
-  <rect x="310" y="158" width="18" height="36" rx="3" fill="#4af0ff" opacity="0.8">
-    <animate attributeName="opacity" values="0.8;0.1;0.8" dur="1.5s" repeatCount="indefinite"/>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#bg)" stroke="url(#edge)" stroke-width="16"/>
+  <!-- Matrix grid dots -->
+  <circle cx="96" cy="128" r="10" fill="#4af0ff" opacity="0.25"/>
+  <circle cx="416" cy="128" r="10" fill="#4af0ff" opacity="0.25"/>
+  <circle cx="96" cy="384" r="10" fill="#4af0ff" opacity="0.25"/>
+  <circle cx="416" cy="384" r="10" fill="#4af0ff" opacity="0.25"/>
+  <!-- Bibash monogram as the prompt -->
+  <text x="96" y="326" font-family="'Anonymous Pro', 'Courier New', monospace" font-size="250" font-weight="700" fill="#4af0ff">B</text>
+  <!-- Terminal cursor -->
+  <rect x="330" y="120" width="48" height="180" rx="16" fill="#00ff41">
+    <animate attributeName="opacity" values="1;0;1" dur="1.2s" repeatCount="indefinite"/>
   </rect>
-  <!-- Nepal flag hint -->
-  <text x="256" y="310" font-family="monospace" font-size="100" text-anchor="middle">🇳🇵</text>
-  <!-- Bottom text -->
-  <text x="256" y="400" font-family="monospace" font-size="22" fill="#ffffff50" text-anchor="middle">Nepal Dev Terminal</text>
 </svg>

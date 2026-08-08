@@ -143,10 +143,10 @@ export default function ChatWidget() {
 
   return (
     <>
-      {/* Floating button — left of the terminal button */}
+      {/* Floating button */}
       <button
         onClick={isOpen ? close : open}
-        className="fixed bottom-4 right-20 z-[90] w-16 h-16 rounded-full border-2 border-neon-400/50 flex items-center justify-center transition-all shadow-lg shadow-neon-400/20 overflow-hidden group hover:scale-105 active:scale-95"
+        className="fixed bottom-6 right-6 z-[90] w-14 h-14 rounded-full border-2 border-neon-400/50 flex items-center justify-center transition-all shadow-lg shadow-neon-400/20 overflow-hidden group hover:scale-105 active:scale-95"
         style={{ background: "rgba(74,240,255,0.08)" }}
         title={isOpen ? "Close AI chat" : "Chat with Uvo AI"}
         aria-label={isOpen ? "Close AI chat" : "Chat with Uvo AI"}
@@ -165,7 +165,7 @@ export default function ChatWidget() {
       {/* Chat panel */}
       {isOpen && (
         <div
-          className="dark-surface fixed bottom-20 right-20 z-[90] w-[360px] max-w-[calc(100vw-40px)] h-[480px] max-h-[calc(100vh-120px)] flex flex-col rounded-xl overflow-hidden border"
+          className="dark-surface fixed bottom-24 right-6 z-[90] w-[360px] max-w-[calc(100vw-40px)] h-[480px] max-h-[calc(100vh-120px)] flex flex-col rounded-xl overflow-hidden border"
           style={{
             borderColor: "rgba(74, 240, 255, 0.15)",
             boxShadow: "0 8px 32px rgba(0,0,0,0.5), 0 0 20px rgba(74,240,255,0.05)",

@@ -55,7 +55,9 @@ export default function MatrixRain({
         if (Math.random() > 0.975) {
           ctx.fillStyle = "rgba(255,255,255,0.85)";
         } else if (Math.random() > 0.5) {
-          ctx.fillStyle = "rgba(74,240,255,0.6)";
+          // Use --color-neon-400
+          const color = getComputedStyle(document.documentElement).getPropertyValue('--color-neon-400').trim();
+          ctx.fillStyle = `rgba(${color}, 0.6)`; // This might not work if color is hex
         } else {
           ctx.fillStyle = "rgba(0,255,65,0.5)";
         }

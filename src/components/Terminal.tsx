@@ -59,6 +59,11 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
   }, []);
 
   // ─── Grid scroll animation ─────────────────────────────────
+  // Helper to get CSS variable values for canvas/JS
+  const getThemeColor = (varName: string) => {
+    if (typeof window === "undefined") return "#000";
+    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+  };
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -86,7 +91,7 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
   }, []);
 
   return (
-    <div className={`relative w-full flex items-center justify-center bg-terminal-900 overflow-hidden ${variant === "fullscreen" ? "h-screen" : "min-h-[520px]"}`}>
+    <div className={`relative w-full flex items-center justify-center bg-[#101516] overflow-hidden ${variant === "fullscreen" ? "h-screen" : "min-h-[520px]"}`}>
       {/* Matrix rain background */}
       <MatrixRain density={variant === "fullscreen" ? 1.2 : 0.8} className="opacity-70" />
 
@@ -111,19 +116,19 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
       {/* Scanlines */}
       <div className="scanlines fixed inset-0 pointer-events-none z-50" />
 
-      {/* Terminal panel */}
-      <div
-        className={`dark-surface relative z-10 w-full max-w-4xl mx-3 ${variant === "fullscreen" ? "h-[calc(100vh-32px)] md:h-[calc(100vh-48px)]" : "h-[520px]"} flex flex-col rounded-xl overflow-hidden transition-all duration-700`}
-        style={{
-          boxShadow: pulseGlow
-            ? "0 0 40px rgba(74, 240, 255, 0.15), 0 0 80px rgba(74, 240, 255, 0.05), inset 0 0 40px rgba(74, 240, 255, 0.03)"
-            : "0 0 20px rgba(74, 240, 255, 0.06), inset 0 0 20px rgba(74, 240, 255, 0.02)",
-          borderColor: pulseGlow ? "rgba(74, 240, 255, 0.3)" : "rgba(74, 240, 255, 0.1)",
-          borderWidth: 1,
-          borderStyle: "solid",
-          background: "linear-gradient(135deg, rgba(10, 10, 30, 0.97), rgba(15, 15, 42, 0.97))",
-        }}
-      >
+        {/* Terminal panel */}
+        <div
+          className={`dark-surface relative z-10 w-full max-w-4xl mx-3 ${variant === "fullscreen" ? "h-[calc(100vh-32px)] md:h-[calc(100vh-48px)]" : "h-[520px]"} flex flex-col rounded-xl overflow-hidden transition-all duration-700`}
+          style={{
+            boxShadow: pulseGlow
+              ? "0 0 40px var(--color-neon-400), 0 0 80px var(--color-neon-400), inset 0 0 40px var(--color-neon-400)"
+              : "0 0 20px var(--color-neon-400), inset 0 0 20px var(--color-neon-400)",
+            borderColor: "var(--color-neon-400)",
+            borderWidth: 1,
+            borderStyle: "solid",
+            background: "linear-gradient(135deg, #101516, #1b2224)",
+          }}
+        >
         {/* Title bar */}
         <div className="shrink-0 flex items-center gap-3 px-4 py-2.5 border-b border-white/5"
           style={{ background: "linear-gradient(90deg, rgba(74, 240, 255, 0.05), transparent, rgba(74, 240, 255, 0.03))" }}
@@ -152,10 +157,10 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
         >
           {t.lines.map((line) => (
             <div key={line.id} className="terminal-line mb-0.5">
-              {line.type === "input" ? (
+                  {line.type === "input" ? (
                 <div className="flex items-start gap-2">
-                  <span className="text-neon-400 shrink-0 text-sm glow-neon">{t.prompt}</span>
-                  <span className="text-white/90 text-sm break-all">{line.content}</span>
+                  <span className="text-[var(--color-neon-400)] shrink-0 text-sm glow-neon">{t.prompt}</span>
+                  <span className="text-[var(--color-terminal-text)] text-sm break-all">{line.content}</span>
                 </div>
               ) : (
                 line.results?.map((result, i) => (
@@ -194,7 +199,7 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
                 <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">To:</span><span className="text-white font-mono text-sm">{t.mailForm.to}</span></div>
                 <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">Subject:</span><span className="text-white font-mono text-sm">{t.mailForm.subject || "(no subject)"}</span></div>
                 <textarea value={t.mailForm.message} onChange={(e) => t.setMailForm((p) => ({ ...p, message: e.target.value }))}
-                  className="flex-1 bg-terminal-900 border border-white/10 rounded text-white font-mono text-sm p-2 outline-none focus:border-neon-400/40 resize-none h-24"
+                  className="flex-1 bg-[#0f0f2a] border border-white/10 rounded text-white font-mono text-sm p-2 outline-none focus:border-neon-400/40 resize-none h-24"
                   placeholder="Type your message..." autoFocus />
                 <div className="flex justify-end gap-2 mt-1">
                   <button onClick={t.cancelMail}

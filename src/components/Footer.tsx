@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Logo from "@/components/Logo";
 
 const footerLinks = [
   { label: "Blog", href: "/blog" },
@@ -22,10 +23,10 @@ export default function Footer() {
       <div className="max-w-6xl mx-auto px-4 py-10">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
-            <div className="flex items-center gap-2 mb-3">
-              <span className="text-neon-400 font-mono text-sm">~/</span>
-              <span className="text-white font-mono text-sm">bibashpoudel</span>
-            </div>
+            <Link href="/" className="flex items-center gap-2 mb-3 group">
+              <Logo size={22} />
+              <span className="text-white font-mono text-sm group-hover:text-neon-400 transition-colors">bibashpoudel</span>
+            </Link>
             <p className="text-xs font-mono text-white/40 leading-relaxed max-w-xs">
               Developer from Sindhuli, Nepal. Building for the web — turning ideas into interactive experiences.
             </p>
