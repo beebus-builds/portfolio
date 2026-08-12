@@ -133,6 +133,15 @@ export default function Header() {
       {/* ─── HEADER CONTENT CONTAINER ───────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 relative pointer-events-auto">
         
+        {/* LOGO (Spans both decks) */}
+        <div className="absolute top-0 left-0 z-20 pt-2 pl-4">
+          <Link href="/" className="group shrink-0" aria-label="Home">
+            <span className="relative block transition-transform duration-300 group-hover:scale-110">
+              <Logo size={100} />
+            </span>
+          </Link>
+        </div>
+
         {/* TOP DECK (Actions & Clock) */}
         <div className="hidden lg:flex justify-end h-[50px] relative">
           <div className="relative z-10 flex items-center gap-3.5 pr-4 h-full">
@@ -168,7 +177,7 @@ export default function Header() {
         </div>
 
         {/* BOTTOM DECK (Main Navbar) */}
-        <div className="flex items-center justify-between h-20 lg:h-[75px] relative">
+        <div className="flex items-center justify-end h-20 lg:h-[75px] relative">
           
           {/* Mobile Full-Width Background Plate */}
           <div 
@@ -180,21 +189,11 @@ export default function Header() {
             }}
           />
 
-          {/* Left: logo */}
-          <div className="relative z-10 pl-2 lg:pl-4">
-            <Link href="/" className="group shrink-0" aria-label="Home">
-              <span className="relative block transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3">
-                <Logo size={36} />
-                <span className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 blur-md bg-neon-400/20" />
-              </span>
-            </Link>
-          </div>
-
           {/* Center/Right: navigation tabs (Horizontal Diamonds with Middle Gap) */}
           <nav
             ref={menuRef}
             aria-label="Primary"
-            className="hidden lg:flex items-center h-full relative z-10 ml-auto mr-4 lg:mr-10"
+            className="hidden lg:flex items-center h-full relative z-10 mr-4 lg:mr-10"
           >
             {navItems.map((item, index) => {
               const isActive = item.label === activeLabel;

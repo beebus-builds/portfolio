@@ -24,7 +24,7 @@ export default function Footer() {
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <Link href="/" className="flex items-center gap-2 mb-3 group">
-              <Logo size={22} />
+              <Logo size={28} />
               <span className="text-white font-mono text-sm group-hover:text-neon-400 transition-colors">bibashpoudel</span>
             </Link>
             <p className="text-xs font-mono text-white/40 leading-relaxed max-w-xs">
