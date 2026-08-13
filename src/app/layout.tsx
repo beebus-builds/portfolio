@@ -78,8 +78,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <CursorGlow />
-        <TechBackground />
-        {children}
+        <div className="pb-8">
+          {children}
+        </div>
+        <StudentWorkspaceBar />
         <CommandPalette />
         <ServiceWorkerRegistration />
       </body>
