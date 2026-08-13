@@ -1,21 +1,13 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { projects, getProject } from "@/lib/projects";
 import PageShell from "@/components/PageShell";
 import ScrollTrigger from "@/components/ScrollTrigger";
+import { getProjectBySlug } from "@/lib/db";
 
-export function generateStaticParams() {
-  return projects.map((p) => ({ slug: p.slug }));
-}
-
-export function generateMetadata({ params }: { params: { slug: string } }) {
-  const project = getProject(params.slug);
-  if (!project) return { title: "Project not found" };
-  return { title: project.title, description: project.description };
-}
-
-export default function ProjectPage({ params }: { params: { slug: string } }) {
-  const project = getProject(params.slug);
+export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
+  
   if (!project) notFound();
 
   return (

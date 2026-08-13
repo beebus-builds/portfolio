@@ -48,6 +48,7 @@ export const viewport: Viewport = {
 import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CommandPalette from "@/components/CommandPalette";
 import CursorGlow from "@/components/CursorGlow";
+import StudentWorkspaceBar from "@/components/StudentWorkspaceBar";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -77,6 +78,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <CursorGlow />
+        <TechBackground />
         {children}
         <CommandPalette />
         <ServiceWorkerRegistration />

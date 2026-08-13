@@ -1,5 +1,19 @@
 import { Pool } from "@neondatabase/serverless";
 
+let pool: Pool | null = null;
+
+function getPool(): Pool {
+  if (!pool) {
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+  }
+  return pool;
+}
+
+export async function query<T>(text: string, params: unknown[] = []): Promise<T[]> {
+  const result = await getPool().query(text, params);
+  return result.rows as T[];
+}
+
 export interface PostRow {
   slug: string;
   title: string;
@@ -14,19 +28,42 @@ export interface PostRow {
   updated_at: string;
 }
 
-let pool: Pool | null = null;
-
-function getPool(): Pool {
-  if (!pool) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-  }
-  return pool;
+export interface ProjectRow {
+  slug: string;
+  title: string;
+  tag: string;
+  repo: string;
+  description: string;
+  tech: string[];
+  color: string;
+  url: string | null;
+  role: string;
+  year: string;
+  highlights: string[];
+  process: string[];
+  outcome: string;
+  created_at: string;
+  updated_at: string;
 }
 
-export async function query<T>(text: string, params: unknown[] = []): Promise<T[]> {
-  const result = await getPool().query(text, params);
-  return result.rows as T[];
+export interface MessageRow {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
 }
+
+export interface CommentRow {
+  id: number;
+  post_slug: string;
+  name: string;
+  content: string;
+  created_at: string;
+}
+
+
+// ... existing code ...
 
 export async function ensureSchema(): Promise<void> {
   await query(`
@@ -44,7 +81,106 @@ export async function ensureSchema(): Promise<void> {
     )
   `);
   await query(`ALTER TABLE posts ADD COLUMN IF NOT EXISTS cover TEXT`);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS projects (
+      slug TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      tag TEXT NOT NULL,
+      repo TEXT NOT NULL,
+      description TEXT NOT NULL,
+      tech TEXT[] NOT NULL DEFAULT '{}',
+      color TEXT NOT NULL DEFAULT '#4af0ff',
+      url TEXT,
+      role TEXT NOT NULL,
+      year TEXT NOT NULL,
+      highlights TEXT[] NOT NULL DEFAULT '{}',
+      process TEXT[] NOT NULL DEFAULT '{}',
+      outcome TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      email TEXT NOT NULL,
+      message TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS post_views (
+      slug TEXT PRIMARY KEY,
+      views INTEGER NOT NULL DEFAULT 0
+    )
+  `);
+
+  await query(`
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      post_slug TEXT NOT NULL,
+      name TEXT NOT NULL,
+      content TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    )
+  `);
 }
+
+// ... existing code ...
+
+export async function saveMessage(name: string, email: string, message: string): Promise<void> {
+  await ensureSchema();
+  await query(
+    `INSERT INTO messages (name, email, message) VALUES ($1, $2, $3)`,
+    [name, email, message]
+  );
+}
+
+export async function listMessages(): Promise<MessageRow[]> {
+  await ensureSchema();
+  return await query<MessageRow>(`SELECT * FROM messages ORDER BY created_at DESC`);
+}
+
+
+// ... existing code ...
+
+export async function listProjects(): Promise<ProjectRow[]> {
+  await ensureSchema();
+  return await query<ProjectRow>(`SELECT * FROM projects ORDER BY year DESC`);
+}
+
+export async function getProjectBySlug(slug: string): Promise<ProjectRow | null> {
+  await ensureSchema();
+  const rows = await query<ProjectRow>(`SELECT * FROM projects WHERE slug = $1`, [slug]);
+  return rows.length ? rows[0] : null;
+}
+
+export async function upsertProject(input: ProjectRow): Promise<void> {
+  await ensureSchema();
+  await query(
+    `INSERT INTO projects (slug, title, tag, repo, description, tech, color, url, role, year, highlights, process, outcome, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now())
+     ON CONFLICT (slug)
+     DO UPDATE SET title = EXCLUDED.title, tag = EXCLUDED.tag, repo = EXCLUDED.repo,
+       description = EXCLUDED.description, tech = EXCLUDED.tech, color = EXCLUDED.color,
+       url = EXCLUDED.url, role = EXCLUDED.role, year = EXCLUDED.year,
+       highlights = EXCLUDED.highlights, process = EXCLUDED.process, outcome = EXCLUDED.outcome,
+       updated_at = now()`,
+    [input.slug, input.title, input.tag, input.repo, input.description, input.tech, input.color, input.url, input.role, input.year, input.highlights, input.process, input.outcome]
+  );
+}
+
+export async function deleteProject(slug: string): Promise<boolean> {
+  await ensureSchema();
+  const rows = await query<{ slug: string }>(`DELETE FROM projects WHERE slug = $1 RETURNING slug`, [slug]);
+  return rows.length > 0;
+}
+
+
 
 function mapRow(row: PostRow) {
   return {
@@ -106,3 +242,38 @@ export async function slugExists(slug: string): Promise<boolean> {
   const rows = await query<{ exists: boolean }>(`SELECT EXISTS(SELECT 1 FROM posts WHERE slug = $1) AS exists`, [slug]);
   return rows[0]?.exists ?? false;
 }
+
+export async function incrementPostViews(slug: string): Promise<number> {
+  await ensureSchema();
+  const rows = await query<{ views: number }>(
+    `INSERT INTO post_views (slug, views) VALUES ($1, 1)
+     ON CONFLICT (slug) DO UPDATE SET views = post_views.views + 1
+     RETURNING views`,
+    [slug]
+  );
+  return rows[0]?.views ?? 1;
+}
+
+export async function getPostViews(slug: string): Promise<number> {
+  await ensureSchema();
+  const rows = await query<{ views: number }>(`SELECT views FROM post_views WHERE slug = $1`, [slug]);
+  return rows[0]?.views ?? 0;
+}
+
+export async function listComments(postSlug: string): Promise<CommentRow[]> {
+  await ensureSchema();
+  return await query<CommentRow>(
+    `SELECT * FROM comments WHERE post_slug = $1 ORDER BY created_at DESC`,
+    [postSlug]
+  );
+}
+
+export async function addComment(postSlug: string, name: string, content: string): Promise<CommentRow> {
+  await ensureSchema();
+  const rows = await query<CommentRow>(
+    `INSERT INTO comments (post_slug, name, content) VALUES ($1, $2, $3) RETURNING *`,
+    [postSlug, name, content]
+  );
+  return rows[0];
+}
+

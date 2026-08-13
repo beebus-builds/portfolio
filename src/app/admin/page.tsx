@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import { logoutAction } from "./logoutAction";
 
 interface PostItem {
   slug: string;
@@ -55,7 +56,12 @@ export default function AdminPage() {
         </div>
         <div className="flex items-center gap-4">
           <Link href="/admin/new" className="btn-neon text-xs">+ New Post</Link>
+          <Link href="/admin/projects" className="btn-neon text-xs bg-terminal-800">Projects</Link>
+          <Link href="/admin/messages" className="btn-neon text-xs bg-terminal-800">Messages</Link>
           <Link href="/blog" className="text-xs font-mono text-neon-400 hover:underline">← Blog</Link>
+          <form action={logoutAction}>
+            <button type="submit" className="text-xs font-mono text-white/40 hover:text-white transition-colors">Logout</button>
+          </form>
         </div>
       </div>
 
