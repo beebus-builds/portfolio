@@ -103,6 +103,7 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
                     </span>
                   ))}
                   <span className="text-[10px] font-mono text-white/20">{post.readingTime} min read</span>
+<span className="text-[9px] font-mono text-white/30 mx-2">👁 {post.views ?? 0} views</span>
                 </div>
               </div>
             </Link>

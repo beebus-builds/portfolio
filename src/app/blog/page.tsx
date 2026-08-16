@@ -13,6 +13,11 @@ export const metadata = {
 export default async function BlogPage() {
   const posts = await getBlogPosts();
 
+  // Fetch view counts for each post
+  const postsWithViews = await Promise.all(
+    posts.map((post) => incrementPostViews(post.slug).then((v) => ({ ...post, views: v })))
+  );
+
   return (
     <PageShell title="Blog" subtitle="Writings about building, designing, and creating.">
       <section className="mb-12 thread">
@@ -31,7 +36,7 @@ export default async function BlogPage() {
             </Link>
           </div>
         ) : (
-          <BlogList posts={posts} />
+          <BlogList posts={postsWithViews} />
         )}
       </section>
     </PageShell>
