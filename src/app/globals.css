@@ -761,6 +761,170 @@ body::before {
 
 
 
+/* ─── Terminal window chrome (signature device) ───────── */
+/* Frames key content as an open source file / running process —
+   the recurring motif that ties every section back to "developer's desk". */
+
+.term-window {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 0.85rem;
+  background: rgba(255, 255, 255, 0.015);
+  overflow: hidden;
+  box-shadow: 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+}
+.term-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.65rem 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.02);
+}
+.term-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+}
+.term-dot:nth-child(1) { background: rgba(255, 100, 100, 0.35); }
+.term-dot:nth-child(2) { background: rgba(255, 200, 80, 0.35); }
+.term-dot:nth-child(3) { background: rgba(84, 230, 212, 0.4); }
+.term-path {
+  margin-left: 0.35rem;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  color: rgba(255, 255, 255, 0.3);
+  letter-spacing: 0.02em;
+}
+.term-body {
+  padding: 1.5rem;
+}
+@media (min-width: 768px) {
+  .term-body { padding: 2rem; }
+}
+
+/* ─── Line-numbered gutter (code-editor rhythm) ─────────── */
+
+.gutter {
+  display: grid;
+  grid-template-columns: 2rem 1fr;
+  column-gap: 0.85rem;
+}
+.gutter-n {
+  counter-reset: line;
+}
+.gutter-n > * {
+  position: relative;
+}
+.gutter-n > *::before {
+  counter-increment: line;
+  content: counter(line);
+  position: absolute;
+  left: -2.85rem;
+  top: 0.15rem;
+  width: 2rem;
+  text-align: right;
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  color: rgba(255, 255, 255, 0.15);
+}
+
+/* ─── Tab strip (editor tabs, used for section breadcrumbs / filters) ── */
+
+.tab-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 2px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tab-strip::-webkit-scrollbar { display: none; }
+.tab-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  font-size: 11px;
+  font-family: 'Courier New', monospace;
+  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.35);
+  border-bottom: 2px solid transparent;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+  cursor: pointer;
+  background: transparent;
+}
+.tab-chip:hover {
+  color: rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.02);
+}
+.tab-chip.active {
+  color: var(--color-neon-400);
+  border-bottom-color: var(--color-neon-400);
+  background: rgba(84, 230, 212, 0.04);
+}
+
+/* ─── Comment label (// eyebrow, grounded in source-code idiom) ─────── */
+
+.comment-label {
+  font-family: 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: rgba(84, 230, 212, 0.45);
+}
+.comment-label::before {
+  content: '// ';
+  color: rgba(255, 255, 255, 0.18);
+}
+
+/* ─── Diff-style markers ───────────────────────────────── */
+
+.diff-plus {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px;
+  height: 15px;
+  border-radius: 3px;
+  background: rgba(84, 230, 212, 0.1);
+  color: rgba(84, 230, 212, 0.75);
+  font-size: 10px;
+  font-family: 'Courier New', monospace;
+  flex-shrink: 0;
+}
+
+/* ─── Stat readout (mono key/value with underline rhythm) ──────────── */
+
+.stat-readout dt {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(255, 255, 255, 0.3);
+}
+.stat-readout dd {
+  font-family: 'Courier New', monospace;
+  font-size: 1.5rem;
+  color: white;
+  margin: 0.2rem 0 0;
+}
+
+/* ─── Bento spans for asymmetric grids ─────────────────── */
+
+.bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+}
+@media (max-width: 767px) {
+  .bento { grid-template-columns: 1fr; }
+}
+.bento-lg { grid-column: span 4; }
+@media (min-width: 768px) {
+  .bento-lg { grid-column: span 3; grid-row: span 2; }
+  .bento-sm { grid-column: span 1; }
+  .bento-half { grid-column: span 2; }
+}
+
 /* ─── Back to top --------------------------------------- */
 
 .back-to-top {

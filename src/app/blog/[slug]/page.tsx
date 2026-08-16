@@ -1,6 +1,7 @@
 import { getBlogPost } from "@/lib/posts";
 import { renderMarkdown } from "@/lib/markdown";
-import { incrementPostViews, getPostViews, listComments, addComment } from "@/lib/db";
+import { incrementPostViews, getPostViews, listComments } from "@/lib/db";
+import { addCommentAction } from "./actions";
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
 
@@ -23,7 +24,7 @@ export default async function BlogPostPage({ params }: Params) {
 
   if (!post) {
     return (
-      <PageShell title="Not Found" subtitle="">
+      <PageShell>
         <div className="neon-card border border-white/5 rounded-xl p-8 bg-terminal-900/50 text-center">
           <p className="text-sm font-mono text-white/50">Post not found.</p>
           <Link href="/blog" className="inline-block mt-4 text-xs font-mono text-neon-400">
@@ -40,9 +41,10 @@ export default async function BlogPostPage({ params }: Params) {
 
   // Fetch existing comments
   const comments = await listComments(slug);
+  const submitComment = addCommentAction.bind(null, slug);
 
   return (
-    <PageShell title={post.title} subtitle="">
+    <PageShell>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -57,7 +59,11 @@ export default async function BlogPostPage({ params }: Params) {
           }),
         }}
       />
-      <article className="thread">
+      <article>
+        <Link href="/blog" className="inline-block text-xs font-mono text-white/30 hover:text-neon-400 transition-colors mb-6">
+          ← All posts
+        </Link>
+
         {post.cover && (
           <div className="relative aspect-[21/9] rounded-xl overflow-hidden border border-white/10 mb-8">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -65,94 +71,85 @@ export default async function BlogPostPage({ params }: Params) {
           </div>
         )}
 
-        <section className="mb-8 thread-dot">
-          <div className="section-accent" />
+        <header className="mb-10">
+          <p className="comment-label mb-3">blog/{post.slug}.md</p>
+          <h1 className="text-3xl md:text-4xl font-mono text-white tracking-tight leading-tight mb-4">
+            {post.title}
+          </h1>
           <div className="flex items-center gap-3 flex-wrap">
             <span className="text-xs font-mono text-white/30">{post.date}</span>
             <span className="text-[10px] font-mono text-white/20">·</span>
             <span className="text-[10px] font-mono text-white/30">{post.readingTime} min read</span>
-            <span className="text-[10px] font-mono text-white/20 ml-4">👁 {views} views</span>
+            <span className="text-[10px] font-mono text-white/20">·</span>
+            <span className="text-[10px] font-mono text-white/30">{views} views</span>
+            {post.tags.map((t) => (
+              <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded border border-white/10 text-white/30 bg-terminal-800/50">
+                {t}
+              </span>
+            ))}
           </div>
-        </section>
+        </header>
 
-        <section className="mb-16 rail-card">
+        {/* Article body — offset rail keeps a code-margin feel through long-form text */}
+        <section className="mb-16 grid md:grid-cols-[2px_1fr] gap-8">
+          <div className="hidden md:block bg-gradient-to-b from-neon-400/20 via-neon-400/5 to-transparent rounded-full" />
           <div
-            className="md-body border-l-2 border-neon-400/20 pl-6"
+            className="md-body"
             dangerouslySetInnerHTML={{ __html: renderMarkdown(post.content) }}
           />
         </section>
 
         {/* Comments Section */}
         <section className="mb-16">
-          <div className="neon-card border border-white/5 rounded-xl p-5 bg-terminal-900/50">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <span className="text-xs font-mono text-white/30">Comments</span>
-              {comments.length > 0 && (
-                <span className="text-xs font-mono text-white/40">
-                  {comments.length} {comments.length === 1 ? "comment" : "comments"}
-                </span>
-              )}
+          <div className="term-window">
+            <div className="term-titlebar">
+              <span className="term-dot" />
+              <span className="term-dot" />
+              <span className="term-dot" />
+              <span className="term-path">~/comments ({comments.length})</span>
             </div>
-
-            {/* Comments List */}
-            <div className="space-y-3 mt-4">
-              {comments.map((comment) => (
-                <div key={comment.id} className="neon-card p-4 border border-white/5 rounded-xl bg-terminal-900/50">
-                  <div className="flex items-center gap-3 mb-2">
+            <div className="term-body">
+              <div className="space-y-3 mb-6">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="border-l-2 border-white/10 pl-4 py-1">
                     <span className="text-[10px] font-mono text-white/40 uppercase tracking-wider">{comment.name}</span>
-                    <span className="text-[9px] font-mono text-white/20">·</span>
+                    <p className="text-sm font-mono text-white/60 leading-relaxed mt-1">{comment.content}</p>
                   </div>
-                  <p className="text-sm font-mono text-white/60 leading-relaxed">{comment.content}</p>
-                </div>
-              ))}
-              {comments.length === 0 && (
-                <p className="text-xs font-mono text-white/50">No comments yet.</p>
-              )}
-            </div>
+                ))}
+                {comments.length === 0 && (
+                  <p className="text-xs font-mono text-white/40">No comments yet — be the first.</p>
+                )}
+              </div>
 
-            {/* Comment Form */}
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const formData = new FormData(e.currentTarget);
-                const name = formData.get("name") as string;
-                const content = formData.get("content") as string;
-                if (!name || !content) return;
-                await addComment(slug, name, content);
-                // Refresh comments by re-fetching
-                window.location.reload();
-              }}
-              className="neon-card border border-white/5 rounded-xl p-5 bg-terminal-900/50 space-y-3 w-full max-w-md"
-            >
-              <div>
-                <label className="block text-xs font-mono text-white/40 mb-1">
-                  Your Name
-                  <span className="text-red-400">*</span>
-                </label>
-                <input
-                  name="name"
-                  required
-                  className="w-full bg-terminal-800 border border-white/10 text-white rounded px-3 py-2 text-xs focus:border-neon-400 outline-none"
-                  placeholder="Your name"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-mono text-white/40 mb-1">
-                  Comment
-                  <span className="text-red-400">*</span>
-                </label>
-                <textarea
-                  name="content"
-                  rows={3}
-                  required
-                  className="w-full bg-terminal-800 border border-white/10 text-white rounded px-3 py-2 text-xs resize-none focus:border-neon-400 outline-none"
-                  placeholder="Write a comment..."
-                />
-              </div>
-              <button type="submit" className="btn-neon w-full text-xs py-2">
-                Post Comment
-              </button>
-            </form>
+              <form action={submitComment} className="space-y-3 pt-5 border-t border-white/5 max-w-md">
+                <div>
+                  <label className="block text-xs font-mono text-white/40 mb-1">
+                    Your Name <span className="text-red-400">*</span>
+                  </label>
+                  <input
+                    name="name"
+                    required
+                    className="w-full bg-terminal-800 border border-white/10 text-white rounded px-3 py-2 text-xs focus:border-neon-400 outline-none"
+                    placeholder="Your name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-mono text-white/40 mb-1">
+                    Comment <span className="text-red-400">*</span>
+                  </label>
+                  <textarea
+                    name="content"
+                    rows={3}
+                    required
+                    className="w-full bg-terminal-800 border border-white/10 text-white rounded px-3 py-2 text-xs resize-none focus:border-neon-400 outline-none"
+                    placeholder="Write a comment..."
+                  />
+                </div>
+                <button type="submit" className="btn-neon w-full text-xs py-2 justify-center">
+                  Post Comment
+                </button>
+              </form>
+            </div>
           </div>
         </section>
       </article>

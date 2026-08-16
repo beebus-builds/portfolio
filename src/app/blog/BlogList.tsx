@@ -27,9 +27,11 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
     });
   }, [posts, query, tag]);
 
+  const [top, ...rest] = filtered;
+
   return (
     <>
-      <div className="mb-8 space-y-4">
+      <div className="mb-10 space-y-4">
         <input
           type="text"
           value={query}
@@ -38,27 +40,12 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
           placeholder="Search posts…"
         />
         {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setTag(null)}
-              className={`text-[10px] font-mono px-3 py-1 rounded-full border transition-all ${
-                tag === null
-                  ? "border-neon-400/40 bg-neon-400/10 text-neon-400"
-                  : "border-white/10 bg-transparent text-white/30 hover:text-white/60"
-              }`}
-            >
-              All
+          <div className="tab-strip">
+            <button onClick={() => setTag(null)} className={`tab-chip ${tag === null ? "active" : ""}`}>
+              all
             </button>
             {allTags.map((t) => (
-              <button
-                key={t}
-                onClick={() => setTag(tag === t ? null : t)}
-                className={`text-[10px] font-mono px-3 py-1 rounded-full border transition-all ${
-                  tag === t
-                    ? "border-neon-400/40 bg-neon-400/10 text-neon-400"
-                    : "border-white/10 bg-transparent text-white/30 hover:text-white/60"
-                }`}
-              >
+              <button key={t} onClick={() => setTag(tag === t ? null : t)} className={`tab-chip ${tag === t ? "active" : ""}`}>
                 {t}
               </button>
             ))}
@@ -71,43 +58,73 @@ export default function BlogList({ posts }: { posts: BlogPost[] }) {
           <p className="text-sm font-mono text-white/50">No posts match your search.</p>
         </div>
       ) : (
-        <div className="space-y-6">
-          {filtered.map((post) => (
-            <Link key={post.slug} href={`/blog/${post.slug}`}
-              className="neon-card block border border-white/5 rounded-xl overflow-hidden bg-terminal-900/50 hover:border-white/10 transition-all group"
-            >
-              {post.cover && (
-                <div className="relative aspect-[16/7] overflow-hidden">
+        <div className="space-y-10">
+          {/* Top result — larger treatment, image bleeds behind text on desktop */}
+          <Link
+            href={`/blog/${top.slug}`}
+            className="neon-card group block border border-white/5 rounded-xl overflow-hidden bg-terminal-900/50 hover:border-white/10 transition-all"
+          >
+            <div className="md:grid md:grid-cols-[1.1fr_1fr]">
+              {top.cover ? (
+                <div className="relative aspect-[16/9] md:aspect-auto overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
-                    src={post.cover}
-                    alt={post.title}
+                    src={top.cover}
+                    alt={top.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                   />
                 </div>
-              )}
-              <div className="p-6">
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <h2 className="text-lg font-mono text-white tracking-wide group-hover:text-neon-400 transition-colors">
-                    {post.title}
-                  </h2>
-                  <span className="text-[10px] font-mono text-white/20 shrink-0">{post.date}</span>
+              ) : (
+                <div className="hidden md:flex items-center justify-center border-r border-white/5 p-8">
+                  <span className="font-mono text-6xl text-white/5">{top.title.charAt(0)}</span>
                 </div>
-                <p className="text-sm font-mono text-white/40 leading-relaxed mb-3">
-                  {post.excerpt}
-                </p>
-                <div className="flex items-center gap-3 flex-wrap">
-                  {post.tags.map((t) => (
-                    <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded border border-white/10 text-white/30 bg-terminal-800/50">
-                      {t}
-                    </span>
-                  ))}
-                  <span className="text-[10px] font-mono text-white/20">{post.readingTime} min read</span>
-<span className="text-[9px] font-mono text-white/30 mx-2">👁 {post.views ?? 0} views</span>
+              )}
+              <div className="p-6 md:p-8 flex flex-col justify-center">
+                <p className="comment-label mb-3">latest</p>
+                <h2 className="text-xl md:text-2xl font-mono text-white tracking-wide group-hover:text-neon-400 transition-colors mb-3">
+                  {top.title}
+                </h2>
+                <p className="text-sm font-mono text-white/40 leading-relaxed mb-4">{top.excerpt}</p>
+                <div className="flex items-center gap-3 flex-wrap text-[10px] font-mono text-white/25">
+                  <span>{top.date}</span>
+                  <span>·</span>
+                  <span>{top.readingTime} min read</span>
+                  <span>·</span>
+                  <span>{top.views ?? 0} views</span>
                 </div>
               </div>
-            </Link>
-          ))}
+            </div>
+          </Link>
+
+          {/* Remaining posts — compact numbered feed */}
+          {rest.length > 0 && (
+            <div className="gutter gutter-n divide-y divide-white/5 border-t border-white/5">
+              {rest.map((post) => (
+                <Link
+                  key={post.slug}
+                  href={`/blog/${post.slug}`}
+                  className="col-start-2 group flex items-start justify-between gap-4 py-5"
+                >
+                  <div className="min-w-0">
+                    <h3 className="text-base font-mono text-white/85 group-hover:text-neon-400 transition-colors truncate">
+                      {post.title}
+                    </h3>
+                    <p className="text-sm font-mono text-white/35 leading-relaxed mt-1.5 line-clamp-2 max-w-lg">
+                      {post.excerpt}
+                    </p>
+                    <div className="flex items-center gap-2 flex-wrap mt-2">
+                      {post.tags.map((t) => (
+                        <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded border border-white/10 text-white/30 bg-terminal-800/50">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-white/20 shrink-0 mt-1">{post.date}</span>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </>

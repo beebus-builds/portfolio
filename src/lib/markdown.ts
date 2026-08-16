@@ -8,6 +8,7 @@ export interface BlogPost {
   content: string;
   readingTime: number;
   cover?: string | null;
+  views?: number;
 }
 
 function parseFrontmatter(raw: string): { meta: Record<string, string>; body: string } {
