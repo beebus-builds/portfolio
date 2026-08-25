@@ -175,6 +175,24 @@ body::before {
   color: var(--color-neon-400);
 }
 
+/* Skip link (a11y) */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 9999;
+  padding: 0.6rem 1rem;
+  background: var(--color-terminal-900);
+  color: var(--color-neon-400);
+  border: 1px solid rgba(84,230,212,0.3);
+  border-radius: 0 0 0.5rem 0;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+.skip-link:focus {
+  left: 0;
+}
+
 /* Clean nav link: thin animated underline */
 .nav-link {
   position: relative;
@@ -194,8 +212,13 @@ body::before {
   transition: transform 0.25s ease;
 }
 .nav-link:hover::after,
-.nav-link[aria-current="true"]::after {
+.nav-link[aria-current="true"]::after,
+.nav-link:focus-visible::after {
   transform: scaleX(1);
+}
+.nav-link:focus-visible {
+  outline: none;
+  color: var(--color-neon-400);
 }
 
 /* ─── Accent thread (connecting visual element) ────────── */
@@ -957,6 +980,47 @@ body::before {
   border-color: rgba(74,240,255,0.5);
   color: rgba(74,240,255,1);
   box-shadow: 0 0 16px rgba(74,240,255,0.15);
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heartbeat {
+  0% {
+    stroke-dashoffset: 240;
+  }
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-heartbeat {
+  stroke-dasharray: 120;
+  animation: heartbeat 2.5s linear infinite;
+}
+
+.animate-fade-in {
+  animation: menuFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes announce-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-33.333%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="announce-marquee"] {
+    animation: none !important;
+    transform: none !important;
+  }
 }
 
 

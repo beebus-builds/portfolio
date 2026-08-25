@@ -1,111 +1,301 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
-import Clock from "@/components/Clock";
-import Logo from "@/components/Logo";
+import { motion } from "framer-motion";
+import { playTick, playClick, toggleMute, getMuteState } from "@/lib/audio";
 
-const navItems = [
-  { label: "About", href: "/about" },
-  { label: "Work", href: "/projects" },
-  { label: "Skills", href: "/skills" },
-  { label: "Blog", href: "/blog" },
-  { label: "Contact", href: "/contact" },
+// Meaningful sub-components (A)
+import LogoTilt from "./header/LogoTilt";
+import NavLinkSimple from "./header/NavLinkSimple";
+import MegaMenuWork from "./header/MegaMenuWork";
+import MegaMenuBytes from "./header/MegaMenuBytes";
+import RightCluster from "./header/RightCluster";
+import MobileDrawer from "./header/MobileDrawer";
+import AnnouncementBar from "./header/AnnouncementBar";
+
+function ScrambleText({ text, active }: { text: string; active?: boolean }) {
+  const [displayText, setDisplayText] = useState(text);
+  const intervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const chars = "01$#@%&?_[]{}-+=*^";
+  const triggerScramble = () => {
+    playTick();
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    let iteration = 0;
+    intervalRef.current = setInterval(() => {
+      setDisplayText(
+        text.split("").map((char, index) => (index < iteration ? text[index] : chars[Math.floor(Math.random() * chars.length)])).join("")
+      );
+      if (iteration >= text.length) { if (intervalRef.current) clearInterval(intervalRef.current); }
+      iteration += 1 / 3;
+    }, 25);
+  };
+  useEffect(() => { if (active) triggerScramble(); return () => { if (intervalRef.current) clearInterval(intervalRef.current); }; // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+  return <span onMouseEnter={triggerScramble} className="tabular-nums transition-colors duration-200">{displayText}</span>;
+}
+
+const TICKER_BASE = [
+  "SYS: NOMINAL — all systems operational",
+  "PORT 3001 — /bin/zsh — Neon PG connected",
+  "Built with Next.js 16.2 • TypeScript 5.x • Tailwind 4",
+  "Open to internships & collaborations",
 ];
 
 export default function Header() {
+  // compact + centered layout flags for B + C — set false to revert
+  const COMPACT = true; // C: no ribbon, 56px
+  const CENTERED = true; // B: grid 1fr auto 1fr
+
+  const [activeMenu, setActiveMenu] = useState<"work" | "bytes" | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [ktmTime, setKtmTime] = useState("");
+  const [audioMuted, setAudioMuted] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [tickerIndex] = useState(0); // kept for Ribbon optional use
+  const [spot, setSpot] = useState({ x: -500, y: -500, visible: false });
+  const [mem] = useState(34.2);
+  const [memHistory] = useState<number[]>(() => Array.from({ length: 20 }, () => 34 + Math.random() * 2));
+
   const pathname = usePathname();
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const mouseRef = useRef({ x: -1000, y: -1000 });
+  const headerRef = useRef<HTMLElement | null>(null);
+  const workRef = useRef<HTMLDivElement | null>(null);
+  const bytesRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => { setAudioMuted(getMuteState()); }, []);
+
+  useEffect(() => {
+    const updateTime = () => setKtmTime(new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Kathmandu", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false }).format(new Date()));
+    updateTime();
+    const id = setInterval(updateTime, 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 10);
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      setProgress(max > 0 ? (y / max) * 100 : 0);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // click-outside + Esc
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (!activeMenu) return;
+      const t = e.target as Node;
+      if (!workRef.current?.contains(t) && !bytesRef.current?.contains(t)) setActiveMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { if (activeMenu) setActiveMenu(null); if (mobileOpen) setMobileOpen(false); } };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
+  }, [activeMenu, mobileOpen]);
+
+  const handleHeaderMove = (e: React.MouseEvent) => {
+    const r = headerRef.current?.getBoundingClientRect();
+    if (!r) return;
+    setSpot({ x: e.clientX - r.left, y: e.clientY - r.top, visible: true });
+  };
+  const handleHeaderLeave = () => setSpot((s) => ({ ...s, visible: false }));
+
+  // PCB canvas — compact: slightly fainter, paused when hidden
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    let af: number;
+    let paused = false;
+    let width = (canvas.width = canvas.offsetWidth);
+    let height = (canvas.height = canvas.offsetHeight);
+    const onVis = () => { paused = document.hidden; if (!paused) draw(); };
+    document.addEventListener("visibilitychange", onVis);
+    const onResize = () => { width = canvas.width = canvas.offsetWidth; height = canvas.height = canvas.offsetHeight; gen(); };
+    window.addEventListener("resize", onResize);
+    const onMove = (e: MouseEvent) => { const rect = canvas.getBoundingClientRect(); mouseRef.current = { x: e.clientX - rect.left, y: e.clientY - rect.top }; };
+    const onLeave = () => { mouseRef.current = { x: -1000, y: -1000 }; };
+    canvas.parentElement?.addEventListener("mousemove", onMove);
+    canvas.parentElement?.addEventListener("mouseleave", onLeave);
+    interface Pt { x: number; y: number }
+    interface Trace { points: Pt[]; width: number }
+    interface Packet { traceIndex: number; progress: number; speed: number; size: number }
+    let traces: Trace[] = [];
+    const packets: Packet[] = [];
+    const gen = () => {
+      traces = [];
+      for (let i = 0; i < 5; i++) {
+        const sy = (height / 5) * i + height / 10;
+        const pts: Pt[] = [{ x: 0, y: sy }];
+        let cx = 0; let cy = sy;
+        while (cx < width) { cx += 90 + Math.random() * 110; cy = Math.max(6, Math.min(height - 6, cy + (Math.random() > 0.45 ? (Math.random() > 0.5 ? 22 : -22) : 0))); pts.push({ x: cx, y: cy }); }
+        traces.push({ points: pts, width: Math.random() > 0.7 ? 1.4 : 0.7 });
+      }
+    };
+    gen();
+    const draw = () => {
+      if (paused) return;
+      ctx.clearRect(0, 0, width, height);
+      const alpha = scrolled ? 0.022 : 0.045;
+      ctx.strokeStyle = `rgba(84,230,212,${alpha})`;
+      traces.forEach((t) => { ctx.lineWidth = t.width; ctx.beginPath(); ctx.moveTo(t.points[0].x, t.points[0].y); for (let i = 1; i < t.points.length; i++) ctx.lineTo(t.points[i].x, t.points[i].y); ctx.stroke(); });
+      if (packets.length < 14 && Math.random() < 0.09) packets.push({ traceIndex: Math.floor(Math.random() * traces.length), progress: 0, speed: 0.0025 + Math.random() * 0.004, size: 1.4 + Math.random() * 1.2 });
+      packets.forEach((p, idx) => {
+        const tr = traces[p.traceIndex];
+        if (!tr || tr.points.length < 2) { packets.splice(idx, 1); return; }
+        const total = tr.points.length - 1;
+        const f = p.progress * total; const si = Math.floor(f); const sp = f - si;
+        const a = tr.points[si]; const b = tr.points[si + 1] || a;
+        const cx = a.x + (b.x - a.x) * sp; const cy = a.y + (b.y - a.y) * sp;
+        const dx = mouseRef.current.x - cx; const dy = mouseRef.current.y - cy; const d = Math.sqrt(dx * dx + dy * dy);
+        let s = p.speed; if (d < 110) s = p.speed * (1.6 + (110 - d) / 50);
+        p.progress += s;
+        if (p.progress >= 1) packets.splice(idx, 1);
+        else { ctx.beginPath(); const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, p.size * 3); g.addColorStop(0, "rgba(84,230,212,1)"); g.addColorStop(0.4, "rgba(84,230,212,0.45)"); g.addColorStop(1, "rgba(84,230,212,0)"); ctx.fillStyle = g; ctx.arc(cx, cy, p.size * 3, 0, Math.PI * 2); ctx.fill(); }
+      });
+      af = requestAnimationFrame(draw);
+    };
+    draw();
+    return () => { window.removeEventListener("resize", onResize); document.removeEventListener("visibilitychange", onVis); cancelAnimationFrame(af); };
+  }, [scrolled]);
+
+  const handleMouseEnter = (menu: "work" | "bytes") => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setActiveMenu(menu); };
+  const handleMouseLeave = () => { timeoutRef.current = setTimeout(() => setActiveMenu(null), 180); };
+  useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
+  useEffect(() => { setActiveMenu(null); setMobileOpen(false); }, [pathname]);
+
+  const crumbs = useMemo(() => {
+    if (pathname === "/") return [{ label: "~", href: "/" }, { label: "home", href: "/" }];
+    const segs = pathname.split("/").filter(Boolean);
+    const map: Record<string, string> = { projects: "work", blog: "bytes", chess: "lab", commands: "lab", skills: "ecosystem", education: "ecosystem", about: "about", contact: "contact", admin: "admin" };
+    const out: { label: string; href: string }[] = [{ label: "~", href: "/" }];
+    let acc = "";
+    segs.forEach((s) => { acc += `/${s}`; out.push({ label: map[s] ?? s, href: acc }); });
+    return out;
+  }, [pathname]);
+
+  const isActive = (href: string) => pathname === href || (href !== "/" && pathname.startsWith(href));
+
+  // sparkPath kept for Ribbon (when not compact) — memoized
+  const _sparkPath = useMemo(() => {
+    const w = 60, h = 14; const min = Math.min(...memHistory), max = Math.max(...memHistory); const range = max - min || 1;
+    return memHistory.map((v, i) => { const x = (i / (memHistory.length - 1)) * w; const y = h - ((v - min) / range) * h; return `${i === 0 ? "M" : "L"} ${x.toFixed(1)} ${y.toFixed(1)}`; }).join(" ");
+  }, [memHistory]);
+  void _sparkPath; void tickerIndex; void mem;
+
+  // audio toggle for Ribbon (compact hides it, but keep handler)
+  const handleAudioToggle = (e: React.MouseEvent) => { e.stopPropagation(); const m = toggleMute(); setAudioMuted(m); if (!m) setTimeout(playClick, 20); };
+  void handleAudioToggle; void ktmTime; void audioMuted;
 
   return (
-    <header className="sticky top-0 z-50 w-full bg-terminal-900/80 backdrop-blur-xl border-b border-white/5">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="flex items-center justify-between h-16">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 group" aria-label="Home">
-            <Logo size={32} />
-            <span className="text-sm font-mono text-white/70 group-hover:text-white transition-colors hidden sm:inline">
-              bibashpoudel.dev
-            </span>
-          </Link>
+    <>
+      <a href="#main-content" className="skip-link">Skip to content</a>
+      <header
+        ref={headerRef as unknown as React.RefObject<HTMLDivElement>}
+        onMouseMove={handleHeaderMove}
+        onMouseLeave={handleHeaderLeave}
+        className={`sticky top-0 z-50 w-full border-b transition-all duration-500 ${scrolled ? "bg-terminal-900/90 backdrop-blur-xl border-white/10 shadow-[0_8px_40px_rgba(0,0,0,0.45),0_0_0_1px_rgba(84,230,212,0.06)]" : "bg-terminal-900/55 backdrop-blur-[6px] border-transparent"}`}
+      >
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300" style={{ opacity: spot.visible ? 0.9 : 0, background: `radial-gradient(260px circle at ${spot.x}px ${spot.y}px, rgba(84,230,212,0.07), transparent 70%)` }} />
+        <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-white/5">
+          <motion.div className="h-full bg-neon-400 shadow-[0_0_8px_rgba(84,230,212,0.9)]" style={{ width: `${progress}%` }} transition={{ type: "spring", stiffness: 120, damping: 20 }} />
+        </div>
+        <canvas ref={canvasRef} className="absolute inset-0 w-full h-full pointer-events-none select-none z-0" />
 
-          {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-1" aria-label="Primary">
-            {navItems.map((item) => {
-              const isActive =
-                pathname === item.href || pathname.startsWith(item.href + "/");
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  aria-current={isActive ? "true" : undefined}
-                  className={`px-3 py-2 text-xs font-mono tracking-wider rounded-lg transition-colors ${
-                    isActive
-                      ? "text-neon-400 bg-neon-400/5"
-                      : "text-white/50 hover:text-white hover:bg-white/5"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-            <div className="ml-3 flex items-center gap-2">
-              <a
-                href="https://github.com/beebus-builds"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-                className="p-2 text-white/40 hover:text-white transition-colors rounded-lg"
-              >
-                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" />
-                </svg>
-              </a>
-              <button
-                onClick={() => window.dispatchEvent(new Event("toggle-command-palette"))}
-                title="Open command palette (Ctrl+K)"
-                className="px-2.5 py-1.5 text-[10px] font-mono text-white/40 border border-white/10 rounded-lg hover:text-neon-400 hover:border-neon-400/30 transition-colors"
-              >
-                ⌘K
-              </button>
-            </div>
-          </nav>
-
-          {/* Mobile button */}
-          <button
-            onClick={() => setMobileOpen(!mobileOpen)}
-            aria-label="Toggle menu"
-            className="md:hidden p-2 text-white/60 hover:text-white"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              {mobileOpen ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
+        {/* ─── BIG ANIMATED ANNOUNCEMENTS — above navbar, flowing marquee with blog relay + image ─── */}
+        <div className="relative z-40 border-b border-neon-400/10">
+          <AnnouncementBar />
         </div>
 
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-white/5 py-3">
-            <div className="flex flex-col gap-1">
-              {navItems.map((item) => (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  onClick={() => setMobileOpen(false)}
-                  className="px-3 py-2.5 text-xs font-mono text-white/60 hover:text-white hover:bg-white/5 rounded-lg"
+        {/* C: no ribbon in compact mode — Ribbon.tsx preserved for non-compact use */}
+        {/* {!COMPACT && <Ribbon ... />} */}
+
+        {/* Main row — B: centered logo via grid, C: 56px compact */}
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 relative z-50">
+          <div className={`${CENTERED ? "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr] md:items-center" : "flex items-center justify-between"} ${COMPACT ? "h-[56px]" : "h-[64px]"} gap-4`}>
+            {/* Left: nav (desktop) */}
+            <nav className="hidden md:flex items-center gap-7 justify-self-start h-full" aria-label="Primary">
+              <NavLinkSimple href="/about" active={isActive("/about")} onClick={() => playClick()}>
+                <ScrambleText text="About" />
+              </NavLinkSimple>
+
+              <div ref={workRef} className="relative h-full flex items-center" onMouseEnter={() => handleMouseEnter("work")} onMouseLeave={handleMouseLeave}>
+                <button
+                  aria-expanded={activeMenu === "work"}
+                  aria-haspopup="true"
+                  onClick={() => setActiveMenu(activeMenu === "work" ? null : "work")}
+                  className={`nav-link flex items-center gap-1 text-[11px] font-mono tracking-widest transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${activeMenu === "work" || pathname.startsWith("/projects") ? "text-neon-400" : "text-white/50 hover:text-white"}`}
                 >
-                  {item.label}
-                </Link>
-              ))}
+                  <ScrambleText text="Work" active={activeMenu === "work"} />
+                  <span className={`text-[8px] transition-transform duration-200 ${activeMenu === "work" ? "rotate-180" : ""} opacity-50`}>▾</span>
+                </button>
+                {activeMenu === "work" && <MegaMenuWork />}
+              </div>
+
+              <div ref={bytesRef} className="relative h-full flex items-center" onMouseEnter={() => handleMouseEnter("bytes")} onMouseLeave={handleMouseLeave}>
+                <button
+                  aria-expanded={activeMenu === "bytes"}
+                  aria-haspopup="true"
+                  onClick={() => setActiveMenu(activeMenu === "bytes" ? null : "bytes")}
+                  className={`nav-link flex items-center gap-1 text-[11px] font-mono tracking-widest transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${activeMenu === "bytes" || ["/blog", "/chess", "/commands"].some((p) => pathname.startsWith(p)) ? "text-neon-400" : "text-white/50 hover:text-white"}`}
+                >
+                  <ScrambleText text="Bytes" active={activeMenu === "bytes"} />
+                  <span className={`text-[8px] transition-transform duration-200 ${activeMenu === "bytes" ? "rotate-180" : ""} opacity-50`}>▾</span>
+                </button>
+                {activeMenu === "bytes" && <MegaMenuBytes />}
+              </div>
+            </nav>
+
+            {/* Center: logo */}
+            <div className={`${CENTERED ? "justify-self-center" : "justify-self-start"} flex items-center`}>
+              <LogoTilt />
             </div>
+
+            {/* Right: Contact + cluster (desktop) */}
+            <div className="hidden md:flex items-center gap-6 justify-self-end justify-end">
+              <Link
+                href="/contact"
+                onClick={() => playClick()}
+                aria-current={isActive("/contact") ? "page" : undefined}
+                title="Available for internships — avg reply within a day"
+                className={`nav-link inline-flex items-center gap-1.5 text-[11px] font-mono tracking-widest transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${isActive("/contact") ? "text-neon-400" : "text-white/50 hover:text-white"}`}
+              >
+                <span className="w-1 h-1 rounded-full bg-emerald-400 animate-pulse" aria-hidden />
+                <ScrambleText text="Contact" />
+              </Link>
+              <div className="flex items-center gap-1">
+                <span className="w-px h-4 bg-white/10" aria-hidden />
+                <RightCluster ribbonClosed={false} onRestore={() => {}} />
+              </div>
+            </div>
+
+            {/* Mobile button — always at end on mobile */}
+            <button
+              onClick={() => { playClick(); setMobileOpen(!mobileOpen); }}
+              aria-label={mobileOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileOpen}
+              className="md:hidden relative w-9 h-9 flex items-center justify-center text-white/60 hover:text-white focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-md shrink-0"
+            >
+              <span className="sr-only">Toggle menu</span>
+              <motion.span animate={mobileOpen ? { rotate: 45, y: 0 } : { rotate: 0, y: -4 }} className="absolute w-5 h-0.5 bg-current rounded-full" style={{ transformOrigin: "center" }} transition={{ duration: 0.18 }} />
+              <motion.span animate={mobileOpen ? { opacity: 0 } : { opacity: 1 }} className="absolute w-5 h-0.5 bg-current rounded-full" transition={{ duration: 0.12 }} />
+              <motion.span animate={mobileOpen ? { rotate: -45, y: 0 } : { rotate: 0, y: 4 }} className="absolute w-5 h-0.5 bg-current rounded-full" style={{ transformOrigin: "center" }} transition={{ duration: 0.18 }} />
+            </button>
           </div>
-        )}
-      </div>
-    </header>
+
+          <MobileDrawer open={mobileOpen} crumbs={crumbs} ktmTime={ktmTime} isActive={isActive} onClose={() => setMobileOpen(false)} />
+        </div>
+      </header>
+    </>
   );
 }

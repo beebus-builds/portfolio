@@ -73,9 +73,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <CursorGlow />
-        <div className="pb-8">
+        <main id="main-content" className="pb-8" tabIndex={-1}>
           {children}
-        </div>
+        </main>
         <StudentWorkspaceBar />
         <CommandPalette />
         <ServiceWorkerRegistration />

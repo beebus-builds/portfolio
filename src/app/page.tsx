@@ -2,6 +2,8 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
+import AsciiEngine from "@/components/AsciiEngine";
+import DatabaseTelemetry from "@/components/DatabaseTelemetry";
 import { projects } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +16,7 @@ const stats = [
 ];
 
 export default function Home() {
-  const [pinned, ...rest] = projects.slice(0, 6);
+  const [pinned, ...rest] = projects.slice(0, 5);
 
   return (
     <div className="min-h-screen bg-terminal-900 flex flex-col">
@@ -95,7 +97,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ─── Featured Work ── bento grid, one pinned + varied sizes ───── */}
+      {/* ─── Featured Work ── bento grid, one pinned + 3D ASCII Engine ───── */}
       <section className="py-20 px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="term-window mb-8">
@@ -109,9 +111,9 @@ export default function Home() {
 
           <div className="flex items-end justify-between mb-8">
             <div>
-              <p className="comment-label mb-2">Selected work</p>
+              <p className="comment-label mb-2">Selected work &amp; lab</p>
               <h2 className="text-3xl md:text-4xl font-mono font-bold text-white tracking-tighter">
-                Featured Projects
+                Featured Projects &amp; 3D Lab
               </h2>
             </div>
             <Link
@@ -168,6 +170,9 @@ export default function Home() {
               </Link>
             )}
 
+            {/* Interactive 3D ASCII Torus Embedded Right Inside Bento Grid */}
+            <AsciiEngine />
+
             {/* Remaining projects — compact tiles */}
             {rest.map((p) => (
               <Link
@@ -198,6 +203,22 @@ export default function Home() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* ─── DATABASE SYSTEM TELEMETRY CONTROL ROOM ───────────────────── */}
+      <section className="py-16 px-4 sm:px-6 border-t border-white/5 bg-terminal-950/20">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-8">
+            <p className="comment-label mb-2">Live Telemetry</p>
+            <h2 className="text-2xl md:text-3xl font-mono font-bold text-white tracking-tighter">
+              Neon Postgres Node Control Room
+            </h2>
+            <p className="text-xs font-mono text-white/40 mt-1">
+              Active database querying, round-trip latency checks, and live throughput plotting.
+            </p>
+          </div>
+          <DatabaseTelemetry />
         </div>
       </section>
 
