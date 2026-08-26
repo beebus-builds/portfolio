@@ -4,16 +4,10 @@ import Footer from "@/components/Footer";
 import ChatWidget from "@/components/ChatWidget";
 import AsciiEngine from "@/components/AsciiEngine";
 import DatabaseTelemetry from "@/components/DatabaseTelemetry";
+import Hero from "@/components/Hero";
 import { projects } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
-
-const stats = [
-  { label: "Years coding", value: "4+" },
-  { label: "Shipped projects", value: projects.length.toString().padStart(2, "0") },
-  { label: "Based in", value: "Nepal" },
-  { label: "Status", value: "Open" },
-];
 
 export default function Home() {
   const [pinned, ...rest] = projects.slice(0, 5);
@@ -22,83 +16,10 @@ export default function Home() {
     <div className="min-h-screen bg-terminal-900 flex flex-col">
       <Header />
 
-      {/* ─── Hero ── asymmetric two-column: bio left, live "readout" right ── */}
-      <section className="relative px-4 sm:px-6 pt-16 pb-24 md:pt-24 md:pb-28 overflow-hidden">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-[1.15fr_0.85fr] gap-12 md:gap-8 items-center">
-          {/* Left: identity */}
-          <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-neon-400/20 bg-neon-400/5 mb-7">
-              <span className="w-1.5 h-1.5 rounded-full bg-neon-400 animate-pulse" />
-              <span className="text-[11px] font-mono tracking-widest text-neon-400 uppercase">
-                Available for work
-              </span>
-            </div>
-
-            <p className="comment-label mb-3">portfolio/hero.tsx</p>
-
-            <h1 className="text-5xl sm:text-6xl md:text-7xl font-mono font-bold tracking-tighter text-white leading-[0.98] mb-6">
-              Bibash
-              <span className="block text-white/35">Poudel</span>
-            </h1>
-
-            <p className="text-base md:text-lg text-white/45 max-w-md leading-relaxed mb-10 font-mono">
-              Full-stack developer from the hills of Sindhuli, Nepal.
-              I build fast, human-centered web experiences with
-              Next.js &amp; TypeScript.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link href="/projects" className="btn-neon text-xs font-mono tracking-wider">
-                View my work →
-              </Link>
-              <Link href="/contact" className="btn-ghost text-xs font-mono tracking-wider">
-                Say hello
-              </Link>
-            </div>
-          </div>
-
-          {/* Right: live terminal readout — overlaps hero on desktop for depth */}
-          <div className="relative md:-mr-4 md:translate-y-2">
-            <div className="term-window">
-              <div className="term-titlebar">
-                <span className="term-dot" />
-                <span className="term-dot" />
-                <span className="term-dot" />
-                <span className="term-path">~/whoami.sh</span>
-              </div>
-              <div className="term-body">
-                <p className="font-mono text-xs text-white/30 mb-6">
-                  <span className="text-neon-400/70">$</span> whoami --verbose
-                </p>
-                <dl className="grid grid-cols-2 gap-x-6 gap-y-5 stat-readout">
-                  {stats.map((s) => (
-                    <div key={s.label}>
-                      <dt>{s.label}</dt>
-                      <dd className={s.value === "Open" ? "text-neon-400" : ""}>{s.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-                <div className="mt-7 pt-5 border-t border-white/5 flex items-center gap-2">
-                  <span className="chess-thinking-dot" />
-                  <span className="chess-thinking-dot" />
-                  <span className="chess-thinking-dot" />
-                  <span className="text-[11px] font-mono text-white/25 ml-1">
-                    currently shipping something new
-                  </span>
-                </div>
-              </div>
-            </div>
-            {/* subtle depth card behind the terminal */}
-            <div
-              className="hidden md:block absolute -z-10 inset-0 translate-x-4 translate-y-4 rounded-[0.85rem] border border-white/5"
-              aria-hidden="true"
-            />
-          </div>
-        </div>
-      </section>
+      <Hero />
 
       {/* ─── Featured Work ── bento grid, one pinned + 3D ASCII Engine ───── */}
-      <section className="py-20 px-4 sm:px-6 border-t border-white/5">
+      <section className="section-py px-4 sm:px-6 border-t border-white/5">
         <div className="max-w-6xl mx-auto">
           <div className="term-window mb-8">
             <div className="tab-strip px-2">
@@ -207,7 +128,7 @@ export default function Home() {
       </section>
 
       {/* ─── DATABASE SYSTEM TELEMETRY CONTROL ROOM ───────────────────── */}
-      <section className="py-16 px-4 sm:px-6 border-t border-white/5 bg-terminal-950/20">
+      <section className="section-py px-4 sm:px-6 border-t border-white/5 bg-terminal-950/20">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
             <p className="comment-label mb-2">Live Telemetry</p>
@@ -223,7 +144,7 @@ export default function Home() {
       </section>
 
       {/* ─── CTA ── framed as a command about to be run ────────────────── */}
-      <section className="py-24 px-4 border-t border-white/5">
+      <section className="section-py px-4 border-t border-white/5">
         <div className="max-w-xl mx-auto">
           <div className="term-window">
             <div className="term-titlebar">

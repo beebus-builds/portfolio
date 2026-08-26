@@ -86,8 +86,8 @@ export default function AboutPage() {
         <p className="comment-label mt-4">{"}"}</p>
       </section>
 
-      {/* ─── Journey ── git-log style timeline with numbered gutter ────── */}
-      <section className="mb-20 offset-left">
+      {/* ─── Journey ── git-log style timeline ────── */}
+      <section className="mb-20">
         <div className="section-accent" />
         <h2 className="text-xs font-mono text-neon-400 tracking-wider mb-6">git log --oneline --reverse</h2>
         <div className="term-window">

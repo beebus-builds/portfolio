@@ -32,7 +32,25 @@ export default function ProjectsPage() {
   if (loading) {
     return (
       <PageShell>
-        <div className="text-center py-20 font-mono text-white/50">Loading projects...</div>
+        <div className="term-window border border-white/5 rounded-xl overflow-hidden">
+          <div className="term-titlebar">
+            <span className="term-dot" /><span className="term-dot" /><span className="term-dot" />
+            <span className="term-path">~/projects --loading</span>
+          </div>
+          <div className="term-body space-y-4">
+            <div className="h-4 w-32 bg-white/5 rounded animate-pulse" />
+            <div className="bento">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="neon-card p-6 rounded-xl border border-white/5 bg-terminal-900/30 animate-pulse">
+                  <div className="w-10 h-10 rounded-lg bg-white/5 mb-4" />
+                  <div className="h-3 w-3/4 bg-white/5 rounded mb-2" />
+                  <div className="h-3 w-full bg-white/[0.03] rounded mb-1" />
+                  <div className="h-3 w-2/3 bg-white/[0.03] rounded" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </PageShell>
     );
   }
@@ -139,8 +157,8 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      {/* Remaining projects — even grid, deliberately plainer to contrast the bento above */}
-      <section className="mb-16 offset-right">
+      {/* Remaining projects — even grid */}
+      <section className="mb-16">
         <div className="section-accent" />
         <h2 className="text-xs font-mono text-neon-400 tracking-wider mb-6">All Projects</h2>
         <div className="grid gap-4 md:grid-cols-3">

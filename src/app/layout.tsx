@@ -49,6 +49,7 @@ import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
 import CommandPalette from "@/components/CommandPalette";
 import CursorGlow from "@/components/CursorGlow";
 import StudentWorkspaceBar from "@/components/StudentWorkspaceBar";
+import PageTransition from "@/components/PageTransition";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -57,7 +58,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icons/icon.svg" />
       </head>
-      <body className={anonPro.variable}>
+      <body className={`${anonPro.variable} grain`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -74,7 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <CursorGlow />
         <main id="main-content" className="pb-8" tabIndex={-1}>
-          {children}
+          <PageTransition>{children}</PageTransition>
         </main>
         <StudentWorkspaceBar />
         <CommandPalette />

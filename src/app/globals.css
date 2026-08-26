@@ -6,9 +6,10 @@
   --color-terminal-700: #263133;
   --color-neon-400: #54e6d4;
   --color-neon-500: #3bcfbc;
-  --color-gold-400: #54e6d4;
-  --color-gold-500: #3bcfbc;
-  --color-magenta-400: #54e6d4;
+  --color-gold-400: #ffd700;
+  --color-gold-500: #e6c200;
+  --color-magenta-400: #ff4af0;
+  --color-magenta-500: #e03bd4;
 }
 
 :root {
@@ -62,9 +63,23 @@ body {
   color: var(--color-terminal-text);
   font-family: var(--font-anon), 'Courier New', 'Consolas', 'Monaco', monospace;
   font-size: 17px;
-  font-weight: 700;
+  font-weight: 400;
+  line-height: 1.7;
+  letter-spacing: 0.01em;
   overflow-x: hidden;
 }
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+p, li, dd {
+  font-weight: 400;
+}
+
+/* Consistent vertical rhythm */
+.section-py { padding-top: 6rem; padding-bottom: 6rem; }
+@media (min-width: 768px) { .section-py { padding-top: 7rem; padding-bottom: 7rem; } }
 
 body::before {
   content: '';
@@ -74,7 +89,8 @@ body::before {
   pointer-events: none;
   background:
     radial-gradient(60rem 40rem at 80% -10%, rgba(84, 230, 212, 0.05), transparent 60%),
-    radial-gradient(50rem 35rem at 10% 110%, rgba(59, 207, 188, 0.04), transparent 60%);
+    radial-gradient(50rem 35rem at 10% 110%, rgba(59, 207, 188, 0.04), transparent 60%),
+    radial-gradient(80rem 40rem at 50% 100%, rgba(0,0,0,0.35), transparent 70%);
 }
 
 #__next {
@@ -729,12 +745,11 @@ body::before {
 .btn-neon:hover {
   background: rgba(84,230,212,0.16);
   border-color: rgba(84,230,212,0.6);
-  box-shadow: 0 0 24px rgba(84,230,212,0.12);
-  transform: translateY(-1px);
+  box-shadow: 0 0 24px rgba(84,230,212,0.16), 0 0 0 1px rgba(84,230,212,0.08);
 }
 .btn-neon:active {
-  transform: translateY(0) scale(0.97);
-  box-shadow: 0 0 6px rgba(84,230,212,0.1);
+  transform: scale(0.98);
+  box-shadow: 0 0 8px rgba(84,230,212,0.1);
 }
 
 /* ─── Button ghost -------------------------------------- */

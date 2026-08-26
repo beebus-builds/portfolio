@@ -47,7 +47,7 @@ export default function MegaMenuWork() {
               onClick={() => playClick()}
               className="flex items-center gap-3 p-2 rounded-lg text-[11px] font-mono text-white/55 hover:text-white hover:bg-white/5 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40"
             >
-              {item.image ? <img src={item.image} alt="" loading="lazy" className="w-7 h-7 rounded object-cover border border-white/10" /> : <span className="text-sm">{item.icon}</span>}
+              <span className={item.shape === "square" ? "shape-square shrink-0" : item.shape === "triangle" ? "shape-triangle shrink-0" : "shape-circle shrink-0"} style={item.shape !== "triangle" ? { background: item.color } as React.CSSProperties : { borderBottomColor: item.color } as unknown as React.CSSProperties} />
               <span>{item.label}</span>
             </Link>
           ))}

@@ -33,9 +33,9 @@ export const workLinks: MegaLink[] = [
 ];
 
 export const ecosystemLinks = [
-  { label: "All Projects", href: "/projects", icon: "📁", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=100&auto=format&fit=crop" },
-  { label: "Skills Matrix", href: "/skills", icon: "🛠", image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=100&auto=format&fit=crop" },
-  { label: "Education Journey", href: "/education", icon: "🎓", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=100&auto=format&fit=crop" },
+  { label: "All Projects", href: "/projects", shape: "square" as const, color: "#54e6d4", image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?q=80&w=100&auto=format&fit=crop" },
+  { label: "Skills Matrix", href: "/skills", shape: "circle" as const, color: "#ffd700", image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=100&auto=format&fit=crop" },
+  { label: "Education Journey", href: "/education", shape: "triangle" as const, color: "#ff4af0", image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=100&auto=format&fit=crop" },
 ];
 
 export const labLinks: MegaLink[] = [
