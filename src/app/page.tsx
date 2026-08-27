@@ -2,92 +2,19 @@ import Link from "next/link";
 import Footer from "@/components/Footer";
 import Header from "@/components/Header";
 import ChatWidget from "@/components/ChatWidget";
-import Hero from "@/components/Hero";
 import { projects } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
-
 const stack = ["Next.js", "TypeScript", "React", "Node.js", "Three.js", "Tailwind", "Postgres", "Figma"];
 
 export default function Home() {
   const featured = projects.slice(0, 4);
-
-  return (
-    <div className="portfolio-shell min-h-screen flex flex-col">
-      <Header />
-      <main id="main-content" className="flex-1">
-        <Hero />
-
-        <section className="portfolio-section" id="work">
-          <div className="portfolio-container">
-            <div className="section-heading">
-              <div>
-                <span className="eyebrow">01 / SELECTED WORK</span>
-                <h2>Things I&apos;ve built.</h2>
-              </div>
-              <Link href="/projects" className="text-link">View all work ↗</Link>
-            </div>
-            <div className="project-grid">
-              {featured.map((project, index) => (
-                <Link href={`/projects/${project.slug}`} key={project.slug} className={`project-card ${index === 0 ? "project-card-featured" : ""}`}>
-                  <div className="project-card-top">
-                    <span className="project-number">0{index + 1}</span>
-                    <span className="project-arrow">↗</span>
-                  </div>
-                  <div className="project-preview" style={{ "--accent": project.color } as React.CSSProperties}>
-                    <span>{project.title.charAt(0)}</span>
-                  </div>
-                  <div className="project-info">
-                    <div>
-                      <h3>{project.title}</h3>
-                      <p>{project.description}</p>
-                    </div>
-                    <div className="project-tags">{project.tech.slice(0, 3).map((tech) => <span key={tech}>{tech}</span>)}</div>
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="portfolio-section about-strip">
-          <div className="portfolio-container about-grid">
-            <div>
-              <span className="eyebrow">02 / ABOUT</span>
-              <h2>I turn ideas into <em>useful</em> digital products.</h2>
-            </div>
-            <div className="about-copy">
-              <p>I&apos;m Bibash Poudel, a full-stack developer focused on thoughtful interfaces, reliable systems, and fast web experiences.</p>
-              <p>I care about the details people feel: clear interactions, strong typography, responsive layouts, and code that stays maintainable.</p>
-              <Link href="/about" className="text-link">More about me ↗</Link>
-            </div>
-          </div>
-        </section>
-
-        <section className="portfolio-section stack-section">
-          <div className="portfolio-container">
-            <span className="eyebrow">03 / TOOLKIT</span>
-            <div className="stack-head">
-              <h2>My everyday stack.</h2>
-              <p>Tools I use to design, build, ship, and iterate.</p>
-            </div>
-            <div className="stack-list">{stack.map((item, i) => <span key={item}><b>0{i + 1}</b>{item}</span>)}</div>
-          </div>
-        </section>
-
-        <section className="portfolio-section contact-cta">
-          <div className="portfolio-container">
-            <span className="eyebrow">04 / LET&apos;S TALK</span>
-            <h2>Have an idea?<br /><em>Let&apos;s make it real.</em></h2>
-            <div className="cta-row">
-              <Link href="/contact" className="primary-cta">Start a conversation ↗</Link>
-              <a href="mailto:bibashpoudel@email.com" className="secondary-cta">bibashpoudel@email.com</a>
-            </div>
-          </div>
-        </section>
-      </main>
-      <Footer />
-      <ChatWidget />
-    </div>
-  );
+  return <div className="neo-shell min-h-screen flex flex-col"><Header /><main id="main-content" className="flex-1">
+    <section className="neo-hero"><div className="hero-grid-bg" /><div className="hero-orb hero-orb-a" /><div className="hero-orb hero-orb-b" /><div className="neo-container hero-layout"><div className="hero-kicker"><span>01</span> INDEPENDENT DIGITAL BUILDER <i /></div><div className="hero-title-wrap"><h1><span>Bibash</span><span className="outline">Poudel</span></h1><div className="hero-side-note">FULL-STACK<br />DEVELOPER<br /><span>NEPAL / 2026</span></div></div><div className="hero-bottom"><p className="hero-intro">I design and engineer digital products that feel <strong>simple, sharp, and alive.</strong> From ambitious interfaces to reliable full-stack systems.</p><div className="hero-actions"><Link href="/projects" className="magnetic-link">Explore work <span>↗</span></Link><Link href="/contact" className="quiet-link">Start a project</Link></div><div className="scroll-mark"><span>SCROLL</span><b>↓</b></div></div></div></section>
+    <section className="manifesto"><div className="neo-container manifesto-grid"><span className="section-index">02 / APPROACH</span><div><p className="manifesto-big">Good digital work lives somewhere between <em>engineering precision</em> and <em>human instinct.</em></p><p className="manifesto-small">I obsess over the moments that make a product obvious to use, memorable to experience, and dependable underneath.</p></div></div></section>
+    <section className="work-section" id="work"><div className="neo-container"><div className="section-top"><div><span className="section-index">03 / SELECTED WORK</span><h2>Selected<br /><em>signals.</em></h2></div><Link href="/projects" className="circle-link">ALL WORK ↗</Link></div><div className="neo-projects">{featured.map((project,index)=><Link href={`/projects/${project.slug}`} key={project.slug} className={`neo-project ${index===0?"neo-project-wide":""}`} style={{"--project-accent":project.color} as React.CSSProperties}><div className="project-meta"><span>0{index+1}</span><span>{project.tech.slice(0,2).join(" / ")}</span></div><div className="project-art"><div className="art-lines" /><strong>{project.title.charAt(0)}</strong><span className="art-label">CASE / {String(index+1).padStart(2,"0")}</span></div><div className="project-caption"><div><h3>{project.title}</h3><p>{project.description}</p></div><span className="project-arrow">↗</span></div></Link>)}</div></div></section>
+    <section className="about-section"><div className="neo-container about-layout"><span className="section-index">04 / THE PERSON</span><div className="about-main"><div className="about-number">BP<span>01</span></div><div><h2>Developer.<br /><span>Designer.</span><br />Problem solver.</h2><p>Based in Nepal, building for the web. I work across product design, front-end craft, back-end architecture and everything between an idea and a shipped experience.</p><Link href="/about" className="underline-link">More about me →</Link></div></div></div></section>
+    <section className="capabilities"><div className="neo-container"><div className="section-top"><div><span className="section-index">05 / CAPABILITIES</span><h2>Built to<br /><em>ship.</em></h2></div><p className="cap-intro">A practical toolkit for turning rough ideas into polished, production-ready experiences.</p></div><div className="cap-list">{["Product interfaces","Full-stack applications","Motion & interaction","APIs & data systems"].map((item,i)=><div key={item}><span>0{i+1}</span><strong>{item}</strong><b>↗</b></div>)}</div><div className="tech-marquee">{[...stack,...stack].map((item,i)=><span key={`${item}-${i}`}>{item}<i>•</i></span>)}</div></div></section>
+    <section className="contact-section"><div className="neo-container"><span className="section-index">06 / NEXT MOVE</span><div className="contact-heading"><h2>Let&apos;s make<br /><em>something matter.</em></h2><div className="contact-stamp">AVAILABLE<br />FOR WORK<br /><span>↗</span></div></div><div className="contact-footer"><Link href="/contact" className="big-contact">Start a conversation <span>↗</span></Link><a href="mailto:bibashpoudel@email.com">bibashpoudel@email.com</a></div></div></section>
+  </main><Footer /><ChatWidget /></div>;
 }
