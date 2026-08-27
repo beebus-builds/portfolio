@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Anonymous_Pro } from "next/font/google";
 import "./globals.css";
+import "./motion.css";
 
 const anonPro = Anonymous_Pro({
   weight: ["400", "700"],
