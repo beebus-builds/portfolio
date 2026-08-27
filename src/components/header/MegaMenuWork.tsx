@@ -8,7 +8,7 @@ export default function MegaMenuWork() {
   return (
     <div
       role="menu"
-      className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[720px] bg-terminal-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.75),0_0_0_1px_rgba(84,230,212,0.06)] z-50 grid grid-cols-[1.25fr_0.85fr_1fr] gap-6 animate-fade-in"
+      className="w-full max-w-3xl bg-terminal-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.75),0_0_0_1px_rgba(84,230,212,0.06)] z-50 grid grid-cols-[1.25fr_0.85fr_1fr] gap-6 animate-fade-in mx-auto"
     >
       <div className="border-r border-white/5 pr-6">
         <p className="text-[10px] font-mono uppercase tracking-widest text-neon-400/70 mb-4 flex items-center gap-2">

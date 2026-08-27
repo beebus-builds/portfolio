@@ -10,10 +10,15 @@ const anonPro = Anonymous_Pro({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://bibashpoudel.dev"),
   title: "Bibash Poudel — Nepal Dev Terminal",
   description: "Interactive CLI portfolio of Bibash Poudel. A terminal-inspired portfolio with WebRTC calls, virtual filesystem, and Nepali dev identity.",
   manifest: "/manifest.webmanifest",
   keywords: ["Bibash Poudel", "developer", "Nepal", "Nepali developer", "full-stack", "WordPress", "portfolio"],
+  icons: [
+    { rel: "icon", url: "/icons/icon.svg", type: "image/svg+xml" },
+    { rel: "apple-touch-icon", url: "/icons/icon.svg" },
+  ],
   openGraph: {
     title: "Bibash Poudel — Nepal Dev Terminal",
     description: "Developer from Sindhuli, Nepal. A terminal-inspired portfolio.",
@@ -21,11 +26,13 @@ export const metadata: Metadata = {
     siteName: "Bibash Poudel",
     locale: "en_US",
     type: "website",
+    images: [{ url: "/og?type=home&title=Bibash%20Poudel", width: 1200, height: 630, alt: "Bibash Poudel — DevVerse" }],
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Bibash Poudel — Nepal Dev Terminal",
     description: "Developer from Sindhuli, Nepal. A terminal-inspired portfolio.",
+    images: ["/og?type=home&title=Bibash%20Poudel"],
   },
   appleWebApp: {
     capable: true,
@@ -50,6 +57,7 @@ import CommandPalette from "@/components/CommandPalette";
 import CursorGlow from "@/components/CursorGlow";
 import StudentWorkspaceBar from "@/components/StudentWorkspaceBar";
 import PageTransition from "@/components/PageTransition";
+import ThemeInit from "@/components/ThemeInit";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -74,6 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <CursorGlow />
+        <ThemeInit />
         <main id="main-content" className="pb-8" tabIndex={-1}>
           <PageTransition>{children}</PageTransition>
         </main>

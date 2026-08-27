@@ -26,6 +26,7 @@ export default function NewProjectPage() {
       highlights: (formData.get("highlights") as string).split("\n").filter(Boolean),
       process: (formData.get("process") as string).split("\n").filter(Boolean),
       outcome: formData.get("outcome"),
+      metrics: (formData.get("metrics") as string).split("\n").filter(Boolean),
     };
 
     const res = await fetch("/api/projects", {
@@ -60,6 +61,7 @@ export default function NewProjectPage() {
         <textarea name="highlights" placeholder="Highlights (new line per item)" className="w-full bg-terminal-900 p-2 text-white" />
         <textarea name="process" placeholder="Process (new line per item)" className="w-full bg-terminal-900 p-2 text-white" />
         <textarea name="outcome" placeholder="Outcome" className="w-full bg-terminal-900 p-2 text-white" />
+        <textarea name="metrics" placeholder="Impact metrics (new line per item, e.g. 100% E2E Encrypted)" className="w-full bg-terminal-900 p-2 text-white" />
         <button type="submit" className="btn-neon w-full" disabled={loading}>{loading ? "Saving..." : "Save Project"}</button>
       </form>
     </div>

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 import MediaLibraryModal, { type MediaAsset } from "@/components/MediaLibraryModal";
 import { useMediaToolbar } from "@/lib/upload";
+import { renderMarkdown } from "@/lib/markdown";
 
 interface PostEditorProps {
   mode: "create" | "edit";
@@ -297,24 +298,38 @@ export default function PostEditor({
             </div>
           </div>
 
-          <div
-            onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
-            onDragLeave={() => setDragOver(false)}
-            onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.length) handleFilesDrop(e.dataTransfer.files); }}
-            className={`relative border rounded-lg transition-all ${dragOver ? "border-neon-400/60 bg-neon-400/5" : "border-white/10"}`}
-          >
-            <textarea
-              ref={textareaRef}
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              required
-              rows={20}
-              className="w-full bg-transparent text-white font-mono text-sm p-4 focus:outline-none placeholder:text-white/15 resize-y"
-              placeholder="Write your post here… drag & drop images/videos straight in, or use the toolbar above."
-            />
-            {dragOver && (
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <span className="text-xs font-mono text-neon-400 bg-black/70 border border-neon-400/40 rounded-lg px-4 py-2">Drop to upload media</span>
+          <div className={`grid gap-4 ${preview ? "md:grid-cols-2" : ""}`}>
+            <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); if (e.dataTransfer.files?.length) handleFilesDrop(e.dataTransfer.files); }}
+              className={`relative border rounded-lg transition-all ${dragOver ? "border-neon-400/60 bg-neon-400/5" : "border-white/10"}`}
+            >
+              <textarea
+                ref={textareaRef}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+                required
+                rows={20}
+                className="w-full bg-transparent text-white font-mono text-sm p-4 focus:outline-none placeholder:text-white/15 resize-y"
+                placeholder="Write your post here… drag & drop images/videos straight in, or use the toolbar above."
+              />
+              {dragOver && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <span className="text-xs font-mono text-neon-400 bg-black/70 border border-neon-400/40 rounded-lg px-4 py-2">Drop to upload media</span>
+                </div>
+              )}
+            </div>
+
+            {preview && (
+              <div className="neon-card border border-white/5 rounded-lg p-5 bg-terminal-900/40 overflow-auto max-h-[70vh]">
+                <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mb-4 flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-neon-400 animate-pulse" /> Live Preview
+                </p>
+                <div
+                  className="md-body text-sm"
+                  dangerouslySetInnerHTML={{ __html: renderMarkdown(content) }}
+                />
               </div>
             )}
           </div>
@@ -334,7 +349,7 @@ export default function PostEditor({
             onClick={() => setPreview(!preview)}
             className="btn-ghost text-xs"
           >
-            {preview ? "Hide Preview" : "Preview"}
+            {preview ? "Exit Split View" : "Split Preview"}
           </button>
           <button
             type="submit"
@@ -345,16 +360,6 @@ export default function PostEditor({
           </button>
         </div>
       </form>
-
-      {preview && (
-        <div className="neon-card border border-white/5 rounded-xl p-6 bg-terminal-900/50 mt-6">
-          <p className="text-[10px] font-mono text-white/30 uppercase tracking-wider mb-3">Preview</p>
-          <div
-            className="text-sm font-mono text-white/70 leading-relaxed"
-            dangerouslySetInnerHTML={{ __html: renderPreview(content) }}
-          />
-        </div>
-      )}
 
       <MediaLibraryModal
         open={mediaOpen}
@@ -370,35 +375,4 @@ export default function PostEditor({
       />
     </div>
   );
-}
-
-function renderPreview(md: string): string {
-  if (!md) return '<p class="text-white/20">Start writing to see a preview...</p>';
-  return simplePreview(md);
-}
-
-function simplePreview(md: string): string {
-  let html = md
-    .replace(/%%video(?:\s+src=["']([^"']+)["']|\s+id=["']([^"']+)["'])?%%/g, (_m, src, vid) =>
-      vid
-        ? '<div class="my-3"><div class="relative w-full aspect-video rounded-lg overflow-hidden bg-black"><iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/' + vid + '" frameborder="0" allowfullscreen></iframe></div></div>'
-        : src
-          ? '<div class="my-3"><video class="w-full rounded-lg bg-black" controls playsinline preload="metadata"><source src="' + src + '" type="video/mp4" /></video></div>'
-          : ""
-    )
-    .replace(/!\[([^\]]*)\]\(([^)\s]+)(?:\s+"([^"]*)")?\)/g, '<figure class="my-3"><img src="$2" alt="$1" class="w-full rounded-lg border border-white/10" /><figcaption class="text-[10px] font-mono text-white/30 mt-1">$3</figcaption></figure>')
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-mono text-white/80 mt-4 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-mono text-neon-400 mt-4 mb-2">$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1 class="text-xl font-mono text-white mb-3">$1</h1>')
-    .replace(/`([^`]+)`/g, '<code class="text-neon-400 bg-neon-400/10 px-1 py-0.5 rounded text-xs">$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*([^*]+)\*/g, "<em>$1</em>")
-    .replace(/^- (.+)$/gm, "<li>$1</li>")
-    .replace(/\n\n/g, "</p><p>")
-    .replace(/\n/g, "<br />");
-
-  if (!html.startsWith("<p>") && !html.startsWith("<h") && !html.startsWith("<figure") && !html.startsWith("<div")) {
-    html = "<p>" + html;
-  }
-  return html;
 }

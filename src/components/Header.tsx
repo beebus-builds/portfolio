@@ -8,9 +8,9 @@ import { playTick, playClick, toggleMute, getMuteState } from "@/lib/audio";
 
 // Meaningful sub-components (A)
 import LogoTilt from "./header/LogoTilt";
-import NavLinkSimple from "./header/NavLinkSimple";
 import MegaMenuWork from "./header/MegaMenuWork";
 import MegaMenuBytes from "./header/MegaMenuBytes";
+import MegaMenuAbout from "./header/MegaMenuAbout";
 import RightCluster from "./header/RightCluster";
 import MobileDrawer from "./header/MobileDrawer";
 import AnnouncementBar from "./header/AnnouncementBar";
@@ -48,7 +48,7 @@ export default function Header() {
   const COMPACT = true; // C: no ribbon, 56px
   const CENTERED = true; // B: grid 1fr auto 1fr
 
-  const [activeMenu, setActiveMenu] = useState<"work" | "bytes" | null>(null);
+  const [activeMenu, setActiveMenu] = useState<"work" | "bytes" | "about" | null>(null);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [ktmTime, setKtmTime] = useState("");
   const [audioMuted, setAudioMuted] = useState(false);
@@ -66,6 +66,8 @@ export default function Header() {
   const headerRef = useRef<HTMLElement | null>(null);
   const workRef = useRef<HTMLDivElement | null>(null);
   const bytesRef = useRef<HTMLDivElement | null>(null);
+  const aboutRef = useRef<HTMLDivElement | null>(null);
+  const openSourceRef = useRef<"hover" | "click" | null>(null);
 
   useEffect(() => { setAudioMuted(getMuteState()); }, []);
 
@@ -93,9 +95,9 @@ export default function Header() {
     const onDown = (e: MouseEvent) => {
       if (!activeMenu) return;
       const t = e.target as Node;
-      if (!workRef.current?.contains(t) && !bytesRef.current?.contains(t)) setActiveMenu(null);
+      if (!workRef.current?.contains(t) && !bytesRef.current?.contains(t) && !aboutRef.current?.contains(t)) { setActiveMenu(null); openSourceRef.current = null; }
     };
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { if (activeMenu) setActiveMenu(null); if (mobileOpen) setMobileOpen(false); } };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { if (activeMenu) { setActiveMenu(null); openSourceRef.current = null; } if (mobileOpen) setMobileOpen(false); } };
     document.addEventListener("mousedown", onDown);
     document.addEventListener("keydown", onKey);
     return () => { document.removeEventListener("mousedown", onDown); document.removeEventListener("keydown", onKey); };
@@ -169,10 +171,19 @@ export default function Header() {
     return () => { window.removeEventListener("resize", onResize); document.removeEventListener("visibilitychange", onVis); cancelAnimationFrame(af); };
   }, [scrolled]);
 
-  const handleMouseEnter = (menu: "work" | "bytes") => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setActiveMenu(menu); };
-  const handleMouseLeave = () => { timeoutRef.current = setTimeout(() => setActiveMenu(null), 180); };
+  const handleMouseEnter = (menu: "work" | "bytes" | "about") => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setActiveMenu(menu); openSourceRef.current = "hover"; };
+  const handleMouseLeave = () => { if (openSourceRef.current === "click") return; timeoutRef.current = setTimeout(() => { setActiveMenu(null); openSourceRef.current = null; }, 180); };
+  const toggleMenu = (menu: "work" | "bytes" | "about") => {
+    if (activeMenu === menu && openSourceRef.current === "click") {
+      setActiveMenu(null);
+      openSourceRef.current = null;
+    } else {
+      setActiveMenu(menu);
+      openSourceRef.current = "click";
+    }
+  };
   useEffect(() => () => { if (timeoutRef.current) clearTimeout(timeoutRef.current); }, []);
-  useEffect(() => { setActiveMenu(null); setMobileOpen(false); }, [pathname]);
+  useEffect(() => { setActiveMenu(null); setMobileOpen(false); openSourceRef.current = null; }, [pathname]);
 
   const crumbs = useMemo(() => {
     if (pathname === "/") return [{ label: "~", href: "/" }, { label: "home", href: "/" }];
@@ -225,15 +236,24 @@ export default function Header() {
           <div className={`${CENTERED ? "flex items-center justify-between md:grid md:grid-cols-[1fr_auto_1fr] md:items-center" : "flex items-center justify-between"} ${COMPACT ? "h-[56px]" : "h-[64px]"} gap-4`}>
             {/* Left: nav (desktop) */}
             <nav className="hidden md:flex items-center gap-7 justify-self-start h-full" aria-label="Primary">
-              <NavLinkSimple href="/about" active={isActive("/about")} onClick={() => playClick()}>
-                <ScrambleText text="About" />
-              </NavLinkSimple>
+              <div ref={aboutRef} className="relative h-full flex items-center" onMouseEnter={() => handleMouseEnter("about")} onMouseLeave={handleMouseLeave}>
+                <button
+                  aria-expanded={activeMenu === "about"}
+                  aria-haspopup="true"
+                  onClick={() => toggleMenu("about")}
+                  className={`nav-link flex items-center gap-1 text-[11px] font-mono tracking-widest transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${activeMenu === "about" || ["/about", "/education", "/skills", "/resume.pdf"].some((p) => pathname === p || pathname.startsWith(p)) ? "text-neon-400" : "text-white/50 hover:text-white"}`}
+                >
+                  <ScrambleText text="About" active={activeMenu === "about"} />
+                  <span className={`text-[8px] transition-transform duration-200 ${activeMenu === "about" ? "rotate-180" : ""} opacity-50`}>▾</span>
+                </button>
+                {activeMenu === "about" && <MegaMenuAbout />}
+              </div>
 
               <div ref={workRef} className="relative h-full flex items-center" onMouseEnter={() => handleMouseEnter("work")} onMouseLeave={handleMouseLeave}>
                 <button
                   aria-expanded={activeMenu === "work"}
                   aria-haspopup="true"
-                  onClick={() => setActiveMenu(activeMenu === "work" ? null : "work")}
+                  onClick={() => toggleMenu("work")}
                   className={`nav-link flex items-center gap-1 text-[11px] font-mono tracking-widest transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${activeMenu === "work" || pathname.startsWith("/projects") ? "text-neon-400" : "text-white/50 hover:text-white"}`}
                 >
                   <ScrambleText text="Work" active={activeMenu === "work"} />
@@ -246,7 +266,7 @@ export default function Header() {
                 <button
                   aria-expanded={activeMenu === "bytes"}
                   aria-haspopup="true"
-                  onClick={() => setActiveMenu(activeMenu === "bytes" ? null : "bytes")}
+                  onClick={() => toggleMenu("bytes")}
                   className={`nav-link flex items-center gap-1 text-[11px] font-mono tracking-widest transition-colors cursor-pointer focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40 rounded-sm ${activeMenu === "bytes" || ["/blog", "/chess", "/commands"].some((p) => pathname.startsWith(p)) ? "text-neon-400" : "text-white/50 hover:text-white"}`}
                 >
                   <ScrambleText text="Bytes" active={activeMenu === "bytes"} />

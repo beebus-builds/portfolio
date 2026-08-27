@@ -55,3 +55,35 @@ export const labLinks: MegaLink[] = [
     image: "https://images.unsplash.com/photo-1629654297299-c8506221ca97?q=80&w=200&auto=format&fit=crop",
   },
 ];
+
+export const aboutLinks: MegaLink[] = [
+  {
+    title: "About Me",
+    description: "Who I am — from Sindhuli to code. My story, drives, and what I'm building.",
+    href: "/about",
+    badge: "You are here",
+    color: "#54e6d4",
+    image: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=400&auto=format&fit=crop",
+  },
+  {
+    title: "Education Journey",
+    description: "BIT at Bhaktapur Multiple Campus — what I'm studying and why.",
+    href: "/education",
+    color: "#ff4af0",
+    image: "https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=200&auto=format&fit=crop",
+  },
+  {
+    title: "Skills Matrix",
+    description: "Frontend, backend, 3D, and the tools I reach for daily.",
+    href: "/skills",
+    color: "#ffd700",
+    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?q=80&w=200&auto=format&fit=crop",
+  },
+  {
+    title: "Résumé / CV",
+    description: "Download my latest résumé as a PDF.",
+    href: "/resume.pdf",
+    color: "#22c55e",
+    image: "https://images.unsplash.com/photo-1586281380349-632531db7ed4?q=80&w=200&auto=format&fit=crop",
+  },
+];

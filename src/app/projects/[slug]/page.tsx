@@ -2,7 +2,33 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import PageShell from "@/components/PageShell";
 import ScrollTrigger from "@/components/ScrollTrigger";
+import DemoViewport from "@/components/projects/DemoViewport";
+import ImpactBadges from "@/components/projects/ImpactBadges";
 import { getProjectBySlug } from "@/lib/db";
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const project = await getProjectBySlug(slug);
+  if (!project) return { title: "Project not found" };
+  const ogTitle = encodeURIComponent(project.title);
+  const accent = encodeURIComponent(project.color);
+  return {
+    title: project.title,
+    description: project.description,
+    openGraph: {
+      title: project.title,
+      description: project.description,
+      type: "article",
+      images: [{ url: `/og?type=project&title=${ogTitle}&subtitle=${encodeURIComponent(project.tag)}&accent=${accent}`, width: 1200, height: 630, alt: project.title }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: project.title,
+      description: project.description,
+      images: [`/og?type=project&title=${ogTitle}&accent=${accent}`],
+    },
+  };
+}
 
 export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -44,6 +70,8 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
         </section>
       </ScrollTrigger>
 
+      <ImpactBadges project={project} />
+
       {/* Sticky snapshot sidebar alongside a flowing content column */}
       <div className="grid md:grid-cols-[260px_1fr] gap-10 md:gap-12">
         <aside className="md:sticky md:top-24 md:self-start space-y-5">
@@ -65,9 +93,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ slug: 
           </div>
           <div className="flex flex-col gap-2">
             {project.url && (
-              <a href={project.url} target="_blank" rel="noopener noreferrer" className="btn-neon text-xs justify-center">
-                Live Demo →
-              </a>
+              <DemoViewport url={project.url} title={project.title} color={project.color} />
             )}
             <a href={`https://github.com/beebus-builds/${project.repo}`} target="_blank" rel="noopener noreferrer" className="btn-ghost text-xs justify-center">
               View Source ↗

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { executeCommand, getAutocomplete, getPrompt, isPageCommand } from "@/lib/commands";
 import type { CommandResult, CommandContext } from "@/lib/commands";
+import { playTick, playClick } from "@/lib/audio";
 
 export interface HistoryLine {
   id: number;
@@ -244,6 +245,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
       if (askResolverRef.current) {
         submitAsk();
       } else {
+        playClick();
         runCommand(input);
       }
       return;
@@ -289,6 +291,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
+    if (val.length > input.length) playTick();
     setInput(val);
     if (val.trim()) {
       const candidates = getAutocomplete(val);
@@ -298,7 +301,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
         setSuggestion("");
       }
     } else setSuggestion("");
-  }, []);
+  }, [input.length]);
 
   const handleAskKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter") {

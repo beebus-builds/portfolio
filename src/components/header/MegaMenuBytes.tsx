@@ -8,7 +8,7 @@ export default function MegaMenuBytes() {
   return (
     <div
       role="menu"
-      className="absolute top-[calc(100%+10px)] left-1/2 -translate-x-1/2 w-[620px] bg-terminal-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.75)] z-50 grid grid-cols-2 gap-6 animate-fade-in"
+      className="w-full max-w-2xl bg-terminal-900/95 backdrop-blur-xl border border-white/10 rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.75)] z-50 grid grid-cols-2 gap-6 animate-fade-in mx-auto"
     >
       <div className="border-r border-white/5 pr-6">
         <p className="text-[10px] font-mono uppercase tracking-widest text-neon-400/70 mb-4">Writings &amp; Insights</p>

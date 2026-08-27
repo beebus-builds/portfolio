@@ -66,7 +66,7 @@ function simpleMarkdownToHTML(md: string): string {
     if (inCodeBlock) {
       if (line.trim().startsWith("```")) {
         inCodeBlock = false;
-        html += '<pre><code class="language-' + codeBlockLang + '">' + escapeHTML(codeBlockContent) + "</code></pre>";
+        html += wrapCodeBlock(codeBlockLang, codeBlockContent);
         codeBlockContent = "";
         codeBlockLang = "";
         continue;
@@ -136,7 +136,7 @@ function simpleMarkdownToHTML(md: string): string {
     if (h2Match) {
       flushParagraph();
       flushList();
-      html += '<h2 class="text-xl font-mono text-neon-400 tracking-wider mt-8 mb-3">' + inlineFormat(h2Match[1]) + "</h2>";
+      html += '<h2 id="' + slugify(h2Match[1]) + '" class="text-xl font-mono text-neon-400 tracking-wider mt-8 mb-3 scroll-mt-28">' + inlineFormat(h2Match[1]) + "</h2>";
       continue;
     }
 
@@ -144,7 +144,7 @@ function simpleMarkdownToHTML(md: string): string {
     if (h3Match) {
       flushParagraph();
       flushList();
-      html += '<h3 class="text-lg font-mono text-white/80 mt-6 mb-2">' + inlineFormat(h3Match[1]) + "</h3>";
+      html += '<h3 id="' + slugify(h3Match[1]) + '" class="text-lg font-mono text-white/80 mt-6 mb-2 scroll-mt-28">' + inlineFormat(h3Match[1]) + "</h3>";
       continue;
     }
 
@@ -178,7 +178,7 @@ function simpleMarkdownToHTML(md: string): string {
   flushList();
 
   if (inCodeBlock) {
-    html += '<pre><code class="language-' + codeBlockLang + '">' + escapeHTML(codeBlockContent) + "</code></pre>";
+    html += wrapCodeBlock(codeBlockLang, codeBlockContent);
   }
 
   return html;
@@ -199,6 +199,46 @@ function escapeHTML(str: string): string {
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
+}
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/`/g, "")
+    .replace(/[^\w\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-");
+}
+
+function stripInline(text: string): string {
+  return text
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/\*([^*]+)\*/g, "$1")
+    .trim();
+}
+
+function wrapCodeBlock(lang: string, code: string): string {
+  const label = lang ? `<span class="copy-lang">${escapeHTML(lang)}</span>` : "";
+  return `<div class="code-block group relative">${label}<button type="button" class="copy-btn" aria-label="Copy code">Copy</button><pre><code class="language-${lang}">${escapeHTML(code)}</code></pre></div>`;
+}
+
+export interface TocItem {
+  id: string;
+  text: string;
+  level: number;
+}
+
+export function extractHeadings(md: string): TocItem[] {
+  const lines = md.split("\n");
+  const items: TocItem[] = [];
+  for (const line of lines) {
+    const h2 = line.match(/^## (.+)$/);
+    const h3 = line.match(/^### (.+)$/);
+    if (h2) items.push({ id: slugify(h2[1]), text: stripInline(h2[1]), level: 2 });
+    else if (h3) items.push({ id: slugify(h3[1]), text: stripInline(h3[1]), level: 3 });
+  }
+  return items;
 }
 
 export function parsePost(content: string): { meta: Record<string, string>; body: string } {

@@ -42,6 +42,7 @@ export interface ProjectRow {
   highlights: string[];
   process: string[];
   outcome: string;
+  metrics: string[];
   created_at: string;
   updated_at: string;
 }
@@ -97,10 +98,13 @@ export async function ensureSchema(): Promise<void> {
       highlights TEXT[] NOT NULL DEFAULT '{}',
       process TEXT[] NOT NULL DEFAULT '{}',
       outcome TEXT NOT NULL,
+      metrics TEXT[] NOT NULL DEFAULT '{}',
       created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
       updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+
+  await query(`ALTER TABLE projects ADD COLUMN IF NOT EXISTS metrics TEXT[] NOT NULL DEFAULT '{}'`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS messages (
@@ -161,16 +165,17 @@ export async function getProjectBySlug(slug: string): Promise<ProjectRow | null>
 
 export async function upsertProject(input: ProjectRow): Promise<void> {
   await ensureSchema();
+  const metrics = input.metrics ?? [];
   await query(
-    `INSERT INTO projects (slug, title, tag, repo, description, tech, color, url, role, year, highlights, process, outcome, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, now())
+    `INSERT INTO projects (slug, title, tag, repo, description, tech, color, url, role, year, highlights, process, outcome, metrics, updated_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, now())
      ON CONFLICT (slug)
      DO UPDATE SET title = EXCLUDED.title, tag = EXCLUDED.tag, repo = EXCLUDED.repo,
        description = EXCLUDED.description, tech = EXCLUDED.tech, color = EXCLUDED.color,
        url = EXCLUDED.url, role = EXCLUDED.role, year = EXCLUDED.year,
        highlights = EXCLUDED.highlights, process = EXCLUDED.process, outcome = EXCLUDED.outcome,
-       updated_at = now()`,
-    [input.slug, input.title, input.tag, input.repo, input.description, input.tech, input.color, input.url, input.role, input.year, input.highlights, input.process, input.outcome]
+       metrics = EXCLUDED.metrics, updated_at = now()`,
+    [input.slug, input.title, input.tag, input.repo, input.description, input.tech, input.color, input.url, input.role, input.year, input.highlights, input.process, input.outcome, metrics]
   );
 }
 

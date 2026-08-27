@@ -1,3 +1,6 @@
+import { applyTheme, getTheme, THEMES, type ThemeName } from "@/lib/themes";
+import { setSoundProfile, getSoundProfile, SOUND_PROFILE_LABELS, type SoundProfile } from "@/lib/audio";
+
 export interface CommandResult {
   text: string;
   color?: string;
@@ -1131,6 +1134,63 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
       return [];
     },
   },
+
+  theme: {
+    description: "Switch terminal theme — theme [name|list]",
+    handler: (args) => {
+      const arg = args[0]?.toLowerCase();
+      if (!arg || arg === "list") {
+        const current = getTheme();
+        const lines: CommandResult[] = [{ text: " Available themes:", color: "#4af0ff" }];
+        (Object.keys(THEMES) as ThemeName[]).forEach((name) => {
+          const mark = name === current ? " ▸" : "  ";
+          lines.push({
+            text: `   ${mark} ${name.padEnd(9)} ${THEMES[name].label}  ${THEMES[name].accent}`,
+            color: name === current ? "#ffd700" : "white",
+          });
+        });
+        lines.push({ text: ` Usage: theme <name> — try 'theme matrix'`, color: "#ffffff60" });
+        lines.push({ text: ` Current: ${current}`, color: "#4af0ff" });
+        return lines;
+      }
+      if (!THEMES[arg as ThemeName]) {
+        return [{ text: ` theme: unknown theme '${arg}'. Run 'theme list'.`, color: "#ff4af0" }];
+      }
+      applyTheme(arg as ThemeName);
+      const def = THEMES[arg as ThemeName];
+      return [
+        { text: ` Theme set to ${def.label} ${def.accent}`, color: def.accent },
+        { text: " (accent color applied across the whole site — refresh-safe)", color: "#ffffff60" },
+      ];
+    },
+  },
+
+  sound: {
+    description: "Switch key-switch sound profile — sound [profile|list]",
+    handler: (args) => {
+      const arg = args[0]?.toLowerCase();
+      const profiles = Object.keys(SOUND_PROFILE_LABELS) as SoundProfile[];
+      if (!arg || arg === "list") {
+        const current = getSoundProfile();
+        const lines: CommandResult[] = [{ text: " Key-switch sound profiles:", color: "#4af0ff" }];
+        profiles.forEach((p) => {
+          const mark = p === current ? " ▸" : "  ";
+          lines.push({ text: `   ${mark} ${p.padEnd(6)} ${SOUND_PROFILE_LABELS[p]}`, color: p === current ? "#ffd700" : "white" });
+        });
+        lines.push({ text: ` Usage: sound <profile> — try 'sound brown' (then type to hear it)`, color: "#ffffff60" });
+        lines.push({ text: ` Current: ${current}`, color: "#4af0ff" });
+        return lines;
+      }
+      if (!profiles.includes(arg as SoundProfile)) {
+        return [{ text: ` sound: unknown profile '${arg}'. Run 'sound list'.`, color: "#ff4af0" }];
+      }
+      setSoundProfile(arg as SoundProfile);
+      return [
+        { text: ` Sound profile set to ${SOUND_PROFILE_LABELS[arg as SoundProfile]}`, color: "#00ff41" },
+        { text: " (click anywhere or type to hear your new switches)", color: "#ffffff60" },
+      ];
+    },
+  },
 };
 
 function answerQuestion(q: string): string {
@@ -1373,6 +1433,13 @@ export function getCommandDescription(name: string): string | undefined {
 export function getAutocomplete(input: string): string[] {
   const tokens = tokenize(input);
   const lastToken = tokens.length > 0 ? tokens[tokens.length - 1] : "";
+  const prevToken = tokens.length > 1 ? tokens[tokens.length - 2] : "";
+  if (prevToken === "theme") {
+    return (Object.keys(THEMES) as ThemeName[]).filter((n) => n.startsWith(lastToken));
+  }
+  if (prevToken === "sound") {
+    return (Object.keys(SOUND_PROFILE_LABELS) as SoundProfile[]).filter((n) => n.startsWith(lastToken));
+  }
   const isDirPath = lastToken.includes("/") || lastToken.startsWith(".");
   if (isDirPath) {
     const full = resolvePath(lastToken);
