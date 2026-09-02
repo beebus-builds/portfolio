@@ -32,8 +32,10 @@ export function applyTheme(name: ThemeName) {
   root.setAttribute("data-theme", name);
   root.style.setProperty("--color-neon-400", def.accent);
   root.style.setProperty("--color-cyan-400", def.secondary);
+  root.style.setProperty("--accent", def.accent);
   localStorage.setItem(STORAGE_KEY, name);
   currentTheme = name;
+  window.dispatchEvent(new CustomEvent("theme-change", { detail: { name, accent: def.accent } }));
 }
 
 export function getTheme(): ThemeName {

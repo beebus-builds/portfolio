@@ -1,20 +1,41 @@
 import Link from "next/link";
-import Footer from "@/components/Footer";
 import Header from "@/components/Header";
-import ChatWidget from "@/components/ChatWidget";
-import { projects } from "@/lib/projects";
+import Footer from "@/components/Footer";
+import PortfolioWorldLoader from "@/components/world/PortfolioWorldLoader";
 
 export const dynamic = "force-dynamic";
-const stack = ["Next.js", "TypeScript", "React", "Node.js", "Three.js", "Tailwind", "Postgres", "Figma"];
+
+const NAV_LINKS = [
+  { href: "/about", label: "About" },
+  { href: "/projects", label: "Projects" },
+  { href: "/skills", label: "Skills" },
+  { href: "/blog", label: "Notes" },
+  { href: "/education", label: "Education" },
+  { href: "/contact", label: "Contact" },
+];
 
 export default function Home() {
-  const featured = projects.slice(0, 4);
-  return <div className="neo-shell min-h-screen flex flex-col"><Header /><main id="main-content" className="flex-1">
-    <section className="neo-hero"><div className="hero-grid-bg" /><div className="hero-orb hero-orb-a" /><div className="hero-orb hero-orb-b" /><div className="neo-container hero-layout"><div className="hero-kicker"><span>01</span> INDEPENDENT DIGITAL BUILDER <i /></div><div className="hero-title-wrap"><h1><span>Bibash</span><span className="outline">Poudel</span></h1><div className="hero-side-note">FULL-STACK<br />DEVELOPER<br /><span>NEPAL / 2026</span></div></div><div className="hero-bottom"><p className="hero-intro">I design and engineer digital products that feel <strong>simple, sharp, and alive.</strong> From ambitious interfaces to reliable full-stack systems.</p><div className="hero-actions"><Link href="/projects" className="magnetic-link">Explore work <span>↗</span></Link><Link href="/contact" className="quiet-link">Start a project</Link></div><div className="scroll-mark"><span>SCROLL</span><b>↓</b></div></div></div></section>
-    <section className="manifesto"><div className="neo-container manifesto-grid"><span className="section-index">02 / APPROACH</span><div><p className="manifesto-big">Good digital work lives somewhere between <em>engineering precision</em> and <em>human instinct.</em></p><p className="manifesto-small">I obsess over the moments that make a product obvious to use, memorable to experience, and dependable underneath.</p></div></div></section>
-    <section className="work-section" id="work"><div className="neo-container"><div className="section-top"><div><span className="section-index">03 / SELECTED WORK</span><h2>Selected<br /><em>signals.</em></h2></div><Link href="/projects" className="circle-link">ALL WORK ↗</Link></div><div className="neo-projects">{featured.map((project,index)=><Link href={`/projects/${project.slug}`} key={project.slug} className={`neo-project ${index===0?"neo-project-wide":""}`} style={{"--project-accent":project.color} as React.CSSProperties}><div className="project-meta"><span>0{index+1}</span><span>{project.tech.slice(0,2).join(" / ")}</span></div><div className="project-art"><div className="art-lines" /><strong>{project.title.charAt(0)}</strong><span className="art-label">CASE / {String(index+1).padStart(2,"0")}</span></div><div className="project-caption"><div><h3>{project.title}</h3><p>{project.description}</p></div><span className="project-arrow">↗</span></div></Link>)}</div></div></section>
-    <section className="about-section"><div className="neo-container about-layout"><span className="section-index">04 / THE PERSON</span><div className="about-main"><div className="about-number">BP<span>01</span></div><div><h2>Developer.<br /><span>Designer.</span><br />Problem solver.</h2><p>Based in Nepal, building for the web. I work across product design, front-end craft, back-end architecture and everything between an idea and a shipped experience.</p><Link href="/about" className="underline-link">More about me →</Link></div></div></div></section>
-    <section className="capabilities"><div className="neo-container"><div className="section-top"><div><span className="section-index">05 / CAPABILITIES</span><h2>Built to<br /><em>ship.</em></h2></div><p className="cap-intro">A practical toolkit for turning rough ideas into polished, production-ready experiences.</p></div><div className="cap-list">{["Product interfaces","Full-stack applications","Motion & interaction","APIs & data systems"].map((item,i)=><div key={item}><span>0{i+1}</span><strong>{item}</strong><b>↗</b></div>)}</div><div className="tech-marquee">{[...stack,...stack].map((item,i)=><span key={`${item}-${i}`}>{item}<i>•</i></span>)}</div></div></section>
-    <section className="contact-section"><div className="neo-container"><span className="section-index">06 / NEXT MOVE</span><div className="contact-heading"><h2>Let&apos;s make<br /><em>something matter.</em></h2><div className="contact-stamp">AVAILABLE<br />FOR WORK<br /><span>↗</span></div></div><div className="contact-footer"><Link href="/contact" className="big-contact">Start a conversation <span>↗</span></Link><a href="mailto:bibashpoudel@email.com">bibashpoudel@email.com</a></div></div></section>
-  </main><Footer /><ChatWidget /></div>;
+  return (
+    <div className="min-h-screen flex flex-col bg-[#05040a]">
+      <Header />
+      <main id="main-content" className="flex-1">
+        <PortfolioWorldLoader />
+        <noscript>
+          <div className="world-fallback">
+            <span className="world-hud-kicker">BIBASH POUDEL</span>
+            <h1>Build. Better.</h1>
+            <p>Web developer building interfaces, systems and digital products.</p>
+            <nav>
+              {NAV_LINKS.map((l) => (
+                <Link key={l.href} href={l.href}>
+                  {l.label} →
+                </Link>
+              ))}
+            </nav>
+          </div>
+        </noscript>
+      </main>
+      <Footer />
+    </div>
+  );
 }

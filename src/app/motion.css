@@ -1,0 +1,48 @@
+@keyframes bpReveal{from{opacity:0;transform:translateY(28px);clip-path:inset(0 0 100% 0)}to{opacity:1;transform:none;clip-path:inset(0 0 0 0)}}
+@keyframes bpScaleIn{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+@keyframes bpFloat{50%{transform:translate3d(0,-7px,0)}}
+@keyframes bpShimmer{from{transform:translateX(-120%)}to{transform:translateX(120%)}}
+@keyframes bpLine{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+
+/* Global entrance choreography */
+main#main-content > *{animation:bpReveal .8s cubic-bezier(.16,1,.3,1) both}
+main#main-content > *:nth-child(2){animation-delay:.04s}main#main-content > *:nth-child(3){animation-delay:.08s}
+
+/* Make interactive elements feel physical without over-animating */
+a,button,[role="button"]{will-change:transform}
+button:hover{transform:translateY(-2px)}
+a:focus-visible,button:focus-visible{outline:1px solid var(--accent,#b8ff4d);outline-offset:5px}
+
+/* Image placeholders become a reusable reveal surface for the real assets later. */
+.image-slot{position:relative;overflow:hidden;min-height:280px;background:#101210;border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;color:#626963;font:600 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;isolation:isolate;transition:transform .7s cubic-bezier(.16,1,.3,1),border-color .4s,box-shadow .7s}
+.image-slot:before{content:"";position:absolute;inset:-30%;background:linear-gradient(105deg,transparent 38%,color-mix(in srgb,var(--accent) 8%,transparent) 50%,transparent 62%);transform:translateX(-100%);transition:transform 1s cubic-bezier(.16,1,.3,1)}
+.image-slot-grid{position:absolute;inset:0;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:55px 55px}
+.image-slot span{position:relative}.image-slot b{position:absolute;bottom:14px;left:14px;color:#414741;font-size:8px}.image-slot:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 25px 70px rgba(0,0,0,.3)}.image-slot:hover:before{transform:translateX(100%)}
+.hero-image-slot{width:min(38vw,460px);min-height:330px;animation:bpScaleIn 1s .25s both}.hero-image-slot:after{content:"";position:absolute;width:45%;aspect-ratio:1;border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-radius:50%;animation:bpFloat 5s ease-in-out infinite}
+.art-surface{animation:bpScaleIn .9s both}
+.neon-card,.term-window,.github-panel,.education-card,.lab-note{animation:bpReveal .7s cubic-bezier(.16,1,.3,1) both}
+
+/* Cursor-sensitive surfaces */
+.neo-project,.principles-grid article,.writing-grid article,.toolkit-grid>div,.cap-list>div,.process-step{transform:translateZ(0);backface-visibility:hidden}
+.neo-project{transition:transform .5s cubic-bezier(.16,1,.3,1)}.neo-project:hover{transform:translateY(-4px)}
+.principles-grid article:hover,.writing-grid article:hover,.toolkit-grid>div:hover{transition-duration:.55s}
+
+/* Section index marker */
+.section-index{position:relative;width:max-content}.section-index:after{content:"";display:inline-block;width:0;height:1px;background:var(--accent,#b8ff4d);vertical-align:middle;margin-left:10px;transition:width .5s cubic-bezier(.16,1,.3,1)}
+section:hover > .neo-container > .section-index:after,section:hover .section-index:after{width:28px}
+
+/* Marquee and media helpers */
+.tech-marquee{mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.tech-marquee span{display:inline-block}
+
+/* Inner pages inherit the same interaction language. */
+.portfolio-shell .portfolio-section,.portfolio-shell .card{transition:transform .55s cubic-bezier(.16,1,.3,1),border-color .35s,box-shadow .55s}
+.portfolio-shell .card:hover{transform:translateY(-6px);box-shadow:0 24px 70px rgba(0,0,0,.22)}
+.portfolio-shell img{transition:transform .8s cubic-bezier(.16,1,.3,1),filter .5s}.portfolio-shell a:hover img{transform:scale(1.035)}
+
+/* Scroll progress can be wired to the existing .site-progress element. */
+.site-progress span{transform-origin:left;animation:bpLine .9s cubic-bezier(.16,1,.3,1) both}
+
+/* Respect accessibility settings. */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+@media(max-width:800px){.hero-image-slot{width:100%;min-height:260px}.image-slot{min-height:220px}.neo-project:hover,.image-slot:hover,.portfolio-shell .card:hover{transform:none}.tech-marquee span{animation-duration:30s}}

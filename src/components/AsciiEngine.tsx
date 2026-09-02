@@ -11,6 +11,7 @@ export default function AsciiEngine() {
 
   useEffect(() => {
     let animationId: number;
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     // Torus (Donut) parameters
     const R1 = 1;      // Inner radius
@@ -22,8 +23,8 @@ export default function AsciiEngine() {
     const K1 = (screenWidth * K2 * 3) / (8 * (R1 + R2));
 
     const renderFrame = () => {
-      // Automatic rotation when not being actively dragged
-      if (!dragRef.current.isDragging) {
+      // Automatic rotation when not being actively dragged (skipped under reduced motion — drag still works)
+      if (!dragRef.current.isDragging && !reducedMotion) {
         rotationRef.current.A += isHovered ? 0.04 : 0.015;
         rotationRef.current.B += isHovered ? 0.025 : 0.01;
       }
