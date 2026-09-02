@@ -92,10 +92,12 @@ export default function PortfolioWorld() {
         <ChaseCamera target={traveler} />
       </Canvas>
       <WorldHUD nearby={nearby} onEnter={enter} />
-      <div className="story-progress" aria-label={`Story progress ${discovered.length} of ${LANDMARKS.length}`}>
+      <div className="story-progress" aria-label={`Story progress ${discovered.length} of ${LANDMARKS.length}`} style={{ position: "absolute", left: 24, right: 24, bottom: 22, display: "flex", alignItems: "center", gap: 14, pointerEvents: "none", zIndex: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 9, letterSpacing: ".12em", color: "rgba(255,255,255,.48)" }}>
         <span>{String(discovered.length).padStart(2, "0")} / 06</span>
-        <div>{LANDMARKS.map((landmark) => <i key={landmark.id} className={discovered.includes(landmark.id) ? "is-found" : ""} />)}</div>
-        <b>{discovered.length >= LANDMARKS.length ? "THE UNKNOWN IS OPEN" : "DISCOVER THE STORY"}</b>
+        <div style={{ display: "flex", gap: 5, flex: 1, maxWidth: 280 }}>
+          {LANDMARKS.map((landmark) => <i key={landmark.id} className={discovered.includes(landmark.id) ? "is-found" : ""} style={{ display: "block", height: 2, flex: 1, background: discovered.includes(landmark.id) ? landmark.color : "rgba(255,255,255,.14)", boxShadow: discovered.includes(landmark.id) ? `0 0 10px ${landmark.color}` : "none", transition: "all .5s ease" }} />)}
+        </div>
+        <b style={{ color: discovered.length >= LANDMARKS.length ? "#b8ff4d" : "rgba(255,255,255,.34)", fontWeight: 500 }}>{discovered.length >= LANDMARKS.length ? "THE UNKNOWN IS OPEN" : "DISCOVER THE STORY"}</b>
       </div>
       <TouchControls input={input} onEnter={enter} />
     </div>
