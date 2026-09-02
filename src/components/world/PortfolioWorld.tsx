@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Stars } from "@react-three/drei";
 import { useRouter } from "next/navigation";
@@ -27,21 +27,48 @@ export default function PortfolioWorld() {
   const router = useRouter();
   const traveler = useRef<VehicleState>({ position: new THREE.Vector3(0, 0, 30), heading: Math.PI, speed: 0 });
   const [nearby, setNearby] = useState<LandmarkData | null>(null);
+  const [discovered, setDiscovered] = useState<string[]>([]);
   const nearbyRef = useRef<LandmarkData | null>(null);
   const enteringRef = useRef(false);
 
+  useEffect(() => {
+    try {
+      const saved = window.localStorage.getItem("bibash-story-discoveries");
+      if (saved) setDiscovered(JSON.parse(saved));
+    } catch { /* start fresh if storage is unavailable */ }
+  }, []);
+
+  const discover = useCallback((id: string) => {
+    setDiscovered((current) => {
+      if (current.includes(id)) return current;
+      const next = [...current, id];
+      try { window.localStorage.setItem("bibash-story-discoveries", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
   const enter = useCallback(() => {
-    if (nearbyRef.current && !enteringRef.current) {
+    const target = nearbyRef.current;
+    if (target && !enteringRef.current) {
+      discover(target.id);
       enteringRef.current = true;
-      router.push(nearbyRef.current.href);
+      window.setTimeout(() => router.push(target.href), 260);
     }
-  }, [router]);
+  }, [discover, router]);
 
   const input = useDriveInput(enter);
   const handleProximity = useCallback((id: string, near: boolean, data: LandmarkData) => {
-    if (near) { nearbyRef.current = data; setNearby(data); }
-    else if (nearbyRef.current?.id === id) { nearbyRef.current = null; setNearby(null); }
-  }, []);
+    if (near) {
+      nearbyRef.current = data;
+      setNearby(data);
+      discover(id);
+    } else if (nearbyRef.current?.id === id) {
+      nearbyRef.current = null;
+      setNearby(null);
+    }
+  }, [discover]);
+
+  const storyProgress = Math.min(4, Math.floor(discovered.length / 1.5));
 
   return (
     <div className="world-stage">
@@ -54,9 +81,9 @@ export default function PortfolioWorld() {
         <pointLight position={[0, 4, -1]} color="#ff4af0" intensity={8} distance={13} />
         <pointLight position={[0, 4, 14]} color="#ffd700" intensity={9} distance={15} />
         <pointLight position={[0, 4, 28]} color="#ff6b35" intensity={10} distance={14} />
-        <Stars radius={90} depth={55} count={2400} factor={2.6} fade speed={0.28} />
+        <Stars radius={90} depth={55} count={discovered.length >= 5 ? 3600 : 2400} factor={2.6} fade speed={discovered.length >= 5 ? 0.5 : 0.28} />
         <Suspense fallback={null}>
-          <StoryEnvironment />
+          <StoryEnvironment progress={storyProgress} discovered={discovered} />
           <StoryTraveler input={input} state={traveler} />
           {LANDMARKS.map((landmark) => (
             <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />
@@ -65,6 +92,11 @@ export default function PortfolioWorld() {
         <ChaseCamera target={traveler} />
       </Canvas>
       <WorldHUD nearby={nearby} onEnter={enter} />
+      <div className="story-progress" aria-label={`Story progress ${discovered.length} of ${LANDMARKS.length}`}>
+        <span>{String(discovered.length).padStart(2, "0")} / 06</span>
+        <div>{LANDMARKS.map((landmark) => <i key={landmark.id} className={discovered.includes(landmark.id) ? "is-found" : ""} />)}</div>
+        <b>{discovered.length >= LANDMARKS.length ? "THE UNKNOWN IS OPEN" : "DISCOVER THE STORY"}</b>
+      </div>
       <TouchControls input={input} onEnter={enter} />
     </div>
   );
