@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import type { VehicleState } from "./Vehicle";
 
@@ -69,9 +68,10 @@ export default function Landmark({
         <ringGeometry args={[3.8, 4.2, 48]} />
         <meshBasicMaterial color={data.color} transparent opacity={0.35} side={THREE.DoubleSide} />
       </mesh>
-      <Text position={[0, 0.9, 0]} fontSize={0.5} color="#ffffff" anchorX="center" anchorY="middle" outlineWidth={0.02} outlineColor="#000000">
-        {data.label}
-      </Text>
+      <mesh position={[0, 0.9, 0]}>
+        <sphereGeometry args={[0.12, 12, 12]} />
+        <meshStandardMaterial color={data.color} emissive={data.color} emissiveIntensity={1.4} toneMapped={false} />
+      </mesh>
     </group>
   );
 }

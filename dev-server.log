@@ -32,3 +32,6 @@
  GET /education 200 in 686ms (next.js: 35ms, application-code: 651ms)
  GET /contact 200 in 242ms (next.js: 37ms, application-code: 204ms)
  GET / 200 in 1176ms (next.js: 30ms, application-code: 1146ms)
+ GET / 200 in 192ms (next.js: 7ms, application-code: 185ms)
+ GET / 200 in 64ms (next.js: 4ms, application-code: 61ms)
+ GET / 200 in 207ms (next.js: 70ms, application-code: 137ms)
