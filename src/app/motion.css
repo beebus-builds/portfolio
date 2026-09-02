@@ -15,10 +15,12 @@ a:focus-visible,button:focus-visible{outline:1px solid var(--accent,#b8ff4d);out
 
 /* Image placeholders become a reusable reveal surface for the real assets later. */
 .image-slot{position:relative;overflow:hidden;min-height:280px;background:#101210;border:1px solid rgba(255,255,255,.1);display:grid;place-items:center;color:#626963;font:600 9px ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;isolation:isolate;transition:transform .7s cubic-bezier(.16,1,.3,1),border-color .4s,box-shadow .7s}
-.image-slot:before{content:"";position:absolute;inset:-30%;background:linear-gradient(105deg,transparent 38%,rgba(184,255,77,.08) 50%,transparent 62%);transform:translateX(-100%);transition:transform 1s cubic-bezier(.16,1,.3,1)}
+.image-slot:before{content:"";position:absolute;inset:-30%;background:linear-gradient(105deg,transparent 38%,color-mix(in srgb,var(--accent) 8%,transparent) 50%,transparent 62%);transform:translateX(-100%);transition:transform 1s cubic-bezier(.16,1,.3,1)}
 .image-slot-grid{position:absolute;inset:0;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:55px 55px}
-.image-slot span{position:relative}.image-slot b{position:absolute;bottom:14px;left:14px;color:#414741;font-size:8px}.image-slot:hover{transform:translateY(-6px);border-color:rgba(184,255,77,.35);box-shadow:0 25px 70px rgba(0,0,0,.3)}.image-slot:hover:before{transform:translateX(100%)}
-.hero-image-slot{width:min(38vw,460px);min-height:330px;animation:bpScaleIn 1s .25s both}.hero-image-slot:after{content:"";position:absolute;width:45%;aspect-ratio:1;border:1px solid rgba(184,255,77,.28);border-radius:50%;animation:bpFloat 5s ease-in-out infinite}
+.image-slot span{position:relative}.image-slot b{position:absolute;bottom:14px;left:14px;color:#414741;font-size:8px}.image-slot:hover{transform:translateY(-6px);border-color:color-mix(in srgb,var(--accent) 35%,transparent);box-shadow:0 25px 70px rgba(0,0,0,.3)}.image-slot:hover:before{transform:translateX(100%)}
+.hero-image-slot{width:min(38vw,460px);min-height:330px;animation:bpScaleIn 1s .25s both}.hero-image-slot:after{content:"";position:absolute;width:45%;aspect-ratio:1;border:1px solid color-mix(in srgb,var(--accent) 28%,transparent);border-radius:50%;animation:bpFloat 5s ease-in-out infinite}
+.art-surface{animation:bpScaleIn .9s both}
+.neon-card,.term-window,.github-panel,.education-card,.lab-note{animation:bpReveal .7s cubic-bezier(.16,1,.3,1) both}
 
 /* Cursor-sensitive surfaces */
 .neo-project,.principles-grid article,.writing-grid article,.toolkit-grid>div,.cap-list>div,.process-step{transform:translateZ(0);backface-visibility:hidden}

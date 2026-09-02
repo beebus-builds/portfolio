@@ -4,47 +4,31 @@
 
 ▲ Next.js 16.2.9 (Turbopack)
 - Local:         http://localhost:3001
-- Network:       http://192.168.1.96:3001
-- Environments: .env.local
-✓ Ready in 883ms
+- Network:       http://192.168.1.81:3001
+✓ Ready in 1344ms
+⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
 
-[browser] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
-
-- A server/client branch `if (typeof window !== 'undefined')`.
-- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
-- Date formatting in a user's locale which doesn't match the server.
-- External changing data without sending a snapshot of it along with the HTML.
-- Invalid HTML tag nesting.
-
-It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
-
-https://react.dev/link/hydration-mismatch
-
-  ...
-    <HotReload globalError={[...]} webSocket={WebSocket} staticIndicatorState={{pathname:null, ...}}>
-      <AppDevOverlayErrorBoundary globalError={[...]}>
-        <ReplaySsrOnlyErrors>
-        <DevRootHTTPAccessFallbackBoundary>
-          <HTTPAccessFallbackBoundary notFound={<NotAllowedRootHTTPFallbackError>}>
-            <HTTPAccessFallbackErrorBoundary pathname="/" notFound={<NotAllowedRootHTTPFallbackError>} ...>
-              <RedirectBoundary>
-                <RedirectErrorBoundary router={{...}}>
-                  <Head>
-                  <__next_root_layout_boundary__>
-                    <SegmentViewNode type="layout" pagePath="layout.tsx">
-                      <SegmentTrieNode>
-                      <link>
-                      <script>
-                      <script>
-                      <RootLayout>
-                        <html
-                          lang="en"
--                         data-theme="light"
-                        >
-                  ...
- 
- GET /manifest.webmanifest 200 in 236ms (next.js: 204ms, application-code: 32ms)
- GET / 200 in 3.7s (next.js: 370ms, application-code: 3.3s)
- GET /chess 200 in 208ms (next.js: 37ms, application-code: 171ms)
- GET /chess 200 in 81ms (next.js: 5ms, application-code: 77ms)
- GET / 200 in 2.3s (next.js: 9ms, application-code: 2.3s)
+ GET / 200 in 2.7s (next.js: 1820ms, application-code: 880ms)
+ GET / 200 in 331ms (next.js: 7ms, application-code: 324ms)
+ GET /about 200 in 385ms (next.js: 47ms, application-code: 338ms)
+ GET /projects 200 in 193ms (next.js: 28ms, application-code: 165ms)
+ GET /skills 200 in 227ms (next.js: 34ms, application-code: 193ms)
+⨯ Error: No database host or connection string was set, and key parameters have default values (host: localhost, user: bibas, db: bibas, password: null). Is an environment variable missing? Alternatively, if you intended to connect with these parameters, please set the host to 'localhost' explicitly.
+    at query (src\lib\db.ts:13:34)
+    at ensureSchema (src\lib\db.ts:70:9)
+    at listPosts (src\lib\db.ts:205:9)
+    at getBlogPosts (src\lib\posts.ts:5:19)
+    at BlogPage (src\app\blog\page.tsx:15:35)
+  11 |
+  12 | export async function query<T>(text: string, params: unknown[] = []): Promise<T[]> {
+> 13 |   const result = await getPool().query(text, params);
+     |                                  ^
+  14 |   return result.rows as T[];
+  15 | }
+  16 | {
+  digest: '2518295349'
+}
+ GET /blog 500 in 664ms (next.js: 77ms, application-code: 588ms)
+ GET /education 200 in 686ms (next.js: 35ms, application-code: 651ms)
+ GET /contact 200 in 242ms (next.js: 37ms, application-code: 204ms)
+ GET / 200 in 1176ms (next.js: 30ms, application-code: 1146ms)

@@ -59,6 +59,9 @@ import CursorGlow from "@/components/CursorGlow";
 import StudentWorkspaceBar from "@/components/StudentWorkspaceBar";
 import PageTransition from "@/components/PageTransition";
 import ThemeInit from "@/components/ThemeInit";
+import ChatWidget from "@/components/ChatWidget";
+import ScrollProgress from "@/components/ScrollProgress";
+import BackToTop from "@/components/BackToTop";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -84,9 +87,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         />
         <CursorGlow />
         <ThemeInit />
+        <ScrollProgress />
         <main id="main-content" className="pb-8" tabIndex={-1}>
           <PageTransition>{children}</PageTransition>
         </main>
+        <BackToTop />
+        <ChatWidget />
         <StudentWorkspaceBar />
         <CommandPalette />
         <ServiceWorkerRegistration />

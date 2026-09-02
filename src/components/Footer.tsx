@@ -22,11 +22,11 @@ export default function Footer() {
             </div>
           </div>
           <nav className="flex flex-wrap gap-x-6 gap-y-3">
-            {links.map((link) => <Link key={link.href} href={link.href} className="text-xs text-white/45 hover:text-[#b8ff4d] transition-colors">{link.label}</Link>)}
+            {links.map((link) => <Link key={link.href} href={link.href} className="text-xs text-white/45 hover:text-neon-400 transition-colors">{link.label}</Link>)}
           </nav>
           <div className="flex gap-5 text-xs">
-            <a href="https://github.com/beebus-builds" target="_blank" rel="noopener noreferrer" className="text-white/45 hover:text-[#b8ff4d]">GitHub ↗</a>
-            <a href="mailto:bibashpoudel@email.com" className="text-white/45 hover:text-[#b8ff4d]">Email ↗</a>
+            <a href="https://github.com/beebus-builds" target="_blank" rel="noopener noreferrer" className="text-white/45 hover:text-neon-400">GitHub ↗</a>
+            <a href="mailto:bibashpoudel@email.com" className="text-white/45 hover:text-neon-400">Email ↗</a>
           </div>
         </div>
         <div className="mt-9 pt-5 border-t border-white/10 flex flex-col sm:flex-row gap-2 justify-between text-[11px] text-white/25">

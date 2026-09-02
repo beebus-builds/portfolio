@@ -121,6 +121,14 @@ export default function Header() {
     let paused = false;
     let width = (canvas.width = canvas.offsetWidth);
     let height = (canvas.height = canvas.offsetHeight);
+    let accentRGB = "184,255,77";
+    const readAccent = () => {
+      const hex = getComputedStyle(document.documentElement).getPropertyValue("--accent").trim();
+      const m = /^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(hex);
+      if (m) accentRGB = `${parseInt(m[1], 16)},${parseInt(m[2], 16)},${parseInt(m[3], 16)}`;
+    };
+    readAccent();
+    window.addEventListener("theme-change", readAccent);
     const onVis = () => { paused = document.hidden; if (!paused) draw(); };
     document.addEventListener("visibilitychange", onVis);
     const onResize = () => { width = canvas.width = canvas.offsetWidth; height = canvas.height = canvas.offsetHeight; gen(); };
@@ -149,7 +157,7 @@ export default function Header() {
       if (paused) return;
       ctx.clearRect(0, 0, width, height);
       const alpha = scrolled ? 0.022 : 0.045;
-      ctx.strokeStyle = `rgba(84,230,212,${alpha})`;
+      ctx.strokeStyle = `rgba(${accentRGB},${alpha})`;
       traces.forEach((t) => { ctx.lineWidth = t.width; ctx.beginPath(); ctx.moveTo(t.points[0].x, t.points[0].y); for (let i = 1; i < t.points.length; i++) ctx.lineTo(t.points[i].x, t.points[i].y); ctx.stroke(); });
       if (packets.length < 14 && Math.random() < 0.09) packets.push({ traceIndex: Math.floor(Math.random() * traces.length), progress: 0, speed: 0.0025 + Math.random() * 0.004, size: 1.4 + Math.random() * 1.2 });
       packets.forEach((p, idx) => {
@@ -163,12 +171,12 @@ export default function Header() {
         let s = p.speed; if (d < 110) s = p.speed * (1.6 + (110 - d) / 50);
         p.progress += s;
         if (p.progress >= 1) packets.splice(idx, 1);
-        else { ctx.beginPath(); const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, p.size * 3); g.addColorStop(0, "rgba(84,230,212,1)"); g.addColorStop(0.4, "rgba(84,230,212,0.45)"); g.addColorStop(1, "rgba(84,230,212,0)"); ctx.fillStyle = g; ctx.arc(cx, cy, p.size * 3, 0, Math.PI * 2); ctx.fill(); }
+        else { ctx.beginPath(); const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, p.size * 3); g.addColorStop(0, `rgba(${accentRGB},1)`); g.addColorStop(0.4, `rgba(${accentRGB},0.45)`); g.addColorStop(1, `rgba(${accentRGB},0)`); ctx.fillStyle = g; ctx.arc(cx, cy, p.size * 3, 0, Math.PI * 2); ctx.fill(); }
       });
       af = requestAnimationFrame(draw);
     };
     draw();
-    return () => { window.removeEventListener("resize", onResize); document.removeEventListener("visibilitychange", onVis); cancelAnimationFrame(af); };
+    return () => { window.removeEventListener("resize", onResize); document.removeEventListener("visibilitychange", onVis); window.removeEventListener("theme-change", readAccent); cancelAnimationFrame(af); };
   }, [scrolled]);
 
   const handleMouseEnter = (menu: "work" | "bytes" | "about") => { if (timeoutRef.current) clearTimeout(timeoutRef.current); setActiveMenu(menu); openSourceRef.current = "hover"; };
