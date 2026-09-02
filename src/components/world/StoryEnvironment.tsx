@@ -17,101 +17,96 @@ const chapters = [
 
 function ChapterGate({ z, n, title, line, color, active }: (typeof chapters)[number] & { active: boolean }) {
   const pulse = useRef<THREE.Mesh>(null);
-  useFrame(({ clock }) => {
-    if (pulse.current) pulse.current.scale.setScalar(1 + Math.sin(clock.elapsedTime * 1.7 + z) * (active ? 0.055 : 0.02));
-  });
-  return (
-    <group position={[0, 0, z]}>
-      <mesh ref={pulse} position={[0, 2.2, 0]}>
-        <torusGeometry args={[2.05, 0.025, 8, 64]} />
-        <meshBasicMaterial color={color} transparent opacity={active ? 0.75 : 0.18} />
-      </mesh>
-      <mesh position={[0, 2.2, 0]} rotation={[0, Math.PI / 2, 0]}>
-        <planeGeometry args={[3.7, 4.2]} />
-        <meshBasicMaterial color={color} transparent opacity={active ? 0.055 : 0.015} side={THREE.DoubleSide} />
-      </mesh>
-      <Text position={[0, 4.2, 0]} fontSize={0.19} color={color} anchorX="center" anchorY="middle" letterSpacing={0.12} fillOpacity={active ? 0.9 : 0.35}>
-        CHAPTER {n} / {title}
-      </Text>
-      <Text position={[0, 3.75, 0]} fontSize={0.13} color="#d8d5e5" anchorX="center" anchorY="middle" maxWidth={6} fillOpacity={active ? 0.8 : 0.22}>
-        {line}
-      </Text>
-      <pointLight position={[0, 2.2, 0]} color={color} intensity={active ? 4.5 : 0.5} distance={9} />
-    </group>
-  );
+  useFrame(({ clock }) => pulse.current?.scale.setScalar(1 + Math.sin(clock.elapsedTime * 1.7 + z) * (active ? 0.055 : 0.02)));
+  return <group position={[0, 0, z]}>
+    <mesh ref={pulse} position={[0, 2.2, 0]}><torusGeometry args={[2.05, 0.025, 8, 64]} /><meshBasicMaterial color={color} transparent opacity={active ? 0.75 : 0.18} /></mesh>
+    <mesh position={[0, 2.2, 0]} rotation={[0, Math.PI / 2, 0]}><planeGeometry args={[3.7, 4.2]} /><meshBasicMaterial color={color} transparent opacity={active ? 0.055 : 0.015} side={THREE.DoubleSide} /></mesh>
+    <Text position={[0, 4.2, 0]} fontSize={0.19} color={color} anchorX="center" anchorY="middle" letterSpacing={0.12} fillOpacity={active ? 0.9 : 0.35}>CHAPTER {n} / {title}</Text>
+    <Text position={[0, 3.75, 0]} fontSize={0.13} color="#d8d5e5" anchorX="center" anchorY="middle" maxWidth={6} fillOpacity={active ? 0.8 : 0.22}>{line}</Text>
+    <pointLight position={[0, 2.2, 0]} color={color} intensity={active ? 4.5 : 0.5} distance={9} />
+  </group>;
 }
 
 function Ruins({ repaired }: { repaired: boolean }) {
-  const blocks = useMemo(() => Array.from({ length: 18 }, (_, i) => ({
-    x: (i % 2 ? 1 : -1) * (5.2 + (i % 4) * 1.1),
-    y: 0.7 + (i % 5) * 0.55,
-    z: -5 + i * 0.48,
-    r: (i * 0.7) % 0.45,
-  })), []);
+  const blocks = useMemo(() => Array.from({ length: 18 }, (_, i) => ({ x: (i % 2 ? 1 : -1) * (5.2 + (i % 4) * 1.1), y: 0.7 + (i % 5) * 0.55, z: -5 + i * 0.48, r: (i * 0.7) % 0.45 })), []);
   return <group>
-    {blocks.map((b, i) => <mesh key={i} position={[b.x, b.y, b.z]} rotation={[0, b.r, (i % 3) * 0.08]}>
-      <boxGeometry args={[1.1 + (i % 3) * 0.45, b.y * 1.3, 0.8 + (i % 2) * 0.5]} />
-      <meshStandardMaterial color={repaired ? "#18182b" : "#12111d"} emissive={repaired ? "#45348a" : "#281d42"} emissiveIntensity={repaired ? 0.9 : 0.45} roughness={0.92} />
-    </mesh>)}
+    {blocks.map((b, i) => <mesh key={i} position={[b.x, b.y, b.z]} rotation={[0, b.r, (i % 3) * 0.08]}><boxGeometry args={[1.1 + (i % 3) * 0.45, b.y * 1.3, 0.8 + (i % 2) * 0.5]} /><meshStandardMaterial color={repaired ? "#18182b" : "#12111d"} emissive={repaired ? "#45348a" : "#281d42"} emissiveIntensity={repaired ? 0.9 : 0.45} roughness={0.92} /></mesh>)}
+    <mesh position={[0, repaired ? 1.9 : 0.8, -0.3]} rotation={[0, 0, repaired ? 0 : 0.18]}>
+      <boxGeometry args={[7.5, 0.16, 0.32]} />
+      <meshStandardMaterial color="#2a2345" emissive="#8b4cff" emissiveIntensity={repaired ? 1.6 : 0.25} />
+    </mesh>
+    {!repaired && <Sparkles count={55} scale={[13, 5, 8]} size={1.6} speed={0.8} color="#ff4af0" position={[0, 2, -1]} />}
     {repaired && <pointLight position={[0, 2, 5]} color="#6d5bff" intensity={6} distance={14} />}
+  </group>;
+}
+
+function QuestionForest({ active }: { active: boolean }) {
+  return <group position={[0, 0, -14]}>
+    {[-6, -3, 0, 3, 6].map((x, i) => <group key={i} position={[x, 0, (i % 2) * 1.5 - 0.5]}>
+      <mesh position={[0, 1.1, 0]}><cylinderGeometry args={[0.12, 0.2, 2.2, 6]} /><meshStandardMaterial color="#18292a" /></mesh>
+      <mesh position={[0, 2.4, 0]}><icosahedronGeometry args={[1.15, 1]} /><meshStandardMaterial color="#123c42" emissive="#54e6d4" emissiveIntensity={active ? 1.2 : 0.2} transparent opacity={0.72} /></mesh>
+      {active && <Text position={[0, 3.7, 0]} fontSize={0.18} color="#54e6d4" anchorX="center">{["WHY?", "WHAT IF?", "HOW?", "CAN I?", "TRY."][i]}</Text>}
+    </group>)}
+  </group>;
+}
+
+function FailureBridge({ rebuilt }: { rebuilt: boolean }) {
+  const fragments = useMemo(() => Array.from({ length: 11 }, (_, i) => i), []);
+  return <group position={[0, 0, 3]}>
+    {fragments.map((i) => {
+      const x = -5 + i;
+      const y = rebuilt ? 1.05 : 0.35 + (i % 3) * 0.8;
+      return <mesh key={i} position={[x, y, 0]} rotation={[0, rebuilt ? 0 : (i % 2 ? 0.22 : -0.28), rebuilt ? 0 : (i % 3) * 0.15]}>
+        <boxGeometry args={[0.82, 0.22, 1.15]} />
+        <meshStandardMaterial color={rebuilt ? "#32243d" : "#211326"} emissive="#ff4af0" emissiveIntensity={rebuilt ? 0.8 : 1.8} />
+      </mesh>;
+    })}
+    <Text position={[0, 3.2, 0]} fontSize={0.15} color="#ff4af0" anchorX="center" fillOpacity={rebuilt ? 0.2 : 0.8}>{rebuilt ? "THE PATH CONTINUES" : "SYSTEM ERROR / KEEP GOING"}</Text>
+  </group>;
+}
+
+function MemoryRoom({ active }: { active: boolean }) {
+  return <group position={[-5.2, 0, 22]}>
+    <mesh position={[0, 1.8, 0]}><boxGeometry args={[4.8, 0.14, 2.2]} /><meshStandardMaterial color="#1a1820" roughness={0.7} /></mesh>
+    <mesh position={[0, 2.7, -0.7]}><boxGeometry args={[2.4, 1.4, 0.12]} /><meshStandardMaterial color="#090a0f" emissive="#244a48" emissiveIntensity={active ? 1.5 : 0.15} /></mesh>
+    <mesh position={[0, 2.7, -0.6]}><planeGeometry args={[1.95, 0.95]} /><meshBasicMaterial color="#54e6d4" transparent opacity={active ? 0.12 : 0.025} /></mesh>
+    <mesh position={[1.4, 1.98, 0.25]}><cylinderGeometry args={[0.28, 0.22, 0.45, 12]} /><meshStandardMaterial color="#342c35" /></mesh>
+    <mesh position={[1.4, 2.25, 0.25]}><torusGeometry args={[0.24, 0.055, 8, 24]} /><meshBasicMaterial color="#ff6b35" /></mesh>
+    <Text position={[0, 1.25, 1.15]} fontSize={0.12} color="#54e6d4" anchorX="center" fillOpacity={active ? 0.75 : 0.18}>3:17 AM — STILL DEBUGGING.</Text>
+    <pointLight position={[0, 2.5, -0.3]} color="#54e6d4" intensity={active ? 3.5 : 0.35} distance={7} />
   </group>;
 }
 
 function ProjectMonuments({ active }: { active: boolean }) {
   return <group position={[0, 0, 14]}>
-    {[-5, 0, 5].map((x, i) => <Float key={i} speed={1.2 + i * 0.25} floatIntensity={0.25}>
-      <group position={[x, 1.5 + i * 0.3, 0]}>
-        <mesh>
-          <octahedronGeometry args={[1.15 + i * 0.25, 0]} />
-          <meshStandardMaterial color={i === 1 ? "#ffd700" : "#17152b"} emissive={i === 1 ? "#8a6f00" : "#352a73"} emissiveIntensity={active ? 1.8 : 0.35} metalness={0.55} roughness={0.3} />
-        </mesh>
-        <mesh scale={1.35}>
-          <ringGeometry args={[1, 1.03, 32]} />
-          <meshBasicMaterial color="#ffd700" transparent opacity={active ? 0.45 : 0.12} side={THREE.DoubleSide} />
-        </mesh>
-      </group>
-    </Float>)}
+    {[-5, 0, 5].map((x, i) => <Float key={i} speed={1.2 + i * 0.25} floatIntensity={0.25}><group position={[x, 1.5 + i * 0.3, 0]}>
+      <mesh><octahedronGeometry args={[1.15 + i * 0.25, 0]} /><meshStandardMaterial color={i === 1 ? "#ffd700" : "#17152b"} emissive={i === 1 ? "#8a6f00" : "#352a73"} emissiveIntensity={active ? 1.8 : 0.35} metalness={0.55} roughness={0.3} /></mesh>
+      <mesh scale={1.35}><ringGeometry args={[1, 1.03, 32]} /><meshBasicMaterial color="#ffd700" transparent opacity={active ? 0.45 : 0.12} side={THREE.DoubleSide} /></mesh>
+      {active && <Text position={[0, -1.65, 0]} fontSize={0.12} color="#ffd700" anchorX="center">{["SYSTEMS", "INTERFACES", "EXPERIMENTS"][i]}</Text>}
+    </group></Float>)}
   </group>;
 }
 
 export default function StoryEnvironment({ progress, discovered }: Props) {
-  const dust = useMemo(() => {
-    const values = new Float32Array(260 * 3);
-    for (let i = 0; i < 260; i++) {
-      values[i * 3] = ((i * 47) % 34) - 17;
-      values[i * 3 + 1] = ((i * 23) % 10) + 0.4;
-      values[i * 3 + 2] = ((i * 71) % 68) - 34;
-    }
-    return values;
-  }, []);
+  const dust = useMemo(() => { const values = new Float32Array(260 * 3); for (let i = 0; i < 260; i++) { values[i * 3] = ((i * 47) % 34) - 17; values[i * 3 + 1] = ((i * 23) % 10) + 0.4; values[i * 3 + 2] = ((i * 71) % 68) - 34; } return values; }, []);
   const horizon = discovered.length >= 5;
   const repaired = discovered.length >= 2;
+  const questions = discovered.includes("education");
+  const failure = discovered.includes("blog");
+  const building = discovered.includes("projects");
+  const person = discovered.includes("skills");
   return <>
     <Sparkles count={horizon ? 420 : 180} scale={[18, 8, 65]} size={horizon ? 1.8 : 1.3} speed={horizon ? 0.35 : 0.18} color={horizon ? "#b8ff4d" : "#9b91ff"} position={[0, 3, 0]} />
-    <points>
-      <bufferGeometry><bufferAttribute attach="attributes-position" args={[dust, 3]} /></bufferGeometry>
-      <pointsMaterial size={0.045} color="#ffffff" transparent opacity={horizon ? 0.5 : 0.28} depthWrite={false} />
-    </points>
+    <points><bufferGeometry><bufferAttribute attach="attributes-position" args={[dust, 3]} /></bufferGeometry><pointsMaterial size={0.045} color="#ffffff" transparent opacity={horizon ? 0.5 : 0.28} depthWrite={false} /></points>
     {chapters.map((chapter, index) => <ChapterGate key={chapter.n} {...chapter} active={progress >= index || discovered.length > index} />)}
+    <QuestionForest active={questions} />
     <Ruins repaired={repaired} />
-    <ProjectMonuments active={discovered.includes("projects")} />
-    <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[28, 76]} />
-      <meshStandardMaterial color="#05050a" roughness={1} metalness={0.05} />
-    </mesh>
-    <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}>
-      <planeGeometry args={[horizon ? 0.08 : 0.035, 76]} />
-      <meshBasicMaterial color={horizon ? "#b8ff4d" : "#6d5bff"} transparent opacity={horizon ? 0.95 : 0.55} />
-    </mesh>
-    {horizon && <mesh position={[0, 2.5, 34]} rotation={[0, 0, 0]}>
-      <torusGeometry args={[4.5, 0.035, 12, 64]} />
-      <meshBasicMaterial color="#b8ff4d" transparent opacity={0.9} />
-    </mesh>}
-    {[-1, 1].map((side) => <group key={side} position={[side * 10.5, 0, 0]}>
-      {Array.from({ length: 16 }, (_, i) => <mesh key={i} position={[0, 0.7 + (i % 4) * 0.55, -31 + i * 4.2]} rotation={[0, (i % 5) * 0.18, 0]}>
-        <boxGeometry args={[0.18, 1.2 + (i % 4) * 0.7, 0.18]} />
-        <meshStandardMaterial color="#17142b" emissive="#352a73" emissiveIntensity={0.65} />
-      </mesh>)}
-    </group>)}
+    <FailureBridge rebuilt={failure} />
+    <ProjectMonuments active={building} />
+    <MemoryRoom active={person} />
+    <mesh position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[28, 76]} /><meshStandardMaterial color="#05050a" roughness={1} metalness={0.05} /></mesh>
+    <mesh position={[0, 0.04, 0]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[horizon ? 0.08 : 0.035, 76]} /><meshBasicMaterial color={horizon ? "#b8ff4d" : "#6d5bff"} transparent opacity={horizon ? 0.95 : 0.55} /></mesh>
+    {horizon && <><mesh position={[0, 2.5, 34]}><torusGeometry args={[4.5, 0.035, 12, 64]} /><meshBasicMaterial color="#b8ff4d" transparent opacity={0.9} /></mesh><pointLight position={[0, 4, 34]} color="#b8ff4d" intensity={12} distance={18} /></>}
+    {[-1, 1].map((side) => <group key={side} position={[side * 10.5, 0, 0]}>{Array.from({ length: 16 }, (_, i) => <mesh key={i} position={[0, 0.7 + (i % 4) * 0.55, -31 + i * 4.2]} rotation={[0, (i % 5) * 0.18, 0]}><boxGeometry args={[0.18, 1.2 + (i % 4) * 0.7, 0.18]} /><meshStandardMaterial color="#17142b" emissive="#352a73" emissiveIntensity={0.65} /></mesh>)}</group>)}
   </>;
 }
