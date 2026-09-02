@@ -22,9 +22,9 @@ export default function Home() {
         <PortfolioWorldLoader />
         <noscript>
           <div className="world-fallback">
-            <span className="world-hud-kicker">BIBASH POUDEL</span>
-            <h1>Build. Better.</h1>
-            <p>Web developer building interfaces, systems and digital products.</p>
+            <span className="world-hud-kicker">BIBASH POUDEL / THE JOURNEY</span>
+            <h1>Every project has a story.</h1>
+            <p>An interactive portfolio about where I started, what I built, and what comes next.</p>
             <nav>
               {NAV_LINKS.map((l) => (
                 <Link key={l.href} href={l.href}>
