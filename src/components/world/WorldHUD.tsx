@@ -13,17 +13,17 @@ export default function WorldHUD({ nearby, onEnter }: { nearby: LandmarkData | n
   return (
     <div className="world-hud">
       <div className="world-hud-top">
-        <div className="world-hud-status"><span className="world-hud-live" /> SYSTEM ONLINE <b>WORLD.EXE</b><span>{String(time).padStart(3, "0")}s</span></div>
-        <span className="world-hud-kicker">BIBASH POUDEL / INTERACTIVE PORTFOLIO</span>
-        <h1>Drive around.<br /><em>Find the work.</em></h1>
-        <p className="world-hud-hint">WASD / ARROWS to drive · E / ENTER to interact · MOVE MOUSE to look</p>
+        <div className="world-hud-status"><span className="world-hud-live" /> JOURNEY ONLINE <b>STORY.EXE</b><span>{String(time).padStart(3, "0")}s</span></div>
+        <span className="world-hud-kicker">BIBASH POUDEL / AN INTERACTIVE JOURNEY</span>
+        <h1>Everyone starts<br /><em>somewhere.</em></h1>
+        <p className="world-hud-hint">WASD / ARROWS to explore · E / ENTER to discover · MOVE MOUSE to look</p>
       </div>
       {nearby && (
         <div className="world-hud-prompt" style={{ "--pc": nearby.color } as React.CSSProperties}>
-          <span>YOU FOUND</span>
+          <span>YOU DISCOVERED</span>
           <strong>{nearby.label}</strong>
           <small>{nearby.sub}</small>
-          <button onClick={onEnter}>PRESS E <i>↵</i></button>
+          <button onClick={onEnter}>ENTER STORY <i>↵</i></button>
         </div>
       )}
       <div className="world-hud-crosshair" aria-hidden="true"><span /><span /></div>
