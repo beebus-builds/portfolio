@@ -27,12 +27,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     let blogPosts: MetadataRoute.Sitemap = [];
   try {
-    blogPosts = (await getBlogPosts()).map((post) => ({
-      url: `${baseUrl}/blog/${post.slug}`,
-      lastModified: post.date ? new Date(post.date) : now,
-      changeFrequency: "monthly" as const,
-      priority: 0.6,
-    }));
+    blogPosts = (await getBlogPosts()).map((post) => {
+      const time = new Date(post.date).getTime();
+      return {
+        url: `${baseUrl}/blog/${post.slug}`,
+        lastModified: Number.isFinite(time) ? new Date(time) : now,
+        changeFrequency: "monthly" as const,
+        priority: 0.6,
+      };
+    });
   } catch (err) {
     console.error("sitemap: failed to load posts", err);
   }

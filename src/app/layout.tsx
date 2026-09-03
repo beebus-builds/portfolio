@@ -62,6 +62,7 @@ import ThemeInit from "@/components/ThemeInit";
 import ChatWidget from "@/components/ChatWidget";
 import ScrollProgress from "@/components/ScrollProgress";
 import BackToTop from "@/components/BackToTop";
+import BgmControl from "@/components/BgmControl";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -92,6 +93,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <PageTransition>{children}</PageTransition>
         </main>
         <BackToTop />
+        <BgmControl />
         <ChatWidget />
         <StudentWorkspaceBar />
         <CommandPalette />

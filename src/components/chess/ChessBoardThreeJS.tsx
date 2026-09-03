@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Center, Float } from "@react-three/drei";
+import { OrbitControls } from "@react-three/drei";
 import { useRef, useMemo, useCallback, useState, useEffect } from "react";
 import * as THREE from "three";
 import type { GameState, Move, PieceType, Color } from "@/lib/chess";

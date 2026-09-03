@@ -4,6 +4,9 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import ScrollTrigger from "@/components/ScrollTrigger";
 import PageShell from "@/components/PageShell";
+import dynamic from "next/dynamic";
+
+const SkillsGalaxy = dynamic(() => import("@/components/skills/SkillsGalaxy"), { ssr: false });
 
 const categories = [
   {
@@ -81,6 +84,9 @@ export default function SkillsPage() {
       </ScrollTrigger>
 
       {/* ─── By category ── tabbed panel instead of three equal cards ──── */}
+      <section className="mb-10">
+        <SkillsGalaxy active={active} onSelect={setActive} />
+      </section>
       <section className="mb-16">
         <div className="section-accent" />
         <h2 className="text-xs font-mono text-neon-400 tracking-wider mb-6">By Category</h2>

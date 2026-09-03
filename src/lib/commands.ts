@@ -704,9 +704,9 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
     description: "Show network connections",
     handler: () => [
       { text: applyNova(" Proto Recv-Q Send-Q Local Address           Foreign Address         State"), color: "#4af0ff" },
-      { text: applyNova(" tcp        0      0 0.0.0.0:3001            0.0.0.0:*               LISTEN"), color: "white" },
-      { text: applyNova(" tcp        0      0 127.0.0.1:3001          127.0.0.1:53421         ESTABLISHED"), color: "white" },
-      { text: applyNova(" tcp        0      0 192.168.1.23:3001       103.86.99.12:443        ESTABLISHED"), color: "white" },
+      { text: applyNova(" tcp        0      0 0.0.0.0:3000            0.0.0.0:*               LISTEN"), color: "white" },
+      { text: applyNova(" tcp        0      0 127.0.0.1:3000          127.0.0.1:53421         ESTABLISHED"), color: "white" },
+      { text: applyNova(" tcp        0      0 192.168.1.23:3000       103.86.99.12:443        ESTABLISHED"), color: "white" },
       { text: applyNova(" udp        0      0 0.0.0.0:5353            0.0.0.0:*"), color: "white" },
     ],
   },
@@ -785,10 +785,23 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
   head: {
     description: "Show first lines of a file",
     handler: (args) => {
-      const n = args.find((a) => /^-n\d+$/.test(a) || a === "-n") ? 5 : 5;
+      let n = 10;
+      const files: string[] = [];
+      for (let i = 0; i < args.length; i++) {
+        const inline = args[i].match(/^-n(\d+)$/);
+        if (inline) {
+          n = Math.min(Math.max(parseInt(inline[1], 10), 1), 100);
+        } else if (args[i] === "-n" && i + 1 < args.length) {
+          const v = parseInt(args[i + 1], 10);
+          if (Number.isFinite(v) && v > 0) n = Math.min(v, 100);
+          i++;
+        } else if (!args[i].startsWith("-")) {
+          files.push(args[i]);
+        }
+      }
       let source = pipeBuffer;
-      if (args.some((a) => !a.startsWith("-"))) {
-        const file = args.find((a) => !a.startsWith("-"))!;
+      if (files.length > 0) {
+        const file = files[0];
         const { dir, file: f } = resolveTarget(file);
         const node = getNode(dir)?.children?.[f];
         if (!node || node.type !== "file") {
@@ -840,8 +853,12 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
     handler: (args) => {
       const toIdx = args.indexOf("--to");
       const subjIdx = args.indexOf("--subject");
-      const to = toIdx >= 0 && args[toIdx + 1] ? args[toIdx + 1] : "";
-      const subject = subjIdx >= 0 && args[subjIdx + 1] ? args.slice(subjIdx + 1).filter((_, i) => subjIdx + 1 + i !== toIdx + 1 || !to).join(" ") : "";
+      const to = toIdx >= 0 ? (args[toIdx + 1] ?? "") : "";
+      let subject = "";
+      if (subjIdx >= 0) {
+        const end = toIdx > subjIdx ? toIdx : args.length;
+        subject = args.slice(subjIdx + 1, end).join(" ");
+      }
       if (!to) {
         return [
           { text: applyNova(" ┌─ Mail ──────────────────────────────────"), color: "#4af0ff" },
@@ -1040,7 +1057,10 @@ const COMMANDS: Record<string, { description: string; handler: CommandHandler }>
       for (let i = 0; i < 32; i++) {
         hash += "0123456789abcdef"[Math.floor(Math.random() * 16)];
       }
-      const b64 = btoa(unescape(encodeURIComponent(input)));
+      const bytes = new TextEncoder().encode(input);
+      let bin = "";
+      for (const b of bytes) bin += String.fromCharCode(b);
+      const b64 = btoa(bin);
       return [
         { text: applyNova(` md5  ▸ ${hash}`), color: "white" },
         { text: applyNova(` sha1 ▸ ${"abcdef"[Math.floor(Math.random() * 6)]}${hash.slice(1)}`), color: "white" },
@@ -1460,6 +1480,6 @@ export function getAutocomplete(input: string): string[] {
 }
 
 export async function getBanner(): Promise<CommandResult[]> {
-  const result = COMMANDS.banner.handler([]);
+  const result = COMMANDS.banner.handler([], noopCtx);
   return result instanceof Promise ? result : result;
 }

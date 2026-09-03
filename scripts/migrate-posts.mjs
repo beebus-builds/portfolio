@@ -26,6 +26,9 @@ function getReadingTime(md) {
 }
 
 async function main() {
+  if (!process.env.DATABASE_URL) {
+    throw new Error("DATABASE_URL is not set — add it to .env.local before migrating.");
+  }
   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
   await pool.query("DROP TABLE IF EXISTS posts");

@@ -16,7 +16,8 @@ export async function GET(req: Request) {
   const title = decode(searchParams.get("title"), "Bibash Poudel");
   const subtitle = decode(searchParams.get("subtitle"), "DevVerse — Nepal Dev Terminal");
   const type = decode(searchParams.get("type"), "home");
-  const accent = searchParams.get("accent") || "#54e6d4";
+  const rawAccent = searchParams.get("accent") || "#54e6d4";
+  const accent = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(rawAccent) ? rawAccent : "#54e6d4";
 
   const kind =
     type === "blog" ? "blog post" : type === "project" ? "case study" : "portfolio";

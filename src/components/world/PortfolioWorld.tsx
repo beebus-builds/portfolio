@@ -14,6 +14,7 @@ import WorldHUD from "./WorldHUD";
 import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
 import StoryOverlay from "./StoryOverlay";
+import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
 const LANDMARKS: LandmarkData[] = [
   { id: "about", label: "THE PERSON", sub: "the person behind the work", href: "/about", color: "#6d5bff", shape: "icosahedron", position: [-5.2, 0, -27] },
@@ -75,16 +76,38 @@ export default function PortfolioWorld() {
   return (
     <div className="world-stage">
       <Canvas shadows camera={{ fov: 55, position: [0, 5.5, 9] }} dpr={[1, 1.75]}>
-        <color attach="background" args={[complete ? "#020604" : "#030308"]} />
-        <fog attach="fog" args={[complete ? "#020604" : "#030308", 13, 58]} />
-        <ambientLight intensity={complete ? 0.28 : 0.18} />
-        <directionalLight position={[-8, 16, 8]} intensity={0.65} castShadow />
+        <color attach="background" args={["#050512"]} />
+        <fog attach="fog" args={["#070716", 14, 62]} />
+        {/* Lighting rig: sky fill + warm key with shadows + violet rim */}
+        <hemisphereLight args={["#5a6cff", "#0b0b14", 0.55]} />
+        <ambientLight intensity={0.22} />
+        <directionalLight
+          position={[9, 17, 7]}
+          intensity={1.15}
+          color="#cfe4ff"
+          castShadow
+          shadow-mapSize={[2048, 2048]}
+          shadow-camera-left={-22}
+          shadow-camera-right={22}
+          shadow-camera-top={24}
+          shadow-camera-bottom={-44}
+          shadow-camera-far={70}
+          shadow-bias={-0.0004}
+        />
+        <directionalLight position={[-7, 9, -30]} intensity={0.8} color="#6d5bff" />
+        <directionalLight position={[0, 6, 34]} intensity={0.35} color="#ff6b35" />
         <pointLight position={[0, 4, -27]} color="#6d5bff" intensity={10} distance={14} />
         <pointLight position={[0, 4, -1]} color="#ff4af0" intensity={8} distance={13} />
         <pointLight position={[0, 4, 14]} color="#ffd700" intensity={9} distance={15} />
         <pointLight position={[0, 4, 28]} color="#ff6b35" intensity={complete ? 18 : 10} distance={18} />
         <Stars radius={90} depth={55} count={complete ? 4200 : 2400} factor={2.6} fade speed={complete ? 0.65 : 0.28} />
         <Suspense fallback={null}>
+          <SkyDome />
+          <GroundGrid />
+          <PineGrove />
+          <Rocks />
+          <GrassTufts />
+          <Fireflies />
           <StoryEnvironment progress={storyProgress} discovered={discovered} />
           <StoryTraveler input={input} state={traveler} />
           {LANDMARKS.map((landmark) => (

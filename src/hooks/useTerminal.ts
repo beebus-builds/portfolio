@@ -17,9 +17,15 @@ export interface MailForm {
   visible: boolean;
   to: string;
   subject: string;
+  name: string;
+  email: string;
   message: string;
+  sending: boolean;
+  sendError: string;
   sent: boolean;
 }
+
+const EMPTY_MAIL_FORM: MailForm = { visible: false, to: "", subject: "", name: "", email: "", message: "", sending: false, sendError: "", sent: false };
 
 export interface AskPrompt {
   prompt: string;
@@ -44,7 +50,7 @@ export function useTerminal(options: UseTerminalOptions = {}) {
   const [isBusy, setIsBusy] = useState(false);
   const [ask, setAsk] = useState<AskPrompt | null>(null);
   const [askInput, setAskInput] = useState("");
-  const [mailForm, setMailForm] = useState<MailForm>({ visible: false, to: "", subject: "", message: "", sent: false });
+  const [mailForm, setMailForm] = useState<MailForm>(EMPTY_MAIL_FORM);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const askInputRef = useRef<HTMLInputElement>(null);
@@ -162,12 +168,12 @@ export function useTerminal(options: UseTerminalOptions = {}) {
         const jsonStr = mailResult.text.split("__MAIL_FORM__:")[1];
         try {
           const data = JSON.parse(jsonStr);
-          setMailForm({ visible: true, to: data.to, subject: data.subject, message: "", sent: false });
+          setMailForm({ ...EMPTY_MAIL_FORM, visible: true, to: data.to ?? "", subject: data.subject ?? "" });
         } catch {
           /* ignore */
         }
         const clean = results.filter((r) => !r.text.includes("__MAIL_FORM__:"));
-        if (clean.length > 0) appendToActive(clean[clean.length - 1]);
+        for (const line of clean) appendToActive(line);
         return;
       }
 
@@ -322,26 +328,43 @@ export function useTerminal(options: UseTerminalOptions = {}) {
     }
   }, [submitAsk, cancelRunning]);
 
-  const handleMailSend = useCallback(() => {
-    setMailForm((prev) => ({ ...prev, sent: true }));
-    setLines((prev) => [...prev, { id: ++lineIdRef.current, type: "output", results: [
-      { text: "", color: "white" },
-      { text: " ┌─ Message Sent ──────────────────────────────", color: "#4af0ff" },
-      { text: "", color: "white" },
-      { text: `   To:      ${mailForm.to}`, color: "white" },
-      { text: `   Subject: ${mailForm.subject}`, color: "white" },
-      { text: `   Message: ${mailForm.message.slice(0, 60)}${mailForm.message.length > 60 ? "..." : ""}`, color: "white" },
-      { text: "", color: "white" },
-      { text: "   ✓ Delivered.", color: "#ffd700" },
-      { text: "", color: "white" },
-      { text: " └──────────────────────────────────────────", color: "#4af0ff" },
-      { text: "", color: "white" },
-    ]}]);
-    window.setTimeout(() => setMailForm({ visible: false, to: "", subject: "", message: "", sent: false }), 200);
+  const handleMailSend = useCallback(async () => {
+    const { name, email, subject, message, to } = mailForm;
+    if (!name.trim() || !email.trim() || !message.trim()) {
+      setMailForm((prev) => ({ ...prev, sendError: "Please fill in your name, email and message." }));
+      return;
+    }
+    setMailForm((prev) => ({ ...prev, sending: true, sendError: "" }));
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), subject: subject.trim(), message: message.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || "Failed to send message");
+      setMailForm((prev) => ({ ...prev, sending: false, sent: true }));
+      setLines((prev) => [...prev, { id: ++lineIdRef.current, type: "output", results: [
+        { text: "", color: "white" },
+        { text: " ┌─ Message Sent ──────────────────────────────", color: "#4af0ff" },
+        { text: "", color: "white" },
+        { text: `   To:      ${to}`, color: "white" },
+        { text: `   Subject: ${subject || "(no subject)"}`, color: "white" },
+        { text: `   Message: ${message.slice(0, 60)}${message.length > 60 ? "..." : ""}`, color: "white" },
+        { text: "", color: "white" },
+        { text: "   ✓ Delivered.", color: "#ffd700" },
+        { text: "", color: "white" },
+        { text: " └──────────────────────────────────────────", color: "#4af0ff" },
+        { text: "", color: "white" },
+      ]}]);
+      window.setTimeout(() => setMailForm(EMPTY_MAIL_FORM), 200);
+    } catch (err) {
+      setMailForm((prev) => ({ ...prev, sending: false, sendError: err instanceof Error ? err.message : "Failed to send message" }));
+    }
   }, [mailForm]);
 
   const cancelMail = useCallback(() => {
-    setMailForm({ visible: false, to: "", subject: "", message: "", sent: false });
+    setMailForm(EMPTY_MAIL_FORM);
   }, []);
 
   return {

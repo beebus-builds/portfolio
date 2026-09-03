@@ -2,6 +2,11 @@ import { getBlogPosts } from "@/lib/posts";
 
 export const dynamic = "force-dynamic";
 
+function toPubDate(date: string): string {
+  const time = new Date(date).getTime();
+  return Number.isFinite(time) ? new Date(time).toUTCString() : new Date().toUTCString();
+}
+
 function escapeXML(str: string): string {
   return str
     .replace(/&/g, "&amp;")
@@ -22,7 +27,7 @@ export async function GET() {
       <title>${escapeXML(post.title)}</title>
       <link>${url}</link>
       <guid>${url}</guid>
-      <pubDate>${new Date(post.date).toUTCString()}</pubDate>
+      <pubDate>${toPubDate(post.date)}</pubDate>
       <description>${escapeXML(post.excerpt)}</description>
     </item>`;
     })

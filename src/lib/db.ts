@@ -4,7 +4,11 @@ let pool: Pool | null = null;
 
 function getPool(): Pool {
   if (!pool) {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is not set — add it to .env.local and restart the server.");
+    }
+    pool = new Pool({ connectionString });
   }
   return pool;
 }
@@ -51,6 +55,7 @@ export interface MessageRow {
   id: number;
   name: string;
   email: string;
+  subject: string | null;
   message: string;
   created_at: string;
 }
@@ -115,6 +120,7 @@ export async function ensureSchema(): Promise<void> {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     )
   `);
+  await query(`ALTER TABLE messages ADD COLUMN IF NOT EXISTS subject TEXT NOT NULL DEFAULT ''`);
 
   await query(`
     CREATE TABLE IF NOT EXISTS post_views (
@@ -136,11 +142,11 @@ export async function ensureSchema(): Promise<void> {
 
 // ... existing code ...
 
-export async function saveMessage(name: string, email: string, message: string): Promise<void> {
+export async function saveMessage(name: string, email: string, message: string, subject = ""): Promise<void> {
   await ensureSchema();
   await query(
-    `INSERT INTO messages (name, email, message) VALUES ($1, $2, $3)`,
-    [name, email, message]
+    `INSERT INTO messages (name, email, subject, message) VALUES ($1, $2, $3, $4)`,
+    [name, email, subject, message]
   );
 }
 

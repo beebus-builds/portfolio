@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { askAI, type AIAnswer } from "@/lib/ai/engine";
 
 interface Message {
@@ -154,10 +155,12 @@ export default function ChatWidget() {
         {isOpen ? (
           <div className="text-neon-400 text-3xl font-light">×</div>
         ) : (
-          <img
+          <Image
             src="/Bibash Bot.png"
             alt="Bibash"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            fill
+            sizes="56px"
+            className="object-cover transition-transform duration-500 group-hover:scale-110"
           />
         )}
       </button>

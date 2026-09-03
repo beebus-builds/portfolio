@@ -560,17 +560,19 @@ export function pickAIMove(state: GameState, settings: AISettings): Move | null 
 }
 
 export function isInsufficientMaterial(state: GameState): boolean {
-  const pieces: Piece[] = [];
-  for (const p of state.board) if (p && p.type !== "k") pieces.push(p);
-  if (pieces.length === 0) return true;
-  if (pieces.length === 1 && (pieces[0].type === "n" || pieces[0].type === "b")) return true;
-  if (pieces.length === 2 && pieces.every((p) => p.type === "n")) return true;
-  if (pieces.length === 2 && pieces.every((p) => p.type === "b")) {
-    const colors = pieces.map((p) => {
-      const idx = state.board.indexOf(p);
-      return (idx & 7) + (idx >> 3);
-    });
-    return colors[0] % 2 === colors[1] % 2;
+  const minors: { type: PieceType; square: number }[] = [];
+  for (let i = 0; i < 64; i++) {
+    const p = state.board[i];
+    if (!p || p.type === "k") continue;
+    // Any major piece or pawn means mating material may exist
+    if (p.type !== "n" && p.type !== "b") return false;
+    minors.push({ type: p.type, square: i });
+  }
+  if (minors.length <= 1) return true; // K vs K, or K+minor vs K
+  // All bishops on the same square color -> no checkmate is possible
+  if (minors.every((m) => m.type === "b")) {
+    const parity = minors.map((m) => ((m.square & 7) + (m.square >> 3)) % 2);
+    return parity.every((c) => c === parity[0]);
   }
   return false;
 }

@@ -2,8 +2,15 @@ import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 
-const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const SESSION_COOKIE_NAME = "session";
+
+function getJwtSecret(): Uint8Array {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not set — add it to .env.local and restart the server.");
+  }
+  return new TextEncoder().encode(secret);
+}
 
 export async function login(password: string) {
   const isValid = await bcrypt.compare(password, process.env.ADMIN_PASSWORD_HASH || "");
@@ -13,7 +20,7 @@ export async function login(password: string) {
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("24h")
-    .sign(JWT_SECRET);
+    .sign(getJwtSecret());
 
   (await cookies()).set(SESSION_COOKIE_NAME, session, {
     httpOnly: true,
@@ -28,7 +35,7 @@ export async function verifySession() {
   const session = (await cookies()).get(SESSION_COOKIE_NAME)?.value;
   if (!session) return null;
   try {
-    const { payload } = await jwtVerify(session, JWT_SECRET);
+    const { payload } = await jwtVerify(session, getJwtSecret());
     return payload;
   } catch {
     return null;

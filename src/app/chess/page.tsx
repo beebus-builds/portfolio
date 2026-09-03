@@ -7,21 +7,17 @@ import {
   GameState,
   Move,
   PIECE_UNICODE,
-  describeMove,
   getStatus,
   initialState,
   isInsufficientMaterial,
   legalMoves,
   makeMove,
   pickAIMove,
-  squareName,
   type Color,
   type GameStatus,
   type PieceType,
 } from "@/lib/chess";
 import { playClick, playTick } from "@/lib/audio";
-
-export const dynamic = "force-dynamic";
 
 type Difficulty = "easy" | "medium" | "hard";
 
@@ -38,7 +34,7 @@ export default function ChessPage() {
   const [game, setGame] = useState<GameState | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [pendingPromotion, setPendingPromotion] = useState<Move | null>(null);
-  const [aiColor, setAiColor] = useState<Color>("b");
+  const [aiColor] = useState<Color>("b");
   const [difficulty, setDifficulty] = useState<Difficulty>("medium");
   const [thinking, setThinking] = useState(false);
   const [boardFlipped, setBoardFlipped] = useState(false);
@@ -235,7 +231,7 @@ export default function ChessPage() {
                         onClick={() => handlePromotionSelect(pt)}
                         className="w-14 h-14 rounded-xl border border-neon-400/30 bg-neon-400/10 text-neon-400 text-3xl font-mono flex items-center justify-center hover:bg-neon-400/25 transition-all"
                       >
-                        {PIECE_UNICODE[game.turn][pt]}
+                        {PIECE_UNICODE[`${game.turn}${pt}`]}
                       </button>
                     ))}
                   </div>

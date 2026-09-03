@@ -2,6 +2,7 @@ import Link from "next/link";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PortfolioWorldLoader from "@/components/world/PortfolioWorldLoader";
+import ParticleMorph from "@/components/effects/ParticleMorph";
 
 export const dynamic = "force-dynamic";
 
@@ -18,8 +19,12 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-[#05040a]">
       <Header />
-      <main id="main-content" className="flex-1">
+      <div className="flex-1">
         <PortfolioWorldLoader />
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 py-14">
+          <p className="comment-label mb-3">~/particle-lab — bonus 3D</p>
+          <ParticleMorph height={420} />
+        </section>
         <noscript>
           <div className="world-fallback">
             <span className="world-hud-kicker">BIBASH POUDEL / THE JOURNEY</span>
@@ -34,7 +39,7 @@ export default function Home() {
             </nav>
           </div>
         </noscript>
-      </main>
+      </div>
       <Footer />
     </div>
   );

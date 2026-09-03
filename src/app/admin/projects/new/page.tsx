@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import PageShell from "@/components/PageShell";
 
 export default function NewProjectPage() {
   const router = useRouter();

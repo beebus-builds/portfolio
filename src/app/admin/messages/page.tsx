@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { logoutAction } from "../logoutAction";
 
 interface MessageItem {
   id: number;
   name: string;
   email: string;
+  subject?: string | null;
   message: string;
   created_at: string;
 }
@@ -43,6 +43,7 @@ export default function AdminMessagesPage() {
           {messages.map((m) => (
             <div key={m.id} className="neon-card p-5 border border-white/5 rounded-xl bg-terminal-900/50">
               <p className="text-xs text-white/40">{m.name} &lt;{m.email}&gt;</p>
+              {m.subject && <p className="text-xs font-mono text-neon-400 mt-1">{m.subject}</p>}
               <p className="text-sm text-white mt-2">{m.message}</p>
             </div>
           ))}

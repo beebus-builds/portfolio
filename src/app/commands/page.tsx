@@ -18,7 +18,7 @@ export default function CommandsPage() {
   const t = useTerminal({ pageRoutes: PAGE_ROUTES });
 
   return (
-    <PageShell title="Command Playground" subtitle="Type a command and press Enter.">
+    <PageShell>
       <div className="mb-8 thread">
         <div className="section-accent" />
         <p className="text-sm font-mono text-white/40 max-w-lg leading-relaxed">

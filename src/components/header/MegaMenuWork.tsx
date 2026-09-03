@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { workLinks, ecosystemLinks } from "./data";
 import { playClick } from "@/lib/audio";
 
@@ -23,7 +24,7 @@ export default function MegaMenuWork() {
               onClick={() => playClick()}
               className="flex items-center gap-3 p-2.5 rounded-xl border border-white/5 hover:border-neon-400/25 hover:bg-white/[0.03] transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40"
             >
-              {item.image && <img src={item.image} alt="" loading="lazy" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-white/10 group-hover:border-neon-400/20 transition-colors" />}
+              {item.image && <Image src={item.image} alt="" width={44} height={44} loading="lazy" className="w-11 h-11 rounded-lg object-cover shrink-0 border border-white/10 group-hover:border-neon-400/20 transition-colors" />}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-0.5">
                   <h4 className="text-xs font-mono font-bold text-white group-hover:text-neon-400 transition-colors truncate">{item.title}</h4>
@@ -59,7 +60,7 @@ export default function MegaMenuWork() {
           <p className="text-[10px] font-mono uppercase tracking-widest text-white/35 mb-4">Engineer Profile</p>
           <div className="p-4 rounded-xl border border-white/5 bg-white/[0.015]">
             <div className="flex items-center gap-3 mb-3">
-              <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="" loading="lazy" className="w-9 h-9 rounded-full object-cover border border-neon-400/30" />
+              <Image src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=100&auto=format&fit=crop" alt="" width={36} height={36} loading="lazy" className="w-9 h-9 rounded-full object-cover border border-neon-400/30" />
               <div>
                 <p className="text-xs font-mono font-bold text-white">@beebus-builds</p>
                 <p className="text-[10px] font-mono text-neon-400">Full-Stack Dev</p>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import PageShell from "@/components/PageShell";
+import DnaHelix from "@/components/about/DnaHelix";
 
 export const metadata = {
   title: "About",
@@ -64,6 +65,26 @@ export default function AboutPage() {
       </section>
 
       {/* ─── At a glance ── asymmetric bento, one wide + three narrow ──── */}
+      <section className="mb-12">
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr] items-stretch">
+          <DnaHelix />
+          <div className="term-window flex flex-col justify-center">
+            <div className="term-body">
+              <p className="comment-label mb-3">// stack_dna.seq</p>
+              <h2 className="text-2xl font-mono text-white mb-3">My stack, encoded.</h2>
+              <p className="text-sm font-mono text-white/40 leading-relaxed mb-5">
+                Every strand is a tool I ship with — Next.js, TypeScript, Postgres, Three.js.
+                Spin the helix. If it glows green, I use it daily.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {["Next.js", "TypeScript", "Postgres", "Three.js", "Tailwind", "Node.js"].map((t) => (
+                  <span key={t} className="text-[10px] font-mono px-2 py-1 rounded border border-white/10 bg-white/[0.03] text-white/50">{t}</span>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <section className="mb-20">
         <p className="comment-label mb-4">const snapshot = {"{"}</p>
         <div className="bento">

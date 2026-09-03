@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import type { GameState, Move, PieceType, Color } from "@/lib/chess";
+import type { GameState, Move } from "@/lib/chess";
 
 const ChessBoardThreeJS = dynamic(() => import("./ChessBoardThreeJS"), {
   ssr: false,

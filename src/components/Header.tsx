@@ -36,13 +36,6 @@ function ScrambleText({ text, active }: { text: string; active?: boolean }) {
   return <span onMouseEnter={triggerScramble} className="tabular-nums transition-colors duration-200">{displayText}</span>;
 }
 
-const TICKER_BASE = [
-  "SYS: NOMINAL — all systems operational",
-  "PORT 3001 — /bin/zsh — Neon PG connected",
-  "Built with Next.js 16.2 • TypeScript 5.x • Tailwind 4",
-  "Open to internships & collaborations",
-];
-
 export default function Header() {
   // compact + centered layout flags for B + C — set false to revert
   const COMPACT = true; // C: no ribbon, 56px

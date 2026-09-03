@@ -3,8 +3,9 @@
 import Link from "next/link";
 import ScrollTrigger from "@/components/ScrollTrigger";
 import PageShell from "@/components/PageShell";
+import TiltCard from "@/components/projects/TiltCard";
 import { useState, useEffect } from "react";
-import { ProjectRow } from "@/lib/db";
+import type { ProjectRow } from "@/lib/db";
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<ProjectRow[]>([]);
@@ -101,7 +102,8 @@ export default function ProjectsPage() {
         <h2 className="text-xs font-mono text-neon-400 tracking-wider mb-6">Featured Work</h2>
         <div className="bento">
           {featured && (
-            <div className="neon-card bento-lg border border-white/5 rounded-xl p-6 md:p-8 bg-terminal-900/50 flex flex-col justify-between">
+            <TiltCard accent={featured.color} className="bento-lg">
+            <div className="neon-card bento-lg border border-white/5 rounded-xl p-6 md:p-8 bg-terminal-900/50 flex flex-col justify-between h-full">
               <div>
                 <div className="flex flex-col md:flex-row items-start gap-6 mb-6">
                   <div className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${featured.color}10` }}>
@@ -136,9 +138,11 @@ export default function ProjectsPage() {
                 </div>
               </div>
             </div>
+            </TiltCard>
           )}
           {runnerUp && (
-            <Link href={`/projects/${runnerUp.slug}`} className="neon-card block bento-sm border border-white/5 rounded-xl p-6 bg-terminal-900/50">
+            <TiltCard accent={runnerUp.color} max={12} className="bento-sm">
+            <Link href={`/projects/${runnerUp.slug}`} className="neon-card block border border-white/5 rounded-xl p-6 bg-terminal-900/50 h-full">
               <div className="flex items-start gap-3 mb-3">
                 <span className="shape-square" />
                 <div className="flex-1 min-w-0">
@@ -148,6 +152,7 @@ export default function ProjectsPage() {
               </div>
               <p className="text-xs font-mono text-white/35 leading-relaxed line-clamp-4">{runnerUp.description}</p>
             </Link>
+            </TiltCard>
           )}
           {!featured && (
             <div className="neon-card border border-white/5 rounded-xl p-8 bg-terminal-900/50 text-center bento-lg">
@@ -163,7 +168,8 @@ export default function ProjectsPage() {
         <h2 className="text-xs font-mono text-neon-400 tracking-wider mb-6">All Projects</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {remainder.map((p) => (
-            <Link key={p.title} href={`/projects/${p.slug}`} className="neon-card block border border-white/5 rounded-xl p-5 bg-terminal-900/50">
+            <TiltCard key={p.title} accent={p.color} max={9}>
+            <Link href={`/projects/${p.slug}`} className="neon-card block border border-white/5 rounded-xl p-5 bg-terminal-900/50 h-full">
               <div className="flex items-center gap-3 mb-3">
                 <span className="shape-dot" style={{ background: p.color }} />
                 <h3 className="text-sm font-mono text-white tracking-wide truncate">{p.title}</h3>
@@ -175,6 +181,7 @@ export default function ProjectsPage() {
                 ))}
               </div>
             </Link>
+            </TiltCard>
           ))}
           {remainder.length === 0 && filtered.length > 0 && (
             <div className="neon-card border border-white/5 rounded-xl p-6 bg-terminal-900/50 text-center col-span-3">

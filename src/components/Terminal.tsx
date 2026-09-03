@@ -59,11 +59,6 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
   }, []);
 
   // ─── Grid scroll animation ─────────────────────────────────
-  // Helper to get CSS variable values for canvas/JS
-  const getThemeColor = (varName: string) => {
-    if (typeof window === "undefined") return "#000";
-    return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-  };
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -198,14 +193,21 @@ export default function Terminal({ variant = "fullscreen" }: { variant?: "fullsc
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">To:</span><span className="text-white font-mono text-sm">{t.mailForm.to}</span></div>
                 <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">Subject:</span><span className="text-white font-mono text-sm">{t.mailForm.subject || "(no subject)"}</span></div>
+                <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">Name:</span><input value={t.mailForm.name} onChange={(e) => t.setMailForm((p) => ({ ...p, name: e.target.value }))}
+                  className="flex-1 bg-[#0f0f2a] border border-white/10 rounded text-white font-mono text-sm px-2 py-1 outline-none focus:border-neon-400/40"
+                  placeholder="Your name" autoComplete="name" /></div>
+                <div className="flex items-center gap-2"><span className="text-white/40 font-mono text-xs w-16 shrink-0">Email:</span><input value={t.mailForm.email} onChange={(e) => t.setMailForm((p) => ({ ...p, email: e.target.value }))}
+                  className="flex-1 bg-[#0f0f2a] border border-white/10 rounded text-white font-mono text-sm px-2 py-1 outline-none focus:border-neon-400/40"
+                  placeholder="you@example.com" autoComplete="email" /></div>
                 <textarea value={t.mailForm.message} onChange={(e) => t.setMailForm((p) => ({ ...p, message: e.target.value }))}
                   className="flex-1 bg-[#0f0f2a] border border-white/10 rounded text-white font-mono text-sm p-2 outline-none focus:border-neon-400/40 resize-none h-24"
                   placeholder="Type your message..." autoFocus />
+                {t.mailForm.sendError && <div className="text-xs font-mono text-red-400">{t.mailForm.sendError}</div>}
                 <div className="flex justify-end gap-2 mt-1">
-                  <button onClick={t.cancelMail}
-                    className="px-3 py-1 text-xs font-mono text-white/40 border border-white/10 rounded hover:text-white/60 transition-all cursor-pointer">Cancel</button>
-                  <button onClick={t.handleMailSend}
-                    className="px-3 py-1 text-xs font-mono text-neon-400 border border-neon-400/40 rounded hover:bg-neon-400/10 transition-all cursor-pointer">Send</button>
+                  <button onClick={t.cancelMail} disabled={t.mailForm.sending}
+                    className="px-3 py-1 text-xs font-mono text-white/40 border border-white/10 rounded hover:text-white/60 transition-all cursor-pointer disabled:opacity-50">Cancel</button>
+                  <button onClick={t.handleMailSend} disabled={t.mailForm.sending}
+                    className="px-3 py-1 text-xs font-mono text-neon-400 border border-neon-400/40 rounded hover:bg-neon-400/10 transition-all cursor-pointer disabled:opacity-50">{t.mailForm.sending ? "Sending…" : "Send"}</button>
                 </div>
               </div>
             </div>

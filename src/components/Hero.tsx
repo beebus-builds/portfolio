@@ -1,13 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { projects } from "@/lib/projects";
 import { playClick } from "@/lib/audio";
 
 // tech ticker for Visual-depth 6
 const TECH = ["Next.js", "TypeScript", "Neon Postgres", "Three.js", "Tailwind", "Framer Motion", "Cloudinary", "Node.js"];
+
+// typewriter commands + rotating statuses (module scope: stable across renders)
+const TYPE_COMMANDS = ["whoami --verbose", "cat ~/sindhuli.txt", "ls skills --color"];
 
 export default function Hero() {
   const statsBase = [
@@ -77,18 +80,17 @@ export default function Hero() {
   }, []);
 
   // 5) typewriter whoami cycling
-  const commands = ["whoami --verbose", "cat ~/sindhuli.txt", "ls skills --color"];
   const [cmdIdx, setCmdIdx] = useState(0);
-  const [typed, setTyped] = useState(commands[0]);
+  const [typed, setTyped] = useState(TYPE_COMMANDS[0]);
   const [typing, setTyping] = useState(false);
   useEffect(() => {
     const interval = setInterval(() => {
-      setCmdIdx((i) => (i + 1) % commands.length);
+      setCmdIdx((i) => (i + 1) % TYPE_COMMANDS.length);
     }, 3800);
     return () => clearInterval(interval);
   }, []);
   useEffect(() => {
-    const target = commands[cmdIdx];
+    const target = TYPE_COMMANDS[cmdIdx];
     let i = 0;
     setTyping(true);
     setTyped("");
@@ -101,17 +103,17 @@ export default function Hero() {
   }, [cmdIdx]);
 
   // 9) live status rotating
-  const statuses = [
+  const statuses = useMemo(() => [
     "currently shipping something new",
     "building iVote encryption — Paillier • liveness",
     "open to internships — avg reply < 24h",
     `KTM ${new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Kathmandu", hour: "2-digit", minute: "2-digit" })} — online`,
-  ];
+  ], []);
   const [statusIdx, setStatusIdx] = useState(0);
   useEffect(() => {
     const id = setInterval(() => setStatusIdx((s) => (s + 1) % statuses.length), 3200);
     return () => clearInterval(id);
-  }, []);
+  }, [statuses.length]);
 
   return (
     <section className="relative px-4 sm:px-6 pt-16 pb-24 md:pt-24 md:pb-32 overflow-hidden">

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 interface Post {
   slug: string;
@@ -126,11 +127,13 @@ export default function AnnouncementBar() {
                 {/* image alongside */}
                 <div className="relative w-[52px] h-[52px] rounded-lg overflow-hidden shrink-0 border border-white/10 group-hover/item:border-neon-400/30 transition-colors bg-terminal-700">
                   {item.cover ? (
-                    <img
+                    <Image
                       src={item.cover}
                       alt=""
+                      fill
+                      sizes="52px"
                       loading="lazy"
-                      className="w-full h-full object-cover group-hover/item:scale-105 transition-transform duration-500"
+                      className="object-cover group-hover/item:scale-105 transition-transform duration-500"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-lg" style={{ background: `${item.color}18` }}>

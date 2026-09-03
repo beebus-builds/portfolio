@@ -25,43 +25,51 @@ export async function GET(req: NextRequest) {
     const url = new URL(req.url);
     const type = url.searchParams.get("type") || "all"; // all | image | video
     const nextCursor = url.searchParams.get("cursor") || undefined;
-    const maxResults = Math.min(parseInt(url.searchParams.get("max") || "50", 10), 100);
+    const parsedMax = parseInt(url.searchParams.get("max") || "50", 10);
+    const maxResults = Number.isFinite(parsedMax) ? Math.min(Math.max(parsedMax, 1), 100) : 50;
 
     const cloudinary = getCloudinary();
 
-    const options: Record<string, unknown> = {
-      type: "upload",
-      prefix: UPLOAD_FOLDER + "/",
-      max_results: maxResults,
-      resource_type: "all",
-    };
-    if (nextCursor) options.next_cursor = nextCursor;
+    const resourceTypes = type === "image" ? ["image"] : type === "video" ? ["video"] : ["image", "video"];
+    const listings = await Promise.all(
+      resourceTypes.map((resourceType) =>
+        cloudinary.api.resources({
+          type: "upload",
+          prefix: UPLOAD_FOLDER + "/",
+          max_results: maxResults,
+          resource_type: resourceType,
+          ...(nextCursor ? { next_cursor: nextCursor } : {}),
+        })
+      )
+    );
 
-    const result = await cloudinary.api.resources(options);
-    const assets: MediaAsset[] = (result.resources || [])
-      .filter((r: { resource_type?: string }) => {
-        if (type === "image") return r.resource_type === "image";
-        if (type === "video") return r.resource_type === "video";
-        return true;
-      })
-      .map((r: Record<string, unknown>) => ({
-        publicId: String(r.public_id),
-        url: String(r.url || ""),
-        secureUrl: String(r.secure_url || ""),
-        format: String(r.format || ""),
-        resourceType: String(r.resource_type || "image"),
-        width: typeof r.width === "number" ? r.width : undefined,
-        height: typeof r.height === "number" ? r.height : undefined,
-        bytes: typeof r.bytes === "number" ? r.bytes : undefined,
-        createdAt: typeof r.created_at === "string" ? r.created_at : undefined,
-        folder: typeof r.folder === "string" ? r.folder : undefined,
-      }))
-      .sort((a: MediaAsset, b: MediaAsset) => (b.createdAt || "").localeCompare(a.createdAt || ""));
+    const seen = new Set<string>();
+    const assets: MediaAsset[] = [];
+    for (const result of listings) {
+      for (const r of (result.resources || []) as Record<string, unknown>[]) {
+        const publicId = String(r.public_id);
+        if (seen.has(publicId)) continue;
+        seen.add(publicId);
+        assets.push({
+          publicId,
+          url: String(r.url || ""),
+          secureUrl: String(r.secure_url || ""),
+          format: String(r.format || ""),
+          resourceType: String(r.resource_type || "image"),
+          width: typeof r.width === "number" ? r.width : undefined,
+          height: typeof r.height === "number" ? r.height : undefined,
+          bytes: typeof r.bytes === "number" ? r.bytes : undefined,
+          createdAt: typeof r.created_at === "string" ? r.created_at : undefined,
+          folder: typeof r.folder === "string" ? r.folder : undefined,
+        });
+      }
+    }
+    assets.sort((a, b) => (b.createdAt || "").localeCompare(a.createdAt || ""));
 
     return NextResponse.json({
       media: assets,
       configured: true,
-      nextCursor: result.next_cursor || null,
+      nextCursor: listings[0]?.next_cursor || null,
     });
   } catch (err) {
     console.error("GET /api/media failed:", err);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { aboutLinks } from "./data";
 import { playClick } from "@/lib/audio";
 
@@ -21,7 +22,7 @@ export default function MegaMenuAbout() {
       >
         <div className="relative h-32 w-full overflow-hidden">
           {feature.image && (
-            <img src={feature.image} alt="" loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            <Image src={feature.image} alt="" fill sizes="(max-width: 768px) 100vw, 400px" loading="lazy" className="object-cover group-hover:scale-105 transition-transform duration-500" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
           {feature.badge && (
@@ -49,7 +50,7 @@ export default function MegaMenuAbout() {
                 onClick={() => playClick()}
                 className="flex items-center gap-3 p-2.5 rounded-xl border border-white/5 hover:border-neon-400/25 hover:bg-white/[0.03] transition-all group focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-neon-400/40"
               >
-                {item.image && <img src={item.image} alt="" loading="lazy" className="w-10 h-10 rounded-lg object-cover shrink-0 border border-white/10" />}
+                {item.image && <Image src={item.image} alt="" width={40} height={40} loading="lazy" className="w-10 h-10 rounded-lg object-cover shrink-0 border border-white/10" />}
                 <div className="flex-1 min-w-0">
                   <h4 className="text-xs font-mono font-bold text-white group-hover:text-neon-400 transition-colors truncate">{item.title}</h4>
                   <p className="text-[10px] font-mono text-white/40 truncate">{item.description}</p>
