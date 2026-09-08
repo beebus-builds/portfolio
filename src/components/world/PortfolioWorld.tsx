@@ -70,7 +70,8 @@ export default function PortfolioWorld() {
     }
   }, [discover]);
 
-  const storyProgress = Math.min(4, Math.floor(discovered.length / 1.5));
+  // Phase 1: each discovered chapter permanently changes the world.
+  const storyProgress = Math.min(LANDMARKS.length, discovered.length);
   const complete = discovered.length >= LANDMARKS.length;
 
   return (
@@ -78,22 +79,9 @@ export default function PortfolioWorld() {
       <Canvas shadows camera={{ fov: 55, position: [0, 5.5, 9] }} dpr={[1, 1.75]}>
         <color attach="background" args={["#050512"]} />
         <fog attach="fog" args={["#070716", 14, 62]} />
-        {/* Lighting rig: sky fill + warm key with shadows + violet rim */}
         <hemisphereLight args={["#5a6cff", "#0b0b14", 0.55]} />
         <ambientLight intensity={0.22} />
-        <directionalLight
-          position={[9, 17, 7]}
-          intensity={1.15}
-          color="#cfe4ff"
-          castShadow
-          shadow-mapSize={[2048, 2048]}
-          shadow-camera-left={-22}
-          shadow-camera-right={22}
-          shadow-camera-top={24}
-          shadow-camera-bottom={-44}
-          shadow-camera-far={70}
-          shadow-bias={-0.0004}
-        />
+        <directionalLight position={[9, 17, 7]} intensity={1.15} color="#cfe4ff" castShadow shadow-mapSize={[2048, 2048]} shadow-camera-left={-22} shadow-camera-right={22} shadow-camera-top={24} shadow-camera-bottom={-44} shadow-camera-far={70} shadow-bias={-0.0004} />
         <directionalLight position={[-7, 9, -30]} intensity={0.8} color="#6d5bff" />
         <directionalLight position={[0, 6, 34]} intensity={0.35} color="#ff6b35" />
         <pointLight position={[0, 4, -27]} color="#6d5bff" intensity={10} distance={14} />
@@ -110,9 +98,7 @@ export default function PortfolioWorld() {
           <Fireflies />
           <StoryEnvironment progress={storyProgress} discovered={discovered} />
           <StoryTraveler input={input} state={traveler} />
-          {LANDMARKS.map((landmark) => (
-            <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />
-          ))}
+          {LANDMARKS.map((landmark) => <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />)}
         </Suspense>
         <ChaseCamera target={traveler} />
       </Canvas>
