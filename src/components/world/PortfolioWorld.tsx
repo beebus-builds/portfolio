@@ -15,6 +15,7 @@ import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
 import StoryOverlay from "./StoryOverlay";
 import BibashBot from "./BibashBot";
+import SecretConsole from "./SecretConsole";
 import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
 const LANDMARKS: LandmarkData[] = [
@@ -108,6 +109,7 @@ export default function PortfolioWorld() {
       <WorldHUD nearby={nearby} onEnter={enter} discovered={discovered} />
       <StoryOverlay nearby={nearby} discovered={discovered} onEnter={enter} />
       <BibashBot discovered={discovered} complete={complete} />
+      <SecretConsole discovered={discovered} />
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 40, pointerEvents: transitioning ? "auto" : "none", background: "#050512", opacity: transitioning ? 1 : 0, transition: "opacity .7s cubic-bezier(.2,.75,.2,1)" }} />
       {transitioning && <div aria-live="polite" style={{ position: "absolute", inset: 0, zIndex: 41, display: "grid", placeItems: "center", pointerEvents: "none", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: nearby?.color ?? "#b8ff4d", textAlign: "center" }}><div><div style={{ fontSize: 9, letterSpacing: ".28em", opacity: .7 }}>ENTERING CHAPTER</div><div style={{ marginTop: 12, fontSize: "clamp(28px,6vw,64px)", fontWeight: 700, letterSpacing: "-.06em" }}>{nearby?.label}</div><div style={{ marginTop: 10, fontSize: 10, letterSpacing: ".12em", color: "rgba(255,255,255,.55)" }}>STORY.EXE / TRANSITION</div></div></div>}
       <div className="story-progress" aria-label={`Story progress ${discovered.length} of ${LANDMARKS.length}`} style={{ position: "absolute", left: 24, right: 24, bottom: 22, display: "flex", alignItems: "center", gap: 14, pointerEvents: "none", zIndex: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 9, letterSpacing: ".12em", color: "rgba(255,255,255,.48)" }}>
