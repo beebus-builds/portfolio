@@ -15,6 +15,7 @@ import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
 import StoryOverlay from "./StoryOverlay";
 import BibashBot from "./BibashBot";
+import WorldBibashBot from "./WorldBibashBot";
 import SecretConsole from "./SecretConsole";
 import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
@@ -74,7 +75,6 @@ export default function PortfolioWorld() {
     }
   }, [discover]);
 
-  // Phase 1: each discovered chapter permanently changes the world.
   const storyProgress = Math.min(LANDMARKS.length, discovered.length);
   const complete = discovered.length >= LANDMARKS.length;
 
@@ -102,6 +102,7 @@ export default function PortfolioWorld() {
           <Fireflies />
           <StoryEnvironment progress={storyProgress} discovered={discovered} />
           <StoryTraveler input={input} state={traveler} />
+          <WorldBibashBot state={traveler} discovered={discovered} complete={complete} />
           {LANDMARKS.map((landmark) => <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />)}
         </Suspense>
         <ChaseCamera target={traveler} />
