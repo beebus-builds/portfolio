@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import PortfolioWorldLoader from "@/components/world/PortfolioWorldLoader";
 import ParticleMorph from "@/components/effects/ParticleMorph";
+import DeveloperTerminal from "@/components/home/DeveloperTerminal";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,7 @@ export default function Home() {
           </div>
         </noscript>
       </div>
+      <DeveloperTerminal />
       <Footer />
     </div>
   );
