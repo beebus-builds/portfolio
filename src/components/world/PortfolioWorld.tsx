@@ -17,6 +17,7 @@ import StoryOverlay from "./StoryOverlay";
 import BibashBot from "./BibashBot";
 import WorldBibashBot from "./WorldBibashBot";
 import SecretConsole from "./SecretConsole";
+import SecretMemory, { SECRET_MEMORIES } from "./SecretMemory";
 import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
 const LANDMARKS: LandmarkData[] = [
@@ -28,11 +29,14 @@ const LANDMARKS: LandmarkData[] = [
   { id: "contact", label: "THE UNKNOWN", sub: "the next chapter starts here", href: "/contact", color: "#ff6b35", shape: "box", position: [5.2, 0, 28] },
 ];
 
+const SECRET_KEY = "bibash-secret-memories";
+
 export default function PortfolioWorld() {
   const router = useRouter();
   const traveler = useRef<VehicleState>({ position: new THREE.Vector3(0, 0, 30), heading: Math.PI, speed: 0 });
   const [nearby, setNearby] = useState<LandmarkData | null>(null);
   const [discovered, setDiscovered] = useState<string[]>([]);
+  const [secrets, setSecrets] = useState<string[]>([]);
   const [transitioning, setTransitioning] = useState(false);
   const nearbyRef = useRef<LandmarkData | null>(null);
   const enteringRef = useRef(false);
@@ -41,6 +45,8 @@ export default function PortfolioWorld() {
     try {
       const saved = window.localStorage.getItem("bibash-story-discoveries");
       if (saved) setDiscovered(JSON.parse(saved));
+      const savedSecrets = window.localStorage.getItem(SECRET_KEY);
+      if (savedSecrets) setSecrets(JSON.parse(savedSecrets));
     } catch { /* start fresh if storage is unavailable */ }
   }, []);
 
@@ -49,6 +55,15 @@ export default function PortfolioWorld() {
       if (current.includes(id)) return current;
       const next = [...current, id];
       try { window.localStorage.setItem("bibash-story-discoveries", JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, []);
+
+  const collectSecret = useCallback((id: string) => {
+    setSecrets((current) => {
+      if (current.includes(id)) return current;
+      const next = [...current, id];
+      try { window.localStorage.setItem(SECRET_KEY, JSON.stringify(next)); } catch { /* ignore */ }
       return next;
     });
   }, []);
@@ -77,6 +92,7 @@ export default function PortfolioWorld() {
 
   const storyProgress = Math.min(LANDMARKS.length, discovered.length);
   const complete = discovered.length >= LANDMARKS.length;
+  const secretProgress = `${secrets.length}/${SECRET_MEMORIES.length} SHARDS`;
 
   return (
     <div className="world-stage">
@@ -104,6 +120,7 @@ export default function PortfolioWorld() {
           <StoryTraveler input={input} state={traveler} />
           <WorldBibashBot state={traveler} discovered={discovered} complete={complete} />
           {LANDMARKS.map((landmark) => <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />)}
+          {SECRET_MEMORIES.map((memory) => <SecretMemory key={memory.id} memory={memory} collected={secrets.includes(memory.id)} onCollect={collectSecret} />)}
         </Suspense>
         <ChaseCamera target={traveler} />
       </Canvas>
@@ -113,6 +130,7 @@ export default function PortfolioWorld() {
       <SecretConsole discovered={discovered} />
       <div aria-hidden="true" style={{ position: "absolute", inset: 0, zIndex: 40, pointerEvents: transitioning ? "auto" : "none", background: "#050512", opacity: transitioning ? 1 : 0, transition: "opacity .7s cubic-bezier(.2,.75,.2,1)" }} />
       {transitioning && <div aria-live="polite" style={{ position: "absolute", inset: 0, zIndex: 41, display: "grid", placeItems: "center", pointerEvents: "none", fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", color: nearby?.color ?? "#b8ff4d", textAlign: "center" }}><div><div style={{ fontSize: 9, letterSpacing: ".28em", opacity: .7 }}>ENTERING CHAPTER</div><div style={{ marginTop: 12, fontSize: "clamp(28px,6vw,64px)", fontWeight: 700, letterSpacing: "-.06em" }}>{nearby?.label}</div><div style={{ marginTop: 10, fontSize: 10, letterSpacing: ".12em", color: "rgba(255,255,255,.55)" }}>STORY.EXE / TRANSITION</div></div></div>}
+      <div aria-hidden="true" style={{ position: "absolute", right: 24, bottom: 48, zIndex: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 8, letterSpacing: ".14em", color: secrets.length ? "#b8ff4d" : "rgba(255,255,255,.2)" }}>{secretProgress}</div>
       <div className="story-progress" aria-label={`Story progress ${discovered.length} of ${LANDMARKS.length}`} style={{ position: "absolute", left: 24, right: 24, bottom: 22, display: "flex", alignItems: "center", gap: 14, pointerEvents: "none", zIndex: 10, fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", fontSize: 9, letterSpacing: ".12em", color: "rgba(255,255,255,.48)" }}>
         <span>{String(discovered.length).padStart(2, "0")} / 06</span>
         <div style={{ display: "flex", gap: 5, flex: 1, maxWidth: 280 }}>
