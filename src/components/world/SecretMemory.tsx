@@ -17,20 +17,27 @@ export const SECRET_MEMORIES: SecretMemoryData[] = [
 
 export default function SecretMemory({ memory, collected, onCollect }: { memory: SecretMemoryData; collected: boolean; onCollect: (id: string) => void }) {
   const group = useRef<THREE.Group>(null);
+  const nearRef = useRef(false);
   const [near, setNear] = useState(false);
 
   useEffect(() => {
-    const onKey = (event: KeyboardEvent) => { if (near && (event.key === "Enter" || event.key.toLowerCase() === "e")) onCollect(memory.id); };
+    const onKey = (event: KeyboardEvent) => {
+      if (nearRef.current && (event.key === "Enter" || event.key.toLowerCase() === "e")) onCollect(memory.id);
+    };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [memory.id, near, onCollect]);
+  }, [memory.id, onCollect]);
 
   useFrame(({ clock, camera }) => {
     if (!group.current) return;
     const t = clock.elapsedTime;
     group.current.rotation.y += 0.012;
     group.current.position.y = memory.position[1] + Math.sin(t * 2 + memory.position[2]) * 0.16;
-    setNear(camera.position.distanceTo(group.current.position) < 2.6);
+    const nextNear = camera.position.distanceTo(group.current.position) < 2.6;
+    if (nextNear !== nearRef.current) {
+      nearRef.current = nextNear;
+      setNear(nextNear);
+    }
   });
 
   if (collected) return null;
