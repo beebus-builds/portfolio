@@ -18,6 +18,7 @@ import BibashBot from "./BibashBot";
 import WorldBibashBot from "./WorldBibashBot";
 import SecretConsole from "./SecretConsole";
 import SecretMemory, { SECRET_MEMORIES } from "./SecretMemory";
+import FinalPortal from "./FinalPortal";
 import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
 const LANDMARKS: LandmarkData[] = [
@@ -121,6 +122,7 @@ export default function PortfolioWorld() {
           <WorldBibashBot state={traveler} discovered={discovered} complete={complete} />
           {LANDMARKS.map((landmark) => <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />)}
           {SECRET_MEMORIES.map((memory) => <SecretMemory key={memory.id} memory={memory} collected={secrets.includes(memory.id)} onCollect={collectSecret} />)}
+          <FinalPortal unlocked={complete} />
         </Suspense>
         <ChaseCamera target={traveler} />
       </Canvas>
