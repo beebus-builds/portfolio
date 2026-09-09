@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const SECRET_KEY = "bibash-secret-memories";
 const COMMANDS: Record<string, string> = {
-  help: "Available: scan, status, map, reset, exit",
-  scan: "Six chapters detected. One unknown remains.",
-  status: "STORY.EXE stable // memories persisted // bot online",
+  help: "Available: scan, status, map, secrets, reset, clear-secrets, about, exit",
+  scan: "Six chapters detected. Five hidden memory shards detected.",
+  status: "STORY.EXE stable // memories persisted // bot online // hidden layer active",
   map: "01 PERSON · 02 QUESTIONS · 03 FAILURE · 04 BUILDING · 05 TOOLKIT · 06 UNKNOWN",
 };
 
@@ -18,10 +19,7 @@ export default function SecretConsole({ discovered }: { discovered: string[] }) 
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === "`" && !event.ctrlKey && !event.metaKey) {
-        event.preventDefault();
-        setOpen((v) => !v);
-      }
+      if (event.key === "`" && !event.ctrlKey && !event.metaKey) { event.preventDefault(); setOpen((v) => !v); }
       if (event.key === "Escape") setOpen(false);
     };
     window.addEventListener("keydown", onKey);
@@ -38,6 +36,17 @@ export default function SecretConsole({ discovered }: { discovered: string[] }) 
     if (cmd === "reset") {
       try { window.localStorage.removeItem("bibash-story-discoveries"); } catch { /* ignore */ }
       setOutput("Memory cache cleared. Reload the world to restart the journey.");
+      return;
+    }
+    if (cmd === "clear-secrets") {
+      try { window.localStorage.removeItem(SECRET_KEY); } catch { /* ignore */ }
+      setOutput("Hidden shard cache cleared. Reload the world to respawn every shard.");
+      return;
+    }
+    if (cmd === "secrets") {
+      let count = 0;
+      try { count = JSON.parse(window.localStorage.getItem(SECRET_KEY) ?? "[]").length; } catch { /* ignore */ }
+      setOutput(`${count}/5 hidden memory shards recovered. ${count === 5 ? "SECRET LAYER COMPLETE." : "Keep exploring off the main path."}`);
       return;
     }
     if (cmd === "about") return router.push("/about");
