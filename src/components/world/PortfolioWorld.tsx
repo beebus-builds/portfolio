@@ -13,6 +13,7 @@ import TouchControls from "./TouchControls";
 import WorldHUD from "./WorldHUD";
 import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
+import ChapterExperiences from "./ChapterExperiences";
 import StoryOverlay from "./StoryOverlay";
 import BibashBot from "./BibashBot";
 import WorldBibashBot from "./WorldBibashBot";
@@ -122,6 +123,7 @@ export default function PortfolioWorld() {
           <GrassTufts />
           <Fireflies />
           <StoryEnvironment progress={storyProgress} discovered={discovered} />
+          <ChapterExperiences discovered={discovered} complete={complete} />
           <StoryTraveler input={input} state={traveler} />
           <WorldBibashBot state={traveler} discovered={discovered} complete={complete} />
           {LANDMARKS.map((landmark) => <Landmark key={landmark.id} data={landmark} vehicleState={traveler} onProximity={handleProximity} />)}
