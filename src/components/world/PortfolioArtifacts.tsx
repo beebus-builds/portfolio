@@ -42,8 +42,14 @@ function ArtifactNode({ artifact, active, onSelect }: { artifact: Artifact; acti
     }
   });
 
+  const select = (event: any) => {
+    event.stopPropagation();
+    onSelect(artifact);
+    window.dispatchEvent(new CustomEvent("bibash:artifact-selected", { detail: { id: artifact.id, title: artifact.title, color: artifact.color } }));
+  };
+
   return (
-    <group ref={ref} position={artifact.position} onClick={(event) => { event.stopPropagation(); onSelect(artifact); }}>
+    <group ref={ref} position={artifact.position} onClick={select}>
       <mesh>
         <icosahedronGeometry args={[active ? 0.38 : 0.28, 1]} />
         <meshStandardMaterial color={artifact.color} emissive={artifact.color} emissiveIntensity={active ? 4 : 2.2} toneMapped={false} metalness={0.55} roughness={0.25} />
