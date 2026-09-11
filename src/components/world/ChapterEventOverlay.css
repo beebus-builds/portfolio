@@ -1,0 +1,33 @@
+.chapter-event {
+  --chapter-color: #b8ff4d;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(620px, calc(100vw - 40px));
+  padding: 28px 30px 22px;
+  transform: translate(-50%, -46%) scale(.96);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 45;
+  overflow: hidden;
+  color: rgba(255,255,255,.9);
+  background: linear-gradient(135deg, rgba(8,8,24,.96), rgba(5,5,18,.88));
+  border: 1px solid color-mix(in srgb, var(--chapter-color) 48%, transparent);
+  box-shadow: 0 0 80px color-mix(in srgb, var(--chapter-color) 16%, transparent), inset 0 0 40px rgba(255,255,255,.025);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  transition: opacity .5s ease, transform .65s cubic-bezier(.2,.8,.2,1);
+}
+
+.chapter-event.is-visible { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+.chapter-event__scan { position: absolute; inset: 0; background: repeating-linear-gradient(0deg, transparent 0 5px, rgba(255,255,255,.018) 6px); pointer-events: none; }
+.chapter-event__index, .chapter-event__kicker { position: relative; font-size: 9px; letter-spacing: .2em; color: color-mix(in srgb, var(--chapter-color) 75%, white); }
+.chapter-event__kicker { margin-top: 16px; opacity: .7; }
+.chapter-event__title { position: relative; margin-top: 5px; font-size: clamp(30px, 7vw, 58px); line-height: .95; font-weight: 800; letter-spacing: -.07em; color: white; text-shadow: 0 0 28px color-mix(in srgb, var(--chapter-color) 35%, transparent); }
+.chapter-event__line { position: relative; margin-top: 18px; font-size: clamp(14px, 2vw, 18px); line-height: 1.35; color: rgba(255,255,255,.88); }
+.chapter-event p { position: relative; max-width: 530px; margin: 12px 0 24px; font-size: 11px; line-height: 1.7; color: rgba(255,255,255,.46); }
+.chapter-event__footer { position: relative; display: flex; align-items: center; gap: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.09); font-size: 8px; letter-spacing: .15em; color: rgba(255,255,255,.3); }
+.chapter-event__footer i { width: 6px; height: 6px; margin-left: auto; border-radius: 50%; background: var(--chapter-color); box-shadow: 0 0 12px var(--chapter-color); animation: chapter-pulse 1.2s ease-in-out infinite; }
+
+@keyframes chapter-pulse { 50% { opacity: .3; transform: scale(.65); } }
+@media (max-width: 600px) { .chapter-event { padding: 22px 20px 18px; } .chapter-event p { margin-bottom: 18px; } .chapter-event__footer { font-size: 7px; } }
+@media (prefers-reduced-motion: reduce) { .chapter-event { transition: opacity .2s ease; transform: translate(-50%, -50%); } .chapter-event__footer i { animation: none; } }
