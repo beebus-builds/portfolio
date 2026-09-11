@@ -14,6 +14,8 @@ import WorldHUD from "./WorldHUD";
 import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
 import ChapterExperiences from "./ChapterExperiences";
+import ChapterEventOverlay from "./ChapterEventOverlay";
+import "./ChapterEventOverlay.css";
 import StoryOverlay from "./StoryOverlay";
 import BibashBot from "./BibashBot";
 import WorldBibashBot from "./WorldBibashBot";
@@ -132,6 +134,7 @@ export default function PortfolioWorld() {
         </Suspense>
         <ChaseCamera target={traveler} />
       </Canvas>
+      <ChapterEventOverlay discovered={discovered} />
       <JourneyDirector discovered={discovered} secrets={secrets} complete={complete} />
       <WorldHUD nearby={nearby} onEnter={enter} discovered={discovered} />
       <StoryOverlay nearby={nearby} discovered={discovered} onEnter={enter} />
