@@ -20,6 +20,8 @@ import SecretConsole from "./SecretConsole";
 import SecretMemory, { SECRET_MEMORIES } from "./SecretMemory";
 import FinalPortal from "./FinalPortal";
 import WorldIntro from "./WorldIntro";
+import JourneyDirector from "./JourneyDirector";
+import "./JourneyDirector.css";
 import { SkyDome, GroundGrid, Fireflies, PineGrove, Rocks, GrassTufts } from "./Scenery";
 
 const LANDMARKS: LandmarkData[] = [
@@ -128,6 +130,7 @@ export default function PortfolioWorld() {
         </Suspense>
         <ChaseCamera target={traveler} />
       </Canvas>
+      <JourneyDirector discovered={discovered} secrets={secrets} complete={complete} />
       <WorldHUD nearby={nearby} onEnter={enter} discovered={discovered} />
       <StoryOverlay nearby={nearby} discovered={discovered} onEnter={enter} />
       <BibashBot discovered={discovered} complete={complete} />
