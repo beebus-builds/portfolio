@@ -15,6 +15,7 @@ import StoryTraveler from "./StoryTraveler";
 import StoryEnvironment from "./StoryEnvironment";
 import ChapterExperiences from "./ChapterExperiences";
 import PortfolioArtifacts from "./PortfolioArtifacts";
+import WorldReactivity from "./WorldReactivity";
 import ChapterEventOverlay from "./ChapterEventOverlay";
 import "./ChapterEventOverlay.css";
 import StoryOverlay from "./StoryOverlay";
@@ -127,6 +128,7 @@ export default function PortfolioWorld() {
           <Fireflies />
           <StoryEnvironment progress={storyProgress} discovered={discovered} />
           <ChapterExperiences discovered={discovered} complete={complete} />
+          <WorldReactivity discovered={discovered} complete={complete} />
           <PortfolioArtifacts discovered={discovered} />
           <StoryTraveler input={input} state={traveler} />
           <WorldBibashBot state={traveler} discovered={discovered} complete={complete} />
