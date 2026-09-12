@@ -8,6 +8,7 @@ import type { VehicleState } from "./Vehicle";
 
 type Props = { state: { current: VehicleState }; discovered: string[]; complete: boolean };
 type Chapter = { id: string; label: string; color: string; position: [number, number, number]; approach: string; found: string; guide: string };
+type Artifact = { id: string; title: string; color: string; position: [number, number, number] };
 
 const CHAPTERS: Chapter[] = [
   { id: "about", label: "THE PERSON", color: "#6d5bff", position: [-5.2, 0, -27], approach: "THERE'S SOMETHING HERE ABOUT THE PERSON BEHIND THE CODE.", found: "YOU FOUND THE BEGINNING. NOW KEEP MOVING.", guide: "HEAD TOWARD THE QUESTIONS." },
@@ -17,6 +18,16 @@ const CHAPTERS: Chapter[] = [
   { id: "skills", label: "THE TOOLKIT", color: "#22c55e", position: [-5.2, 0, 22], approach: "TOOLS COLLECTED. NOW SEE WHAT THEY CAN DO TOGETHER.", found: "A TOOLKIT IS ONLY AS GOOD AS THE PROBLEM IT SOLVES.", guide: "ONE LAST CHAPTER. THE UNKNOWN." },
   { id: "contact", label: "THE UNKNOWN", color: "#ff6b35", position: [5.2, 0, 28], approach: "THE SIGNAL IS GETTING STRONGER.", found: "YOU MADE IT TO THE UNKNOWN.", guide: "THERE'S NOTHING LEFT TO UNLOCK. BUILD SOMETHING." },
 ];
+
+const ARTIFACTS: Artifact[] = [
+  { id: "portfolio", title: "PORTFOLIO / STORY.EXE", color: "#ffd700", position: [3.4, 1.3, 14] },
+  { id: "gyan-sathi", title: "GYAN SATHI", color: "#54e6d4", position: [7.1, 1.9, 15.6] },
+  { id: "pharma-connect", title: "PHARMA CONNECT", color: "#b8ff4d", position: [3.2, 2.9, 17.1] },
+  { id: "alt-fixes", title: "ALT-FIXES", color: "#22c55e", position: [-7.2, 2.2, 21.2] },
+  { id: "automated-posts", title: "AUTOMATED POSTS", color: "#22c55e", position: [-3.1, 2.7, 22.9] },
+  { id: "image-optimization", title: "IMAGE OPTIMIZATION", color: "#ff4af0", position: [-8.1, 1.8, -0.2] },
+];
+
 const FALLBACK = { label: "THE JOURNEY", color: "#b8ff4d", approach: "KEEP EXPLORING.", found: "MEMORY RECORDED.", guide: "FOLLOW THE LIGHT." };
 
 export default function WorldBibashBot({ state, discovered, complete }: Props) {
@@ -25,18 +36,25 @@ export default function WorldBibashBot({ state, discovered, complete }: Props) {
   const texture = useTexture("/Bibash%20Bot.png");
   const message = useRef(FALLBACK.approach);
   const mode = useRef<"follow" | "orbit" | "guide" | "signal">("follow");
-  const [selectedArtifact, setSelectedArtifact] = useState<{ title: string; color: string } | null>(null);
+  const [selectedArtifact, setSelectedArtifact] = useState<Artifact | null>(null);
   const signalUntil = useRef(0);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onArtifact = (event: Event) => {
-      const detail = (event as CustomEvent<{ title?: string; color?: string }>).detail;
-      if (!detail?.title) return;
-      setSelectedArtifact({ title: detail.title, color: detail.color ?? "#b8ff4d" });
+      const detail = (event as CustomEvent<{ id?: string }>).detail;
+      const artifact = ARTIFACTS.find((item) => item.id === detail?.id);
+      if (!artifact) return;
+      setSelectedArtifact(artifact);
       signalUntil.current = performance.now() + 4200;
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+      clearTimer.current = setTimeout(() => setSelectedArtifact(null), 4200);
     };
     window.addEventListener("bibash:artifact-selected", onArtifact);
-    return () => window.removeEventListener("bibash:artifact-selected", onArtifact);
+    return () => {
+      window.removeEventListener("bibash:artifact-selected", onArtifact);
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+    };
   }, []);
 
   const nearest = useMemo(() => {
@@ -57,13 +75,13 @@ export default function WorldBibashBot({ state, discovered, complete }: Props) {
     const t = clock.elapsedTime;
     const player = state.current.position;
     const heading = state.current.heading;
+    const signalActive = selectedArtifact !== null && performance.now() < signalUntil.current;
     const nearChapter = nearest.chapter && nearest.distance < 6.5;
     const chapterFound = nearest.chapter ? discovered.includes(nearest.chapter.id) : false;
-    const signalActive = performance.now() < signalUntil.current;
 
     if (signalActive && selectedArtifact) {
       mode.current = "signal";
-      message.current = `SIGNAL LOCKED: ${selectedArtifact.title.toUpperCase()}`;
+      message.current = `SIGNAL LOCKED: ${selectedArtifact.title}`;
     } else if (complete) {
       mode.current = "guide";
       message.current = FALLBACK.found;
@@ -76,9 +94,10 @@ export default function WorldBibashBot({ state, discovered, complete }: Props) {
     }
 
     let target: THREE.Vector3;
-    if (mode.current === "signal" && nearest.chapter) {
-      const a = t * 1.15;
-      target = new THREE.Vector3(nearest.chapter.position[0] + Math.cos(a) * 3.8, 2.1 + Math.sin(t * 4) * 0.25, nearest.chapter.position[2] + Math.sin(a) * 3.8);
+    if (mode.current === "signal" && selectedArtifact) {
+      const [x, y, z] = selectedArtifact.position;
+      const a = t * 1.5;
+      target = new THREE.Vector3(x + Math.cos(a) * 1.7, y + 0.9 + Math.sin(t * 4) * 0.22, z + Math.sin(a) * 1.7);
     } else if (mode.current === "orbit" && nearest.chapter) {
       const a = t * 0.65;
       target = new THREE.Vector3(nearest.chapter.position[0] + Math.cos(a) * 2.8, 1.7 + Math.sin(t * 2.1) * 0.16, nearest.chapter.position[2] + Math.sin(a) * 2.8);
