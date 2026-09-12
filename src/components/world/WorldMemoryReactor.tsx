@@ -18,7 +18,12 @@ const SIGNALS: Signal[] = [
 ];
 
 const CHAPTERS: Record<string, [number, number, number]> = {
-  about: [-5.2, 1.1, -27], education: [5.2, 1.1, -14], blog: [-5.2, 1.1, -1], projects: [5.2, 1.1, 14], skills: [-5.2, 1.1, 22], contact: [5.2, 1.1, 28],
+  about: [-5.2, 1.1, -27],
+  education: [5.2, 1.1, -14],
+  blog: [-5.2, 1.1, -1],
+  projects: [5.2, 1.1, 14],
+  skills: [-5.2, 1.1, 22],
+  contact: [5.2, 1.1, 28],
 };
 
 function SignalPulse({ position, color, active }: { position: [number, number, number]; color: string; active: boolean }) {
@@ -55,18 +60,30 @@ export default function WorldMemoryReactor({ discovered, complete }: Props) {
   const [pulseKey, setPulseKey] = useState(0);
   const [lastChapter, setLastChapter] = useState<string | null>(null);
   const selectedUntil = useRef(0);
+  const clearTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const onArtifact = (event: Event) => {
       const id = (event as CustomEvent<{ id?: string }>).detail?.id;
       const signal = SIGNALS.find((item) => item.id === id);
       if (!signal) return;
+
       setSelected(signal);
       setPulseKey((value) => value + 1);
       selectedUntil.current = performance.now() + 5000;
+
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+      clearTimer.current = setTimeout(() => {
+        setSelected(null);
+        setPulseKey((value) => value + 1);
+      }, 5000);
     };
+
     window.addEventListener("bibash:artifact-selected", onArtifact);
-    return () => window.removeEventListener("bibash:artifact-selected", onArtifact);
+    return () => {
+      window.removeEventListener("bibash:artifact-selected", onArtifact);
+      if (clearTimer.current) clearTimeout(clearTimer.current);
+    };
   }, []);
 
   useEffect(() => {
@@ -87,7 +104,13 @@ export default function WorldMemoryReactor({ discovered, complete }: Props) {
       return <group key={signal.id}>
         <SignalPulse position={signal.position} color={signal.color} active={active} />
         <Line points={[signal.position, chapter]} color={signal.color} transparent opacity={active ? 0.9 : 0.1} lineWidth={active ? 2 : 0.4} />
-        {active && <><mesh position={signal.position}><sphereGeometry args={[0.18, 16, 16]} /><meshBasicMaterial color={signal.color} toneMapped={false} /></mesh><Text position={[signal.position[0], signal.position[1] + 0.7, signal.position[2]]} fontSize={0.13} color={signal.color} anchorX="center" letterSpacing={0.08}>{signal.title}</Text></>}
+        {active && <>
+          <mesh position={signal.position}>
+            <sphereGeometry args={[0.18, 16, 16]} />
+            <meshBasicMaterial color={signal.color} toneMapped={false} />
+          </mesh>
+          <Text position={[signal.position[0], signal.position[1] + 0.7, signal.position[2]]} fontSize={0.13} color={signal.color} anchorX="center" letterSpacing={0.08}>{signal.title}</Text>
+        </>}
       </group>;
     })}
     {selectedChapter && signalActive && <pointLight position={selectedChapter} color={selected?.color} intensity={8} distance={12} />}
