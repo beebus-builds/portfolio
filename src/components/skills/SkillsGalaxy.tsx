@@ -18,13 +18,11 @@ const GROUPS = [
 
 function Planet({
   group,
-  index,
   active,
   onSelect,
   t0,
 }: {
   group: (typeof GROUPS)[number];
-  index: number;
   active: boolean;
   onSelect: () => void;
   t0: number;
@@ -148,7 +146,7 @@ export default function SkillsGalaxy({ active, onSelect }: GalaxyProps) {
           <Suspense fallback={null}>
             <Core />
             {GROUPS.map((g, i) => (
-              <Planet key={g.name} group={g} index={i} t0={i * 2.1} active={active === i} onSelect={() => onSelect(i)} />
+              <Planet key={g.name} group={g} t0={i * 2.1} active={active === i} onSelect={() => onSelect(i)} />
             ))}
           </Suspense>
           <OrbitControls enableZoom={false} enablePan={false} autoRotate={auto} autoRotateSpeed={0.9} maxPolarAngle={Math.PI / 2.4} minPolarAngle={Math.PI / 4.5} />

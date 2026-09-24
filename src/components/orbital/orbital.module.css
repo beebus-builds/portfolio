@@ -1,0 +1,1565 @@
+.orbitalShell {
+  --space: #05080d;
+  --space-soft: #0a1019;
+  --panel: rgba(9, 15, 24, 0.78);
+  --panel-strong: rgba(7, 12, 20, 0.94);
+  --line: rgba(181, 226, 243, 0.16);
+  --line-bright: rgba(181, 226, 243, 0.34);
+  --ink: #eef7fa;
+  --muted: #8496a2;
+  --quiet: #4c606d;
+  --signal: #6fe6f4;
+  --violet: #9385ff;
+  --pink: #f08ed8;
+  --amber: #f5c977;
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: var(--space);
+  color: var(--ink);
+  font-family: var(--font-body), Arial, sans-serif;
+  isolation: isolate;
+}
+
+.orbitalShell::after {
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  content: "";
+  opacity: 0.055;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.8) 0.55px, transparent 0.7px);
+  background-size: 6px 6px;
+  mix-blend-mode: screen;
+}
+
+.sceneFrame {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 68% 46%, rgba(40, 78, 105, 0.18), transparent 28%), linear-gradient(115deg, #05080d 0%, #07111a 48%, #0b101d 100%);
+}
+
+.sceneFrame canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.sceneShade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(5, 8, 13, 0.98) 0%, rgba(5, 8, 13, 0.82) 32%, rgba(5, 8, 13, 0.12) 67%, rgba(5, 8, 13, 0.38) 100%), linear-gradient(0deg, rgba(5, 8, 13, 0.88) 0%, transparent 42%, rgba(5, 8, 13, 0.3) 100%);
+}
+
+.sceneGrid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.2;
+  background-image: linear-gradient(rgba(134, 218, 235, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(134, 218, 235, 0.045) 1px, transparent 1px);
+  background-size: 76px 76px;
+  mask-image: linear-gradient(90deg, #000 0%, transparent 82%);
+}
+
+.sceneLoading,
+.fallbackScene {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(circle at 70% 45%, rgba(61, 127, 157, 0.2), transparent 30%), #05080d;
+}
+
+.sceneLoading {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  color: var(--quiet);
+  font: 10px/1 var(--font-mono), monospace;
+  letter-spacing: 0.18em;
+}
+
+.loadingOrb {
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgba(111, 230, 244, 0.55);
+  border-radius: 50%;
+  box-shadow: 0 0 32px rgba(111, 230, 244, 0.18), inset 0 0 18px rgba(111, 230, 244, 0.12);
+  animation: loadingPulse 1.6s ease-in-out infinite;
+}
+
+.fallbackScene {
+  background: radial-gradient(circle at 69% 44%, rgba(56, 119, 151, 0.28), transparent 21%), radial-gradient(circle at 60% 52%, rgba(101, 86, 190, 0.13), transparent 36%), #05080d;
+}
+
+.fallbackScene::before {
+  position: absolute;
+  inset: 0;
+  content: "";
+  opacity: 0.6;
+  background-image: radial-gradient(#b4e8f2 0.7px, transparent 0.9px);
+  background-size: 83px 67px;
+  mask-image: radial-gradient(circle at 70% 45%, #000 0%, transparent 68%);
+}
+
+.fallbackOrb {
+  position: absolute;
+  top: 25%;
+  right: 16%;
+  width: min(40vw, 430px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, rgba(137, 220, 238, 0.75), rgba(34, 87, 113, 0.8) 24%, rgba(9, 23, 39, 0.95) 67%);
+  box-shadow: 0 0 80px rgba(73, 191, 216, 0.18);
+}
+
+.fallbackRing {
+  position: absolute;
+  top: 23%;
+  right: 8%;
+  width: min(54vw, 610px);
+  aspect-ratio: 1;
+  border: 1px solid rgba(111, 230, 244, 0.3);
+  border-radius: 50%;
+  transform: rotate(-18deg) scaleY(0.25);
+  box-shadow: 0 0 22px rgba(111, 230, 244, 0.12);
+}
+
+.fallbackStation {
+  position: absolute;
+  top: 42%;
+  right: 27%;
+  width: min(24vw, 250px);
+  height: 38px;
+  border: 1px solid rgba(205, 242, 250, 0.55);
+  background: linear-gradient(90deg, transparent, rgba(111, 230, 244, 0.44), transparent);
+  box-shadow: 0 0 28px rgba(111, 230, 244, 0.28);
+  transform: rotate(-12deg);
+}
+
+.fallbackScene i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #bdebf4;
+  box-shadow: 0 0 7px rgba(189, 235, 244, 0.8);
+}
+
+.content {
+  position: relative;
+  z-index: 2;
+  width: min(1380px, calc(100% - 80px));
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: 26px;
+  pointer-events: none;
+}
+
+.topbar,
+.mainGrid,
+.missionDeck,
+.footerBar {
+  pointer-events: none;
+}
+
+.brand,
+.primaryNav,
+.heroActions,
+.stationCard,
+.missionCard {
+  pointer-events: auto;
+}
+
+.sceneHint {
+  position: absolute;
+  top: 110px;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--quiet);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sceneHint i {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--signal);
+  border-radius: 50%;
+  box-shadow: 0 0 9px var(--signal);
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 86px;
+  border-bottom: 1px solid var(--line);
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ink);
+  font-family: var(--font-mono), monospace;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.13em;
+}
+
+.brand > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.brand b {
+  color: var(--quiet);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.23em;
+}
+
+.brand strong {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+}
+
+.brandMark {
+  position: relative;
+  display: block;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(111, 230, 244, 0.6);
+  border-radius: 50%;
+  transform: rotate(25deg);
+}
+
+.brandMark::before,
+.brandMark::after,
+.brandMark i {
+  position: absolute;
+  display: block;
+  content: "";
+}
+
+.brandMark::before {
+  inset: 5px;
+  border: 1px solid rgba(147, 133, 255, 0.75);
+  border-radius: 50%;
+}
+
+.brandMark::after {
+  top: 50%;
+  right: -5px;
+  left: -5px;
+  height: 1px;
+  background: var(--signal);
+  box-shadow: 0 0 7px var(--signal);
+}
+
+.brandMark i:first-child {
+  top: -5px;
+  bottom: -5px;
+  left: 50%;
+  width: 1px;
+  background: rgba(111, 230, 244, 0.65);
+}
+
+.brandMark i:last-child {
+  top: 11px;
+  left: 11px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 10px var(--signal);
+}
+
+.primaryNav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-left: auto;
+  margin-right: 42px;
+}
+
+.primaryNav button,
+.systemStatus,
+.eyebrow,
+.heroMeta,
+.cardTopline,
+.cardLabel,
+.deckCounter,
+.sectionKicker,
+.footerBar,
+.drawerMissionNumber,
+.drawerMissionState,
+.detailIndex,
+.contactMeta {
+  font-family: var(--font-mono), monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.primaryNav button {
+  position: relative;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font-size: 9px;
+  transition: color 220ms ease;
+}
+
+.primaryNav button span {
+  margin-left: 5px;
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.primaryNav button::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  content: "";
+  background: var(--signal);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms ease;
+}
+
+.primaryNav button:hover,
+.primaryNav .navActive {
+  color: var(--ink);
+}
+
+.primaryNav .navActive::after {
+  transform: scaleX(1);
+}
+
+.systemStatus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.systemStatus i,
+.cardTopline b i,
+.eyebrow i,
+.coreDot,
+.contactSignal span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--signal);
+  box-shadow: 0 0 10px var(--signal);
+}
+
+.systemStatus b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.mainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(290px, 365px);
+  align-items: center;
+  gap: 70px;
+  min-height: min(740px, calc(100dvh - 86px));
+  padding: 70px 0 100px;
+}
+
+.heroCopy {
+  max-width: 870px;
+  padding-top: 20px;
+}
+
+.eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  color: var(--signal);
+  font-size: 9px;
+}
+
+.eyebrow span {
+  margin-left: 12px;
+  color: var(--quiet);
+}
+
+.heroCopy h1 {
+  margin: 0;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(74px, 11vw, 174px);
+  font-weight: 600;
+  letter-spacing: -0.105em;
+  line-height: 0.78;
+  text-transform: uppercase;
+}
+
+.heroCopy h1 span {
+  display: block;
+}
+
+.heroCopy h1 span:last-child {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(238, 247, 250, 0.6);
+}
+
+.heroCopy h1 em {
+  color: var(--signal);
+  font-style: normal;
+  text-shadow: 0 0 38px rgba(111, 230, 244, 0.18);
+}
+
+.heroCopy > p {
+  max-width: 470px;
+  margin: 38px 0 0;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.heroActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 32px;
+}
+
+.primaryButton,
+.secondaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-height: 46px;
+  padding: 0 17px;
+  border: 1px solid transparent;
+  border-radius: 2px;
+  cursor: pointer;
+  font: 600 9px/1 var(--font-mono), monospace;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+  transition: transform 220ms ease, border-color 220ms ease, background 220ms ease, color 220ms ease;
+}
+
+.primaryButton {
+  background: var(--signal);
+  color: #041015;
+  box-shadow: 0 12px 34px rgba(111, 230, 244, 0.14);
+}
+
+.primaryButton:hover {
+  background: #b2f6fb;
+  transform: translateY(-3px);
+  box-shadow: 0 18px 42px rgba(111, 230, 244, 0.23);
+}
+
+.primaryButton:disabled {
+  opacity: 0.5;
+  cursor: default;
+  transform: none;
+}
+
+.secondaryButton {
+  border-color: var(--line-bright);
+  background: rgba(5, 10, 16, 0.36);
+  color: var(--muted);
+}
+
+.secondaryButton:hover {
+  border-color: var(--signal);
+  color: var(--ink);
+  transform: translateY(-3px);
+}
+
+.heroMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 74px;
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.heroMeta span + span::before {
+  display: inline-block;
+  width: 3px;
+  height: 3px;
+  margin: 0 16px 2px 0;
+  border-radius: 50%;
+  background: var(--quiet);
+  content: "";
+}
+
+.stationCard {
+  position: relative;
+  align-self: center;
+  padding: 19px;
+  border: 1px solid var(--line);
+  background: linear-gradient(145deg, rgba(17, 31, 44, 0.72), rgba(5, 10, 17, 0.74));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(22px);
+}
+
+.stationCard::before,
+.drawer::before {
+  position: absolute;
+  top: -1px;
+  left: 18px;
+  width: 54px;
+  height: 1px;
+  content: "";
+  background: var(--signal);
+  box-shadow: 0 0 12px var(--signal);
+}
+
+.cardTopline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.cardTopline b {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--signal);
+  font-weight: 500;
+}
+
+.cardTopline b i {
+  width: 5px;
+  height: 5px;
+}
+
+.progressBlock {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 25px 0 23px;
+}
+
+.progressRing {
+  position: relative;
+  display: grid;
+  flex: 0 0 88px;
+  width: 88px;
+  height: 88px;
+  place-items: center;
+  border-radius: 50%;
+  background: conic-gradient(var(--signal) var(--progress-angle), rgba(111, 230, 244, 0.1) 0deg);
+  box-shadow: 0 0 26px rgba(111, 230, 244, 0.09);
+}
+
+.progressRing::before {
+  position: absolute;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: #09131c;
+  content: "";
+}
+
+.progressRing span {
+  position: relative;
+  color: var(--ink);
+  font: 500 24px/1 var(--font-mono), monospace;
+  letter-spacing: -0.08em;
+}
+
+.progressRing small {
+  margin-left: 2px;
+  color: var(--signal);
+  font-size: 10px;
+  letter-spacing: 0;
+}
+
+.progressBlock > div:last-child,
+.currentVector {
+  display: flex;
+  flex-direction: column;
+}
+
+.cardLabel {
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.progressBlock strong {
+  margin-top: 8px;
+  color: var(--ink);
+  font: 500 23px/1 var(--font-mono), monospace;
+  letter-spacing: -0.06em;
+}
+
+.progressBlock small,
+.currentVector p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.currentVector {
+  gap: 8px;
+  padding: 19px 0;
+  border-top: 1px solid var(--line);
+}
+
+.currentVector b {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.currentVector p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.cardFooter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+  color: var(--quiet);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.cardFooter button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--signal);
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.cardFooter button span {
+  margin-left: 7px;
+  font-size: 12px;
+}
+
+.missionDeck {
+  position: relative;
+  padding: 74px 0 92px;
+  border-top: 1px solid var(--line);
+}
+
+.deckHeader {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 30px;
+  margin-bottom: 32px;
+}
+
+.sectionKicker {
+  display: block;
+  color: var(--signal);
+  font-size: 8px;
+}
+
+.deckHeader h2 {
+  margin: 15px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(38px, 5.3vw, 76px);
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  line-height: 0.86;
+}
+
+.deckHeader h2 em {
+  color: transparent;
+  font-style: normal;
+  -webkit-text-stroke: 1px rgba(238, 247, 250, 0.48);
+}
+
+.deckCounter {
+  display: flex;
+  align-items: end;
+  gap: 10px;
+  padding-bottom: 4px;
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.deckCounter b {
+  color: var(--signal);
+  font: 500 30px/0.8 var(--font-mono), monospace;
+  letter-spacing: -0.08em;
+}
+
+.missionGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.missionCard {
+  position: relative;
+  min-height: 194px;
+  padding: 17px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: linear-gradient(145deg, rgba(14, 24, 35, 0.66), rgba(5, 10, 17, 0.74));
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 260ms ease, background 260ms ease, transform 260ms ease;
+}
+
+.missionCard::before {
+  position: absolute;
+  right: -30px;
+  bottom: -30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  content: "";
+  background: var(--mission-accent);
+  filter: blur(50px);
+  opacity: 0.08;
+  transition: opacity 260ms ease;
+}
+
+.missionCard::after {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--mission-accent);
+  box-shadow: 0 0 12px var(--mission-accent);
+  content: "";
+  opacity: 0.35;
+  transition: opacity 260ms ease, transform 260ms ease;
+}
+
+.missionCard:hover,
+.missionCardSynced {
+  border-color: color-mix(in srgb, var(--mission-accent) 45%, var(--line));
+  background: linear-gradient(145deg, color-mix(in srgb, var(--mission-accent) 10%, rgba(14, 24, 35, 0.72)), rgba(5, 10, 17, 0.8));
+  transform: translateY(-5px);
+}
+
+.missionCard:hover::before,
+.missionCardSynced::before {
+  opacity: 0.2;
+}
+
+.missionCard:hover::after,
+.missionCardSynced::after {
+  opacity: 1;
+  transform: scale(1.8);
+}
+
+.missionCardTop,
+.missionCardBottom {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--quiet);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.missionCardTop b {
+  color: var(--mission-accent);
+  font-weight: 500;
+}
+
+.missionCardTitle {
+  position: relative;
+  z-index: 1;
+  max-width: 88%;
+  margin-top: 39px;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: 23px;
+  font-weight: 500;
+  letter-spacing: -0.055em;
+  line-height: 0.95;
+}
+
+.missionCard p {
+  position: relative;
+  z-index: 1;
+  margin: 11px 0 25px;
+  color: var(--muted);
+  font: 9px var(--font-mono), monospace;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.missionCard p span {
+  margin: 0 4px;
+  color: var(--quiet);
+}
+
+.missionCardBottom {
+  position: absolute;
+  right: 17px;
+  bottom: 15px;
+  left: 17px;
+}
+
+.missionCardBottom span:last-child {
+  color: var(--mission-accent);
+  font-size: 16px;
+}
+
+.footerBar {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.footerBar i {
+  margin-left: 7px;
+  color: var(--signal);
+  font-style: normal;
+  font-size: 12px;
+}
+
+.drawerScrim {
+  position: fixed;
+  inset: 0;
+  z-index: 9;
+  border: 0;
+  background: rgba(2, 5, 9, 0.38);
+  cursor: pointer;
+  backdrop-filter: blur(3px);
+}
+
+.drawer {
+  position: fixed;
+  top: 110px;
+  right: 28px;
+  bottom: 28px;
+  z-index: 10;
+  width: min(430px, calc(100vw - 40px));
+  overflow: hidden;
+  border: 1px solid var(--line-bright);
+  background: var(--panel-strong);
+  box-shadow: -24px 30px 90px rgba(0, 0, 0, 0.46), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(28px);
+}
+
+.drawerHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 24px 24px 21px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drawerHeader h2 {
+  margin: 10px 0 0;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: 33px;
+  font-weight: 500;
+  letter-spacing: -0.07em;
+  line-height: 0.95;
+}
+
+.closeButton,
+.backButton {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  font: 10px var(--font-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.closeButton:hover,
+.backButton:hover {
+  color: var(--signal);
+}
+
+.drawerBody {
+  height: calc(100% - 96px);
+  overflow: auto;
+  padding: 22px 24px 30px;
+}
+
+.drawerMissions {
+  display: flex;
+  flex-direction: column;
+}
+
+.drawerMission {
+  display: grid;
+  grid-template-columns: 30px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  min-height: 73px;
+  padding: 12px 0;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: color 200ms ease, padding 200ms ease;
+}
+
+.drawerMission:first-child {
+  padding-top: 0;
+}
+
+.drawerMission:hover {
+  padding-left: 7px;
+  color: var(--mission-accent);
+}
+
+.drawerMissionNumber,
+.drawerMissionState {
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.drawerMissionState {
+  color: var(--mission-accent);
+  font-size: 7px;
+}
+
+.drawerMissionName {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.drawerMissionName b {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.1;
+}
+
+.drawerMissionName small {
+  color: var(--muted);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.detailContent {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.backButton {
+  align-self: start;
+  margin-bottom: 38px;
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+.detailIndex {
+  color: var(--signal);
+  font-size: 8px;
+}
+
+.detailContent h3 {
+  margin: 12px 0 17px;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: 38px;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  line-height: 0.94;
+}
+
+.detailContent > p,
+.contactPanel > p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 20px 0;
+}
+
+.detailMeta span,
+.detailTech span,
+.detailOutcomes span {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.04em;
+}
+
+.detailMeta span,
+.detailTech span {
+  padding: 6px 8px;
+}
+
+.detailOutcomes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.detailOutcomes span {
+  position: relative;
+  padding-left: 15px;
+  border: 0;
+  font-family: var(--font-body), Arial, sans-serif;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.detailOutcomes span::before {
+  position: absolute;
+  top: 0.55em;
+  left: 0;
+  width: 5px;
+  height: 1px;
+  background: var(--signal);
+  content: "";
+}
+
+.detailTech {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 18px 0 22px;
+}
+
+.detailActions {
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  gap: 15px;
+}
+
+.textLink {
+  color: var(--signal);
+  font: 9px var(--font-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coreReward {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: auto;
+  padding: 15px;
+  border: 1px solid rgba(240, 142, 216, 0.28);
+  background: rgba(240, 142, 216, 0.05);
+}
+
+.coreReward > div {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.coreDot {
+  background: var(--pink);
+  box-shadow: 0 0 10px var(--pink);
+}
+
+.coreReward b,
+.coreReward small {
+  display: block;
+}
+
+.coreReward b {
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.coreReward small {
+  margin-top: 3px;
+  color: var(--muted);
+  font: 8px var(--font-mono), monospace;
+}
+
+.coreReward button {
+  padding: 7px 9px;
+  border: 1px solid rgba(240, 142, 216, 0.4);
+  background: transparent;
+  color: var(--pink);
+  cursor: pointer;
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coreReward button:disabled {
+  color: var(--quiet);
+  cursor: default;
+}
+
+.skillMap,
+.flightLog {
+  display: flex;
+  flex-direction: column;
+}
+
+.skillRow {
+  display: grid;
+  grid-template-columns: 39px 1fr 42px;
+  align-items: center;
+  gap: 13px;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.skillOrb {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid var(--signal);
+  border-radius: 50%;
+  color: var(--signal);
+  font: 8px var(--font-mono), monospace;
+  box-shadow: inset 0 0 12px rgba(111, 230, 244, 0.13);
+}
+
+.skillOrb[data-tone="violet"] { border-color: var(--violet); color: var(--violet); }
+.skillOrb[data-tone="amber"] { border-color: var(--amber); color: var(--amber); }
+.skillOrb[data-tone="pink"] { border-color: var(--pink); color: var(--pink); }
+
+.skillInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.skillInfo b {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.skillInfo small {
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.skillInfo i {
+  display: block;
+  width: 100%;
+  height: 2px;
+  margin-top: 7px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.skillInfo i span {
+  display: block;
+  height: 100%;
+  background: var(--signal);
+  box-shadow: 0 0 8px var(--signal);
+}
+
+.skillRow > strong {
+  color: var(--muted);
+  font: 10px var(--font-mono), monospace;
+  font-weight: 400;
+  text-align: right;
+}
+
+.logRow {
+  display: grid;
+  grid-template-columns: 30px 1fr 10px;
+  align-items: center;
+  gap: 12px;
+  min-height: 83px;
+  border-bottom: 1px solid var(--line);
+}
+
+.logNumber {
+  color: var(--signal);
+  font: 9px var(--font-mono), monospace;
+}
+
+.logRow b,
+.logRow small {
+  display: block;
+}
+
+.logRow b {
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.logRow small {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.logLine {
+  width: 6px;
+  height: 6px;
+  border: 1px solid var(--quiet);
+  border-radius: 50%;
+}
+
+.logLine[data-active="true"] {
+  border-color: var(--signal);
+  background: var(--signal);
+  box-shadow: 0 0 9px var(--signal);
+}
+
+.contactSignal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--signal);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.12em;
+}
+
+.contactPanel h3 {
+  margin: 25px 0 15px;
+  color: var(--ink);
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: 40px;
+  font-weight: 500;
+  letter-spacing: -0.08em;
+  line-height: 0.93;
+}
+
+.contactPanel .primaryButton {
+  margin-top: 28px;
+}
+
+.contactForm {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 26px;
+}
+
+.contactField {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.contactField label {
+  color: var(--quiet);
+  font: 8px var(--font-mono), monospace;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.contactField input,
+.contactField textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  outline: none;
+  background: rgba(5, 10, 17, 0.72);
+  color: var(--ink);
+  font: 11px/1.5 var(--font-mono), monospace;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.contactField input {
+  height: 40px;
+  padding: 0 11px;
+}
+
+.contactField textarea {
+  min-height: 104px;
+  padding: 10px 11px;
+  resize: vertical;
+}
+
+.contactField input::placeholder,
+.contactField textarea::placeholder {
+  color: var(--quiet);
+  opacity: 0.8;
+}
+
+.contactField input:focus,
+.contactField textarea:focus {
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px rgba(111, 230, 244, 0.08);
+}
+
+.contactForm .primaryButton {
+  width: 100%;
+  margin-top: 3px;
+}
+
+.formStatus {
+  margin: -2px 0 0;
+  font: 9px/1.5 var(--font-mono), monospace;
+  letter-spacing: 0.04em;
+}
+
+.formStatus[data-tone="success"] {
+  color: var(--signal);
+}
+
+.formStatus[data-tone="error"] {
+  color: #ff8f9b;
+}
+
+.contactPanel > .textLink {
+  display: inline-block;
+  margin-top: 20px;
+}
+
+.contactMeta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 30px;
+  padding-top: 17px;
+  border-top: 1px solid var(--line);
+  color: var(--quiet);
+  font-size: 8px;
+}
+
+@keyframes loadingPulse {
+  0%, 100% { opacity: 0.4; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 1000px) {
+  .content {
+    width: min(100% - 48px, 760px);
+  }
+
+  .sceneShade {
+    background: linear-gradient(90deg, rgba(5, 8, 13, 0.96), rgba(5, 8, 13, 0.45)), linear-gradient(0deg, rgba(5, 8, 13, 0.96), transparent 60%);
+  }
+
+  .mainGrid {
+    grid-template-columns: 1fr;
+    gap: 52px;
+    min-height: auto;
+    padding-top: 92px;
+  }
+
+  .stationCard {
+    width: min(100%, 430px);
+    justify-self: end;
+  }
+
+  .missionGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 680px) {
+  .orbitalShell {
+    overflow: auto;
+  }
+
+  .content {
+    width: calc(100% - 32px);
+  }
+
+  .sceneFrame {
+    position: absolute;
+    height: 70dvh;
+    min-height: 500px;
+  }
+
+  .sceneShade {
+    background: linear-gradient(180deg, rgba(5, 8, 13, 0.32), rgba(5, 8, 13, 0.8) 65%, #05080d 100%);
+  }
+
+  .sceneGrid {
+    opacity: 0.13;
+    background-size: 48px 48px;
+    mask-image: linear-gradient(180deg, #000, transparent 75%);
+  }
+
+  .fallbackOrb {
+    top: 13%;
+    right: -8%;
+    width: 75vw;
+  }
+
+  .fallbackRing {
+    top: 13%;
+    right: -25%;
+    width: 100vw;
+  }
+
+  .fallbackStation {
+    top: 27%;
+    right: 25%;
+    width: 47vw;
+  }
+
+  .topbar {
+    height: 72px;
+  }
+
+  .primaryNav {
+    display: none;
+  }
+
+  .sceneHint {
+    display: none;
+  }
+
+  .systemStatus span {
+    display: none;
+  }
+
+  .mainGrid {
+    padding: 76px 0 84px;
+  }
+
+  .heroCopy {
+    padding-top: 0;
+  }
+
+  .eyebrow {
+    flex-wrap: wrap;
+    max-width: 280px;
+    line-height: 1.6;
+  }
+
+  .eyebrow span {
+    width: 100%;
+    margin-left: 16px;
+  }
+
+  .heroCopy h1 {
+    font-size: clamp(61px, 18vw, 112px);
+  }
+
+  .heroCopy > p {
+    max-width: 390px;
+    margin-top: 30px;
+    font-size: 14px;
+  }
+
+  .heroMeta {
+    gap: 10px;
+    margin-top: 48px;
+    line-height: 1.6;
+  }
+
+  .heroMeta span + span::before {
+    margin-right: 10px;
+  }
+
+  .stationCard {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .missionDeck {
+    padding: 62px 0 70px;
+  }
+
+  .deckHeader {
+    align-items: start;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .missionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .missionCard {
+    min-height: 168px;
+  }
+
+  .footerBar {
+    flex-wrap: wrap;
+    line-height: 1.6;
+  }
+
+  .footerBar span:nth-child(2) {
+    display: none;
+  }
+
+  .drawer {
+    top: auto;
+    right: 16px;
+    bottom: 16px;
+    left: 16px;
+    width: auto;
+    max-height: calc(100dvh - 32px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .orbitalShell *,
+  .orbitalShell *::before,
+  .orbitalShell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

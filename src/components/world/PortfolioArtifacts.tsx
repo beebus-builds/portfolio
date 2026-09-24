@@ -1,7 +1,7 @@
 "use client";
 
 import { Html, Line, Text } from "@react-three/drei";
-import { useFrame } from "@react-three/fiber";
+import { useFrame, type ThreeEvent } from "@react-three/fiber";
 import { useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
@@ -42,7 +42,7 @@ function ArtifactNode({ artifact, active, onSelect }: { artifact: Artifact; acti
     }
   });
 
-  const select = (event: any) => {
+  const select = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
     onSelect(artifact);
     window.dispatchEvent(new CustomEvent("bibash:artifact-selected", { detail: { id: artifact.id, title: artifact.title, color: artifact.color } }));

@@ -1,77 +1,62 @@
 import type { Metadata, Viewport } from "next";
-import { Anonymous_Pro } from "next/font/google";
+import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
-import "./motion.css";
 
-const anonPro = Anonymous_Pro({
-  weight: ["400", "700"],
+const display = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-anon",
+  variable: "--font-space-grotesk",
+  display: "swap",
+});
+
+const mono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  weight: ["400", "500", "600"],
+  variable: "--font-ibm-plex-mono",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bibashpoudel.dev"),
-  title: "Bibash Poudel — Nepal Dev Terminal",
-  description: "Interactive CLI portfolio of Bibash Poudel. A terminal-inspired portfolio with WebRTC calls, virtual filesystem, and Nepali dev identity.",
+  title: "PROJECT ORBITAL — Bibash Poudel",
+  description: "An orbital developer station by Bibash Poudel. Explore missions, skills, and systems from a builder in Nepal.",
   manifest: "/manifest.webmanifest",
-  keywords: ["Bibash Poudel", "developer", "Nepal", "Nepali developer", "full-stack", "WordPress", "portfolio"],
-  icons: [
-    { rel: "icon", url: "/icons/icon.svg", type: "image/svg+xml" },
-    { rel: "apple-touch-icon", url: "/icons/icon.svg" },
-  ],
+  keywords: ["Bibash Poudel", "creative developer", "full-stack developer", "Nepal", "portfolio", "Three.js"],
+  icons: [{ rel: "icon", url: "/icons/icon.svg", type: "image/svg+xml" }],
   openGraph: {
-    title: "Bibash Poudel — Nepal Dev Terminal",
-    description: "Developer from Sindhuli, Nepal. A terminal-inspired portfolio.",
+    title: "PROJECT ORBITAL — Bibash Poudel",
+    description: "An orbital developer station by Bibash Poudel.",
     url: "https://bibashpoudel.dev",
-    siteName: "Bibash Poudel",
+    siteName: "PROJECT ORBITAL",
     locale: "en_US",
     type: "website",
-    images: [{ url: "/og?type=home&title=Bibash%20Poudel", width: 1200, height: 630, alt: "Bibash Poudel — DevVerse" }],
+    images: [{ url: "/og", width: 1200, height: 630, alt: "PROJECT ORBITAL — Bibash Poudel" }],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Bibash Poudel — Nepal Dev Terminal",
-    description: "Developer from Sindhuli, Nepal. A terminal-inspired portfolio.",
-    images: ["/og?type=home&title=Bibash%20Poudel"],
+    title: "PROJECT ORBITAL — Bibash Poudel",
+    description: "An orbital developer station by Bibash Poudel.",
+    images: ["/og"],
   },
+  applicationName: "PROJECT ORBITAL",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Nepal Dev",
-  },
-  applicationName: "Nepal Dev Terminal",
-  other: {
-    "mobile-web-app-capable": "yes",
+    title: "PROJECT ORBITAL",
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0a1a",
+  themeColor: "#05080d",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
-
-import ServiceWorkerRegistration from "@/components/ServiceWorkerRegistration";
-import CommandPalette from "@/components/CommandPalette";
-import CursorGlow from "@/components/CursorGlow";
-import StudentWorkspaceBar from "@/components/StudentWorkspaceBar";
-import PageTransition from "@/components/PageTransition";
-import ThemeInit from "@/components/ThemeInit";
-import ChatWidget from "@/components/ChatWidget";
-import ScrollProgress from "@/components/ScrollProgress";
-import BackToTop from "@/components/BackToTop";
-import BgmControl from "@/components/BgmControl";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="icon" href="/icons/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icons/icon.svg" />
-      </head>
-      <body className={`${anonPro.variable} grain`}>
+    <html lang="en">
+      <body className={`${display.variable} ${mono.variable}`}>
+        <a className="skip-link" href="#main-content">Skip to content</a>
+        {children}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{
@@ -80,24 +65,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@type": "Person",
               name: "Bibash Poudel",
               url: "https://bibashpoudel.dev",
-              jobTitle: "Developer",
+              jobTitle: "Creative developer",
               address: { "@type": "PostalAddress", addressCountry: "NP", addressLocality: "Sindhuli" },
-              knowsAbout: ["Next.js", "TypeScript", "WordPress", "Full-Stack Development"],
+              knowsAbout: ["Next.js", "TypeScript", "Three.js", "Full-stack development", "WordPress"],
             }),
           }}
         />
-        <CursorGlow />
-        <ThemeInit />
-        <ScrollProgress />
-        <main id="main-content" className="pb-8" tabIndex={-1}>
-          <PageTransition>{children}</PageTransition>
-        </main>
-        <BackToTop />
-        <BgmControl />
-        <ChatWidget />
-        <StudentWorkspaceBar />
-        <CommandPalette />
-        <ServiceWorkerRegistration />
       </body>
     </html>
   );

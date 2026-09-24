@@ -8,19 +8,21 @@ export default function Icon() {
     (
       <div
         style={{
-          width: 32,
-          height: 32,
-          background: "linear-gradient(135deg, #0a0a1a, #0f0f2a)",
-          borderRadius: 6,
+          width: "100%",
+          height: "100%",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          border: "1px solid rgba(74, 240, 255, 0.3)",
+          border: "1px solid #6fe6f4",
+          borderRadius: "50%",
+          background: "#05080d",
+          color: "#6fe6f4",
+          fontFamily: "monospace",
+          fontSize: "17px",
+          fontWeight: "bold",
         }}
       >
-        <span style={{ fontFamily: "monospace", fontSize: 16, color: "#4af0ff", fontWeight: "bold" }}>
-          ~$
-        </span>
+        O
       </div>
     ),
     { ...size },

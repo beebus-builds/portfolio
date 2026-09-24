@@ -7,15 +7,6 @@ import * as THREE from "three";
 
 type Props = { discovered: string[]; complete: boolean };
 
-const chapters = [
-  { id: "about", z: -27, color: "#6d5bff", title: "IDENTITY MATRIX", body: "Fragments become a person." },
-  { id: "education", z: -14, color: "#54e6d4", title: "QUESTION FIELD", body: "Curiosity creates routes." },
-  { id: "blog", z: -1, color: "#ff4af0", title: "FAILURE LOG", body: "Errors become architecture." },
-  { id: "projects", z: 14, color: "#ffd700", title: "BUILD SYSTEM", body: "Ideas become working systems." },
-  { id: "skills", z: 22, color: "#22c55e", title: "TOOLKIT CONSTELLATION", body: "The stack keeps evolving." },
-  { id: "contact", z: 28, color: "#ff6b35", title: "UNKNOWN PROTOCOL", body: "The next chapter is unwritten." },
-] as const;
-
 function Orbit({ color, active, radius = 2 }: { color: string; active: boolean; radius?: number }) {
   const ref = useRef<THREE.Group>(null);
   useFrame(({ clock }) => {

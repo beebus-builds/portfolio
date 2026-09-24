@@ -2,25 +2,21 @@ import { ImageResponse } from "next/og";
 
 export const dynamic = "force-dynamic";
 
-function decode(s: string | null, fallback: string): string {
-  if (!s) return fallback;
+function decode(value: string | null, fallback: string) {
+  if (!value) return fallback;
   try {
-    return decodeURIComponent(s).slice(0, 120);
+    return decodeURIComponent(value).slice(0, 120);
   } catch {
     return fallback;
   }
 }
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const title = decode(searchParams.get("title"), "Bibash Poudel");
-  const subtitle = decode(searchParams.get("subtitle"), "DevVerse — Nepal Dev Terminal");
-  const type = decode(searchParams.get("type"), "home");
-  const rawAccent = searchParams.get("accent") || "#54e6d4";
-  const accent = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(rawAccent) ? rawAccent : "#54e6d4";
-
-  const kind =
-    type === "blog" ? "blog post" : type === "project" ? "case study" : "portfolio";
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const title = decode(searchParams.get("title"), "BUILD THE UNSEEN.");
+  const subtitle = decode(searchParams.get("subtitle"), "An orbital developer station by Bibash Poudel.");
+  const rawAccent = searchParams.get("accent") || "#6fe6f4";
+  const accent = /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(rawAccent) ? rawAccent : "#6fe6f4";
 
   return new ImageResponse(
     (
@@ -32,95 +28,33 @@ export async function GET(req: Request) {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "72px",
-          backgroundColor: "#0a0a1a",
-          backgroundImage:
-            "linear-gradient(135deg, rgba(84,230,212,0.10) 0%, rgba(10,10,26,0) 45%), linear-gradient(315deg, rgba(255,74,240,0.10) 0%, rgba(10,10,26,0) 45%)",
-          color: "white",
+          backgroundColor: "#05080d",
+          backgroundImage: `radial-gradient(circle at 76% 52%, ${accent}33, transparent 28%), linear-gradient(135deg, #07111a, #05080d 64%)`,
+          color: "#eef7fa",
           fontFamily: "sans-serif",
         }}
       >
-        {/* Top row: logo + kind badge */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
-            <div
-              style={{
-                width: "46px",
-                height: "46px",
-                borderRadius: "12px",
-                backgroundColor: accent,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                color: "#0a0a1a",
-                fontSize: "26px",
-                fontWeight: 800,
-              }}
-            >
-              ▶
-            </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: "30px", fontWeight: 700, letterSpacing: "-0.5px" }}>
-                bibash.dev
-              </div>
-              <div style={{ fontSize: "20px", color: "rgba(255,255,255,0.45)" }}>
-                @beebus-builds
-              </div>
+            <div style={{ width: "46px", height: "46px", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${accent}`, borderRadius: "50%", color: accent, fontSize: "22px" }}>O</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "5px" }}>
+              <div style={{ fontSize: "28px", fontWeight: 700, letterSpacing: "5px" }}>PROJECT ORBITAL</div>
+              <div style={{ fontSize: "17px", color: "#8496a2", fontFamily: "monospace" }}>BP-07 / CREATIVE DEVELOPER</div>
             </div>
           </div>
-          <div
-            style={{
-              fontSize: "20px",
-              textTransform: "uppercase",
-              letterSpacing: "3px",
-              color: accent,
-              border: `1px solid ${accent}`,
-              borderRadius: "999px",
-              padding: "10px 22px",
-            }}
-          >
-            {kind}
-          </div>
+          <div style={{ padding: "10px 20px", border: `1px solid ${accent}`, borderRadius: "999px", color: accent, fontFamily: "monospace", fontSize: "16px", letterSpacing: "3px" }}>LIVE SYSTEM</div>
         </div>
-
-        {/* Center: title */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-          <div
-            style={{
-              fontSize: "22px",
-              color: accent,
-              fontFamily: "monospace",
-              display: "flex",
-            }}
-          >
-            visitor@devverse:~$
-          </div>
-          <div
-            style={{
-              fontSize: "68px",
-              fontWeight: 800,
-              lineHeight: 1.05,
-              letterSpacing: "-1.5px",
-              maxWidth: "980px",
-            }}
-          >
-            {title}
-          </div>
-          <div style={{ fontSize: "26px", color: "rgba(255,255,255,0.55)", maxWidth: "900px" }}>
-            {subtitle}
-          </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "22px" }}>
+          <div style={{ color: accent, fontFamily: "monospace", fontSize: "19px", letterSpacing: "4px" }}>PERSONAL DEVELOPER STATION</div>
+          <div style={{ maxWidth: "1000px", fontSize: "78px", fontWeight: 800, letterSpacing: "-4px", lineHeight: 0.95 }}>{title}</div>
+          <div style={{ maxWidth: "860px", color: "#9aaab4", fontSize: "26px" }}>{subtitle}</div>
         </div>
-
-        {/* Bottom: faux terminal bar + flag */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", gap: "10px" }}>
-            <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#ff5f56" }} />
-            <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#ffbd2e" }} />
-            <div style={{ width: "16px", height: "16px", borderRadius: "50%", backgroundColor: "#27c93f" }} />
-          </div>
-          <div style={{ fontSize: "22px", color: "rgba(255,255,255,0.4)" }}>🇳🇵 Made in Nepal</div>
+        <div style={{ display: "flex", justifyContent: "space-between", color: "#4c606d", fontFamily: "monospace", fontSize: "17px", letterSpacing: "2px" }}>
+          <span>27.7172° N / 85.4360° E</span>
+          <span>MISSIONS / SKILLS / SIGNAL</span>
         </div>
       </div>
     ),
-    { width: 1200, height: 630 }
+    { width: 1200, height: 630 },
   );
 }

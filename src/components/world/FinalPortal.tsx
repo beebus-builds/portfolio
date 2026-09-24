@@ -45,7 +45,7 @@ export default function FinalPortal({ unlocked }: { unlocked: boolean }) {
       </mesh>
       <pointLight color="#b8ff4d" intensity={near ? 24 : 12} distance={20} />
       <Text position={[0, 5.1, 0]} fontSize={0.22} color="#b8ff4d" anchorX="center" letterSpacing={0.18}>THE UNKNOWN</Text>
-      <Text position={[0, 4.65, 0]} fontSize={0.11} color="#e9f2e4" anchorX="center" fillOpacity={0.72}>THE STORY ENDS. THE WORK DOESN'T.</Text>
+      <Text position={[0, 4.65, 0]} fontSize={0.11} color="#e9f2e4" anchorX="center" fillOpacity={0.72}>{"THE STORY ENDS. THE WORK DOESN'T."}</Text>
       {near && <Text position={[0, -2.8, 0]} fontSize={0.12} color="#ffffff" anchorX="center">PRESS E TO ENTER THE NEXT CHAPTER</Text>}
     </group>
   );

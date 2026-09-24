@@ -70,7 +70,7 @@ export default function AboutPage() {
           <DnaHelix />
           <div className="term-window flex flex-col justify-center">
             <div className="term-body">
-              <p className="comment-label mb-3">// stack_dna.seq</p>
+              <p className="comment-label mb-3">{"// stack_dna.seq"}</p>
               <h2 className="text-2xl font-mono text-white mb-3">My stack, encoded.</h2>
               <p className="text-sm font-mono text-white/40 leading-relaxed mb-5">
                 Every strand is a tool I ship with — Next.js, TypeScript, Postgres, Three.js.

@@ -48,7 +48,7 @@ export default function WorldBibashBot({ state, discovered, complete }: Props) {
       if (nextDistance < distance) { best = chapter; distance = nextDistance; }
     }
     return { chapter: best, distance };
-  }, [state.current.position.x, state.current.position.z]);
+  }, [state]);
   const nextChapter = useMemo(() => CHAPTERS.find((chapter) => !discovered.includes(chapter.id)) ?? CHAPTERS[CHAPTERS.length - 1], [discovered]);
   const activeChapter = nearest.chapter ?? nextChapter;
 
