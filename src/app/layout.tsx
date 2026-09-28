@@ -72,6 +72,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={`${display.variable} ${mono.variable}`}>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: 'document.documentElement.setAttribute("data-js","on")',
+          }}
+        />
         <a className="skip-link" href="#document">
           Skip the flight, read the document
         </a>

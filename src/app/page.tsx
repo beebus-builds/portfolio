@@ -8,10 +8,15 @@ export default function Home() {
       <SpaceExperience />
 
       {/*
-        Server-rendered mirror of everything the 3D scene shows. Keeps the site
-        readable for crawlers, link previews and anyone without WebGL.
+        Server-rendered mirror of everything the 3D scene shows. This is the
+        real site without JS, the readable target for the skip-link, and the
+        document crawlers and link previews index.
       */}
-      <div className="index" aria-hidden="true">
+      <div className="index" id="document" tabIndex={-1}>
+        <a className="index__close" href="#document-closed">
+          ← Back to the flight
+        </a>
+
         <h1>
           {profile.name} — {profile.role}
         </h1>

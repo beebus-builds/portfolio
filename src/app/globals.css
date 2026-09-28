@@ -25,10 +25,6 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-body {
-  overflow: hidden;
-}
-
 a {
   color: inherit;
   text-decoration: none;
@@ -83,14 +79,120 @@ a:focus-visible {
   border: 0;
 }
 
-/* Crawler + no-JS mirror of the flight. Off-screen, never interactive. */
+/*
+ * The flight, written down. Without JS this document *is* the site; once the
+ * scene boots it is clipped away, and the skip-link brings it back with :target.
+ */
 .index {
+  position: relative;
+  z-index: 210;
+  max-width: 74ch;
+  margin: 0 auto;
+  padding: 12vh 24px 20vh;
+}
+
+.index h1 {
+  margin: 0 0 12px;
+  font: 600 clamp(28px, 5vw, 44px) / 1.05 var(--font-body);
+  letter-spacing: -0.02em;
+}
+
+.index h2 {
+  margin: 48px 0 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font: 600 12px / 1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--planet);
+}
+
+.index p,
+.index li {
+  font: 400 15px / 1.65 var(--font-body);
+  color: var(--muted);
+}
+
+.index p {
+  margin: 0 0 14px;
+}
+
+.index ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+
+.index li {
+  margin-bottom: 10px;
+}
+
+.index a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.index b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.index__close {
+  display: inline-block;
+  margin-bottom: 32px;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 600 11px / 1 var(--font-code);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.index__close:hover {
+  border-color: var(--planet);
+  color: var(--planet);
+}
+
+html:not([data-js]) .index__close {
+  display: none;
+}
+
+/* Scene is live: clip the mirror away until the skip-link targets it. */
+html[data-js] .index {
   position: absolute;
   width: 1px;
   height: 1px;
+  padding: 0;
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+html[data-js] .index:target {
+  position: relative;
+  width: auto;
+  height: auto;
+  padding: 12vh 24px 20vh;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+}
+
+/* Reading the document means the flight is not running: once the scene has
+   booted it is the thing that goes away. */
+html:not([data-js]) .space,
+html:has(.index:target) .space {
+  display: none;
+}
+
+/* The document needs to scroll; the flight must not. */
+body {
+  overflow: hidden;
+}
+
+html:not([data-js]) body,
+body:has(.index:target) {
+  overflow: auto;
 }
 
 .space {
