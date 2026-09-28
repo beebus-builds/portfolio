@@ -1,6 +1,6 @@
 import SpaceExperience from "@/components/space/SpaceExperience";
 import { planets, profile, skills } from "@/lib/profile";
-import { projects } from "@/lib/projects";
+import { projects, repoUrl } from "@/lib/projects";
 
 export default function Home() {
   return (
@@ -57,7 +57,9 @@ export default function Home() {
                 {project.title} ({project.year}, {project.tag})
               </b>{" "}
               — {project.description} Role: {project.role}. Tech: {project.tech.join(", ")}.
-              {project.url ? ` Live: ${project.url}` : ""} Highlights: {project.highlights.join(" ")}
+              {project.url ? ` Live: ${project.url}` : ""} Source: {repoUrl(project)}. Highlights:{" "}
+              {project.highlights.join(" ")} How it was built: {project.process.join(" ")} Outcome:{" "}
+              {project.outcome}
             </li>
           ))}
         </ul>

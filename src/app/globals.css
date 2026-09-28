@@ -1106,6 +1106,56 @@ kbd {
   text-transform: uppercase;
 }
 
+.project-card__actions {
+  display: flex;
+  flex: none;
+  gap: 16px;
+}
+
+.project-card__more {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 2%);
+}
+
+.project-card__more summary {
+  color: rgb(255 255 255 / 45%);
+  font: 500 9px / 1 var(--font-code);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.project-card__more summary:hover {
+  color: var(--planet);
+}
+
+.project-card__more[open] summary {
+  margin-bottom: 12px;
+}
+
+.project-card__more ol {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 12px;
+  padding-left: 18px;
+}
+
+.project-card__more li {
+  color: var(--muted);
+  font: 400 13px / 1.55 var(--font-body);
+}
+
+.project-card__outcome {
+  margin: 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+  color: var(--ink);
+  font: 400 13px / 1.55 var(--font-body);
+}
+
 .signal-form {
   display: grid;
   gap: 14px;

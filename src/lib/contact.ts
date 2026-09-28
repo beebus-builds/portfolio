@@ -13,14 +13,6 @@ function getPool(): Pool {
   return pool;
 }
 
-export interface MessageRow {
-  id: number;
-  name: string;
-  email: string;
-  message: string;
-  created_at: string;
-}
-
 let schemaReady: Promise<void> | null = null;
 
 function ensureSchema(): Promise<void> {

@@ -169,6 +169,9 @@ export const projects: Project[] = [
   },
 ];
 
-export function getProject(slug: string): Project | null {
-  return projects.find((p) => p.slug === slug) || null;
+const GITHUB_HANDLE = "beebus-builds";
+
+/** Public source for a project, hosted under the same handle as the profile link. */
+export function repoUrl(project: Project): string {
+  return `https://github.com/${GITHUB_HANDLE}/${project.repo}`;
 }

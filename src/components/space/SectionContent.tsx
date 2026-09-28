@@ -2,7 +2,7 @@
 
 import type { ReactElement } from "react";
 import { profile, skills, type SectionId } from "@/lib/profile";
-import { projects } from "@/lib/projects";
+import { projects, repoUrl } from "@/lib/projects";
 import ContactForm from "./ContactForm";
 
 function AboutPanel() {
@@ -118,21 +118,37 @@ function ProjectsPanel() {
             </div>
             <p className="project-card__description">{project.description}</p>
             <ul className="project-card__highlights">
-              {project.highlights.slice(0, 2).map((highlight) => (
+              {project.highlights.map((highlight) => (
                 <li key={highlight}>{highlight}</li>
               ))}
             </ul>
+
+            <details className="project-card__more">
+              <summary>How it was built</summary>
+              <ol>
+                {project.process.map((step) => (
+                  <li key={step}>{step}</li>
+                ))}
+              </ol>
+              <p className="project-card__outcome">{project.outcome}</p>
+            </details>
+
             <div className="project-card__footer">
               <div className="project-card__tech">
                 {project.tech.slice(0, 4).map((tech) => (
                   <span key={tech}>{tech}</span>
                 ))}
               </div>
-              {project.url && (
-                <a href={project.url} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} live`}>
-                  Live ↗
+              <div className="project-card__actions">
+                <a href={repoUrl(project)} target="_blank" rel="noreferrer">
+                  Source ↗
                 </a>
-              )}
+                {project.url && (
+                  <a href={project.url} target="_blank" rel="noreferrer" aria-label={`Open ${project.title} live`}>
+                    Live ↗
+                  </a>
+                )}
+              </div>
             </div>
           </article>
         ))}
