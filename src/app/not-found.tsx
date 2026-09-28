@@ -1,27 +1,46 @@
 import Link from "next/link";
 
-export default function NotFoundPage() {
+export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-terminal-900 font-mono">
-      <div className="text-center">
-        <div className="w-20 h-20 rounded-full border border-white/10 flex items-center justify-center mx-auto mb-8">
-          <span className="text-4xl text-neon-400/30">4</span>
-          <span className="shape-line mx-3" style={{ width: 20 }} />
-          <span className="text-4xl text-neon-400/30">4</span>
-        </div>
-        <h1 className="text-5xl font-mono text-white tracking-tight mb-4">
-          command not found
-        </h1>
-        <p className="text-sm font-mono text-white/40 mb-8 max-w-md mx-auto">
-          This page doesn&apos;t exist. But the portfolio has more routes —
-          try exploring the pages linked below or type a command in the terminal.
-        </p>
-        <div className="flex gap-3 justify-center flex-wrap">
-          <Link href="/" className="btn-neon text-xs">Home</Link>
-          <Link href="/projects" className="btn-ghost text-xs">Projects</Link>
-          <Link href="/blog" className="btn-ghost text-xs">Blog</Link>
-        </div>
-      </div>
-    </div>
+    <main
+      style={{
+        display: "grid",
+        placeContent: "center",
+        justifyItems: "center",
+        gap: "18px",
+        minHeight: "100dvh",
+        padding: "40px",
+        textAlign: "center",
+        fontFamily: "var(--font-body)",
+      }}
+    >
+      <p style={{ margin: 0, color: "#6fe6f4", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.3em" }}>
+        SIGNAL LOST
+      </p>
+      <h1 style={{ margin: 0, fontSize: "clamp(32px, 6vw, 60px)", fontWeight: 600, letterSpacing: "-0.02em" }}>
+        Nothing orbits this address
+      </h1>
+      <p style={{ margin: 0, maxWidth: "48ch", color: "#8ea2b4", lineHeight: 1.6 }}>
+        The coordinates you followed do not exist in this system. Head back to the ship and pick another
+        vector.
+      </p>
+      <Link
+        href="/"
+        style={{
+          marginTop: "10px",
+          padding: "14px 28px",
+          borderRadius: "999px",
+          background: "#eaf2f8",
+          color: "#04050c",
+          fontFamily: "var(--font-mono)",
+          fontSize: "11px",
+          fontWeight: 600,
+          letterSpacing: "0.14em",
+          textTransform: "uppercase",
+        }}
+      >
+        Return to the ship
+      </Link>
+    </main>
   );
 }

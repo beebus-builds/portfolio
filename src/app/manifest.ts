@@ -1,14 +1,15 @@
 import type { MetadataRoute } from "next";
+import { planets } from "@/lib/profile";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "PROJECT ORBITAL — Bibash Poudel",
-    short_name: "PROJECT ORBITAL",
-    description: "An orbital developer station by Bibash Poudel.",
+    name: "Bibash Poudel — Interactive Space Portfolio",
+    short_name: "BP-07",
+    description: "Fly a spaceship through five planets holding an about page, skills, projects, contact and resume.",
     start_url: "/",
     display: "standalone",
-    background_color: "#05080d",
-    theme_color: "#6fe6f4",
+    background_color: "#04050c",
+    theme_color: "#04050c",
     orientation: "any",
     categories: ["portfolio", "development", "technology"],
     lang: "en",
@@ -16,10 +17,10 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
-    shortcuts: [
-      { name: "Mission control", url: "/", description: "Enter PROJECT ORBITAL" },
-      { name: "Projects", url: "/projects", description: "View missions" },
-      { name: "Contact", url: "/contact", description: "Open a channel" },
-    ],
+    shortcuts: planets.slice(0, 4).map((planet) => ({
+      name: planet.label,
+      url: `/?planet=${planet.id}`,
+      description: planet.blurb,
+    })),
   };
 }

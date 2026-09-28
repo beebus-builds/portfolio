@@ -13,18 +13,16 @@ export default function Icon() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          border: "1px solid #6fe6f4",
-          borderRadius: "50%",
-          background: "#05080d",
+          background: "#04050c",
           color: "#6fe6f4",
           fontFamily: "monospace",
-          fontSize: "17px",
-          fontWeight: "bold",
+          fontSize: 15,
+          fontWeight: 600,
         }}
       >
-        O
+        BP
       </div>
     ),
-    { ...size },
+    { ...size }
   );
 }

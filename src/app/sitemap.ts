@@ -1,58 +1,35 @@
 import type { MetadataRoute } from "next";
-import { getBlogPosts } from "@/lib/posts";
+import { planets } from "@/lib/profile";
 
-export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://bibashpoudel.dev";
+const baseUrl = "https://bibashpoudel.dev";
 
-  const staticPages = [
-    "",
-    "/about",
-    "/blog",
-    "/chess",
-    "/commands",
-    "/contact",
-    "/education",
-    "/projects",
-    "/skills",
-  ];
-
+export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  const pages = staticPages.map((p) => ({
-    url: `${baseUrl}${p}`,
-    lastModified: now,
-    changeFrequency: "weekly" as const,
-    priority: p === "" ? 1 : 0.7,
-  }));
+  const root: MetadataRoute.Sitemap = [
+    {
+      url: baseUrl,
+      lastModified: now,
+      changeFrequency: "monthly",
+      priority: 1,
+    },
+  ];
 
-    let blogPosts: MetadataRoute.Sitemap = [];
-  try {
-    blogPosts = (await getBlogPosts()).map((post) => {
-      const time = new Date(post.date).getTime();
-      return {
-        url: `${baseUrl}/blog/${post.slug}`,
-        lastModified: Number.isFinite(time) ? new Date(time) : now,
-        changeFrequency: "monthly" as const,
-        priority: 0.6,
-      };
-    });
-  } catch (err) {
-    console.error("sitemap: failed to load posts", err);
-  }
-
-  const projectPages = [
-    "/projects/ivote",
-    "/projects/pharma-connect",
-    "/projects/automate",
-    "/projects/match-day-poster",
-    "/projects/nico-paz",
-    "/projects/himalayan-plugin",
-  ].map((p) => ({
-    url: `${baseUrl}${p}`,
+  const sections: MetadataRoute.Sitemap = planets.map((planet) => ({
+    url: `${baseUrl}/?planet=${planet.id}`,
     lastModified: now,
-    changeFrequency: "monthly" as const,
+    changeFrequency: "monthly",
     priority: 0.6,
   }));
 
-  return [...pages, ...blogPosts, ...projectPages];
+  const resume: MetadataRoute.Sitemap = [
+    {
+      url: `${baseUrl}/resume.pdf`,
+      lastModified: now,
+      changeFrequency: "yearly",
+      priority: 0.5,
+    },
+  ];
+
+  return [...root, ...sections, ...resume];
 }

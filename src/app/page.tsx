@@ -1,5 +1,71 @@
-import OrbitalExperience from "@/components/orbital/OrbitalExperience";
+import SpaceExperience from "@/components/space/SpaceExperience";
+import { planets, profile, skills } from "@/lib/profile";
+import { projects } from "@/lib/projects";
 
 export default function Home() {
-  return <OrbitalExperience />;
+  return (
+    <>
+      <SpaceExperience />
+
+      {/*
+        Server-rendered mirror of everything the 3D scene shows. Keeps the site
+        readable for crawlers, link previews and anyone without WebGL.
+      */}
+      <div className="index" aria-hidden="true">
+        <h1>
+          {profile.name} — {profile.role}
+        </h1>
+        <p>
+          {profile.intro} Based in {profile.location} ({profile.timezone}). {profile.status}.
+        </p>
+
+        {profile.bio.map((paragraph) => (
+          <p key={paragraph.slice(0, 24)}>{paragraph}</p>
+        ))}
+
+        <h2>Contact</h2>
+        <ul>
+          {profile.links.map((link) => (
+            <li key={link.label}>
+              {link.label}: <a href={link.href}>{link.value}</a> — {link.note}
+            </li>
+          ))}
+        </ul>
+        <p>
+          Resume: <a href="/resume.pdf">resume.pdf</a>
+        </p>
+
+        <h2>Skills</h2>
+        <ul>
+          {skills.map((skill) => (
+            <li key={skill.name}>
+              {skill.name} ({skill.group}) — {skill.detail}, {skill.level}%
+            </li>
+          ))}
+        </ul>
+
+        <h2>Projects</h2>
+        <ul>
+          {projects.map((project) => (
+            <li key={project.slug}>
+              <b>
+                {project.title} ({project.year}, {project.tag})
+              </b>{" "}
+              — {project.description} Role: {project.role}. Tech: {project.tech.join(", ")}.
+              {project.url ? ` Live: ${project.url}` : ""} Highlights: {project.highlights.join(" ")}
+            </li>
+          ))}
+        </ul>
+
+        <h2>Sections</h2>
+        <ul>
+          {planets.map((planet) => (
+            <li key={planet.id}>
+              {planet.label} — {planet.title}: {planet.blurb} {planet.readout}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </>
+  );
 }
