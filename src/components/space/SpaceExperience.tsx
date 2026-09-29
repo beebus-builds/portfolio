@@ -42,6 +42,7 @@ export default function SpaceExperience() {
   const [docked, setDocked] = useState<SectionId | null>(null);
   const [visited, setVisited] = useState<Set<string>>(() => new Set<string>());
   const [pendingPlanet, setPendingPlanet] = useState<SectionId | null>(null);
+  const [flatInitial, setFlatInitial] = useState<SectionId>("about");
 
   const sim = useMemo(() => createSimulation(), []);
   const drag = useCameraDrag();
@@ -116,19 +117,28 @@ export default function SpaceExperience() {
   useFlightInput({ active: mode === "flight", onUndock: handleUndock, onSelectByIndex: handleSelectByIndex });
 
   const launch = useCallback(() => {
-    setMode(capable ? "flight" : "flat");
-    if (pendingPlanet) {
-      setTarget(pendingPlanet);
-      setPendingPlanet(null);
+    if (!capable) {
+      setFlatInitial(pendingPlanet ?? "about");
+      setMode("flat");
+    } else {
+      setMode("flight");
+      if (pendingPlanet) setTarget(pendingPlanet);
     }
+    setPendingPlanet(null);
   }, [capable, pendingPlanet]);
+
+  const enterTextMode = useCallback(() => {
+    setFlatInitial(pendingPlanet ?? "about");
+    setMode("flat");
+    setPendingPlanet(null);
+  }, [pendingPlanet]);
 
   const flying = mode === "flight";
 
   return (
     <div className="space" data-mode={mode}>
       <AnimatePresence>
-        {mode === "intro" && <IntroOverlay key="intro" onLaunch={launch} onTextMode={() => setMode("flat")} />}
+        {mode === "intro" && <IntroOverlay key="intro" onLaunch={launch} onTextMode={enterTextMode} />}
       </AnimatePresence>
 
       {flying && (
@@ -164,7 +174,7 @@ export default function SpaceExperience() {
 
       {mode === "flat" && (
         <div className="space__flat">
-          <FlatExplorer />
+          <FlatExplorer key={flatInitial} initial={flatInitial} />
           {capable !== false && (
             <button type="button" className="space__return" onClick={() => setMode("flight")}>
               Return to flight

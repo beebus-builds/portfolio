@@ -17,7 +17,7 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
-    shortcuts: planets.slice(0, 4).map((planet) => ({
+    shortcuts: planets.map((planet) => ({
       name: planet.label,
       url: `/?planet=${planet.id}`,
       description: planet.blurb,

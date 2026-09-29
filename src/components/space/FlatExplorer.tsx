@@ -9,8 +9,8 @@ import SectionContent from "./SectionContent";
  * quiet two-column document. Used for reduced-motion, unsupported browsers and
  * anyone who prefers reading to flying.
  */
-export default function FlatExplorer() {
-  const [active, setActive] = useState<SectionId>("about");
+export default function FlatExplorer({ initial = "about" }: { initial?: SectionId }) {
+  const [active, setActive] = useState<SectionId>(initial);
   const planet = planets.find((item) => item.id === active) ?? planets[0];
 
   return (
