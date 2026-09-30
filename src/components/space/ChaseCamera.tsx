@@ -24,6 +24,7 @@ export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; 
       lookTarget: new THREE.Vector3(),
       offset: new THREE.Vector3(),
       quat: new THREE.Quaternion(),
+      combined: new THREE.Quaternion(),
       euler: new THREE.Euler(0, 0, 0, "YXZ"),
       forward: new THREE.Vector3(),
     }),
@@ -50,8 +51,12 @@ export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; 
     scratch.forward.set(0, 0, 1).applyQuaternion(sim.shipQuaternion);
 
     const boostPullback = sim.boosting ? 4.5 : 0;
-    scratch.offset.set(0, 2.6 + pitch * 5.5, 13.5 + boostPullback);
-    scratch.offset.applyQuaternion(scratch.quat);
+    // Camera sits behind the ship in ship-local space (-Z), then the drag
+    // swing orbits it around the hull. Combining with the ship quaternion
+    // keeps the chase view glued behind the nose through turns.
+    scratch.combined.copy(sim.shipQuaternion).multiply(scratch.quat);
+    scratch.offset.set(0, 2.6 + pitch * 5.5, -(13.5 + boostPullback));
+    scratch.offset.applyQuaternion(scratch.combined);
     scratch.desired.copy(sim.shipPosition).add(scratch.offset);
 
     camera.position.lerp(scratch.desired, 1 - Math.exp(-7 * delta));

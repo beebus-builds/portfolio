@@ -30,7 +30,7 @@ export default function WarpStreaks({ sim }: { sim: Simulation }) {
       const radius = Math.sqrt(Math.random()) * SPREAD + 1.4;
       seeds[i * 3] = Math.cos(angle) * radius;
       seeds[i * 3 + 1] = Math.sin(angle) * radius;
-      seeds[i * 3 + 2] = NEAR + Math.random() * (FAR - NEAR);
+      seeds[i * 3 + 2] = -FAR + Math.random() * (FAR + FAR);
     }
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -73,7 +73,7 @@ export default function WarpStreaks({ sim }: { sim: Simulation }) {
       const y = seeds[i * 3 + 1];
       let z = seeds[i * 3 + 2];
       z -= sim.shipSpeed * delta * 1.9;
-      if (z < NEAR) z += FAR - NEAR;
+      if (z < -FAR) z += FAR + FAR;
       seeds[i * 3 + 2] = z;
 
       const px = head.x + right.x * x + up.x * y + forward.x * z;
@@ -83,9 +83,9 @@ export default function WarpStreaks({ sim }: { sim: Simulation }) {
       array[index] = px;
       array[index + 1] = py;
       array[index + 2] = pz;
-      array[index + 3] = px + forward.x * length;
-      array[index + 4] = py + forward.y * length;
-      array[index + 5] = pz + forward.z * length;
+      array[index + 3] = px - forward.x * length;
+      array[index + 4] = py - forward.y * length;
+      array[index + 5] = pz - forward.z * length;
     }
     attribute.needsUpdate = true;
   }, 0);

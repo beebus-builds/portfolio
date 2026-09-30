@@ -89,7 +89,8 @@ export default function Ship({ sim, onDock, onRelease }: ShipProps) {
         const distance = scratch.desired.length();
         if (distance < DOCK_RANGE) {
           sim.docked = sim.target;
-          onDock(sim.target);
+          sim.target = null;
+          if (sim.docked) onDock(sim.docked);
         } else {
           scratch.desired.normalize();
           scratch.local.copy(scratch.desired).applyQuaternion(scratch.inverse.copy(sim.shipQuaternion).invert());
@@ -97,7 +98,7 @@ export default function Ship({ sim, onDock, onRelease }: ShipProps) {
           const pitchError = Math.asin(THREE.MathUtils.clamp(scratch.local.y, -1, 1));
           const aligned = Math.abs(yawError) < 0.22 && Math.abs(pitchError) < 0.22;
           yaw = THREE.MathUtils.clamp(yawError * 2, -1, 1);
-          pitch = THREE.MathUtils.clamp(-pitchError * 2, -1, 1);
+          pitch = THREE.MathUtils.clamp(pitchError * 2, -1, 1);
           roll = 0;
           boosting = aligned && distance > 34;
           thrust = aligned ? 1 : 0.45;
@@ -106,7 +107,7 @@ export default function Ship({ sim, onDock, onRelease }: ShipProps) {
       }
     }
 
-    scratch.euler.set(pitch * TURN * delta, yaw * TURN * delta, roll * TURN * 1.3 * delta, "YXZ");
+    scratch.euler.set(-pitch * TURN * delta, yaw * TURN * delta, roll * TURN * 1.3 * delta, "YXZ");
     scratch.delta.setFromEuler(scratch.euler);
     sim.shipQuaternion.multiply(scratch.delta).normalize();
 
@@ -117,7 +118,7 @@ export default function Ship({ sim, onDock, onRelease }: ShipProps) {
       velocity.current.addScaledVector(scratch.forward, thrust * (boosting ? BOOST_ACCEL : ACCEL) * delta);
     }
     if (flightInput.brake) {
-      velocity.current.addScaledVector(scratch.forward, -velocity.current.length() * 3.2 * delta);
+      velocity.current.addScaledVector(velocity.current, -3.2 * delta);
     }
 
     const drag = flightInput.brake ? 5.2 : boosting ? BOOST_DRAG : DRAG;

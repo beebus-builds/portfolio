@@ -77,15 +77,19 @@ export default function SpaceExperience() {
   const handleSelect = useCallback(
     (id: SectionId) => {
       sim.docked = null;
+      sim.target = id;
       setTarget(id);
       setDocked(null);
     },
     [sim]
   );
 
-  const handleDock = useCallback((id: SectionId) => {
-    setDocked(id);
-    setTarget(null);
+  const handleDock = useCallback(
+    (id: SectionId) => {
+      sim.docked = id;
+      sim.target = null;
+      setDocked(id);
+      setTarget(null);
     setVisited((current) => {
       if (current.has(id)) return current;
       const next = new Set(current);
@@ -97,11 +101,12 @@ export default function SpaceExperience() {
       }
       return next;
     });
-  }, []);
+  }, [sim]);
 
   const handleRelease = useCallback(() => setDocked(null), []);
   const handleUndock = useCallback(() => {
     sim.docked = null;
+    sim.target = null;
     setDocked(null);
     setTarget(null);
   }, [sim]);
@@ -122,10 +127,14 @@ export default function SpaceExperience() {
       setMode("flat");
     } else {
       setMode("flight");
-      if (pendingPlanet) setTarget(pendingPlanet);
+      if (pendingPlanet) {
+        sim.target = pendingPlanet;
+        sim.docked = null;
+        setTarget(pendingPlanet);
+      }
     }
     setPendingPlanet(null);
-  }, [capable, pendingPlanet]);
+  }, [capable, pendingPlanet, sim]);
 
   const enterTextMode = useCallback(() => {
     setFlatInitial(pendingPlanet ?? "about");

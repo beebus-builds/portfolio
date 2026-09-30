@@ -27,43 +27,21 @@ export function useFlightInput({ active, onUndock, onSelectByIndex }: FlightInpu
       return;
     }
 
-    const applyKey = (code: string, down: boolean) => {
-      const on = down ? 1 : 0;
-      switch (code) {
-        case "KeyW":
-          flightInput.thrust = on;
-          break;
-        case "KeyS":
-          flightInput.thrust = -on;
-          break;
-        case "KeyA":
-          flightInput.yaw = -on;
-          break;
-        case "KeyD":
-          flightInput.yaw = on;
-          break;
-        case "KeyQ":
-          flightInput.roll = -on;
-          break;
-        case "KeyE":
-          flightInput.roll = on;
-          break;
-        case "ArrowUp":
-          flightInput.pitch = on;
-          break;
-        case "ArrowDown":
-          flightInput.pitch = -on;
-          break;
-        case "ShiftLeft":
-        case "ShiftRight":
-          flightInput.boost = down;
-          break;
-        case "Space":
-          flightInput.brake = down;
-          break;
-        default:
-          break;
-      }
+    const keys = new Set<string>();
+
+    const recompute = () => {
+      const has = (code: string) => keys.has(code);
+      flightInput.thrust = (has("KeyW") ? 1 : 0) + (has("KeyS") ? -1 : 0);
+      flightInput.yaw =
+        (has("KeyA") ? -1 : 0) + (has("KeyD") ? 1 : 0) + (has("ArrowLeft") ? -1 : 0) + (has("ArrowRight") ? 1 : 0);
+      flightInput.pitch = (has("ArrowUp") ? 1 : 0) + (has("ArrowDown") ? -1 : 0);
+      flightInput.roll = (has("KeyQ") ? -1 : 0) + (has("KeyE") ? 1 : 0);
+      flightInput.boost = has("ShiftLeft") || has("ShiftRight");
+      flightInput.brake = has("Space");
+      flightInput.thrust = Math.max(-1, Math.min(1, flightInput.thrust));
+      flightInput.yaw = Math.max(-1, Math.min(1, flightInput.yaw));
+      flightInput.pitch = Math.max(-1, Math.min(1, flightInput.pitch));
+      flightInput.roll = Math.max(-1, Math.min(1, flightInput.roll));
     };
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -80,12 +58,20 @@ export function useFlightInput({ active, onUndock, onSelectByIndex }: FlightInpu
       }
       if (isFlightKey(event.code)) {
         event.preventDefault();
-        applyKey(event.code, true);
+        if (!event.repeat) {
+          keys.add(event.code);
+          recompute();
+        }
       }
     };
 
-    const onKeyUp = (event: KeyboardEvent) => applyKey(event.code, false);
-    const onBlur = () => resetFlightInput();
+    const onKeyUp = (event: KeyboardEvent) => {
+      if (keys.delete(event.code)) recompute();
+    };
+    const onBlur = () => {
+      keys.clear();
+      resetFlightInput();
+    };
 
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener("keyup", onKeyUp);
