@@ -36,9 +36,9 @@ export default function SpaceScene({ sim, active, visited, onSelect, onDock, onR
         gl.toneMappingExposure = 1.05;
       }}
     >
-      <color attach="background" args={["#04050c"]} />
-      <ambientLight intensity={0.16} color="#9dbcff" />
-      <hemisphereLight args={["#8fb6ff", "#0a0a16", 0.35]} />
+      <color attach="background" args={["#010204"]} />
+      <ambientLight intensity={0.1} color="#9dbcff" />
+      <hemisphereLight args={["#8fb6ff", "#0a0a16", 0.22]} />
       <directionalLight position={sunPosition} intensity={3.1} color="#fff1d8" />
       <directionalLight position={[40, -20, 60]} intensity={0.35} color="#4f6cff" />
 

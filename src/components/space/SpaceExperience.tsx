@@ -4,12 +4,15 @@ import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useCameraDrag, useFlightInput } from "@/hooks/useFlightInput";
+import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { planets, profile, type SectionId } from "@/lib/profile";
 import { createSimulation } from "@/lib/simulation";
-import DockingPanel from "./DockingPanel";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
 import IntroOverlay from "./IntroOverlay";
+import PlanetWorld, { EntryFlash } from "./PlanetWorld";
+import Radar from "./Radar";
+import AudioEngine from "./AudioEngine";
 
 const SpaceScene = dynamic(() => import("./SpaceScene"), {
   ssr: false,
@@ -43,6 +46,10 @@ export default function SpaceExperience() {
   const [visited, setVisited] = useState<Set<string>>(() => new Set<string>());
   const [pendingPlanet, setPendingPlanet] = useState<SectionId | null>(null);
   const [flatInitial, setFlatInitial] = useState<SectionId>("about");
+  const [cameraMode, setCameraMode] = useState<CameraMode>("chase");
+  const [world, setWorld] = useState<SectionId | null>(null);
+  const [entering, setEntering] = useState<SectionId | null>(null);
+  const [tour, setTour] = useState<boolean>(false);
 
   const sim = useMemo(() => createSimulation(), []);
   const drag = useCameraDrag();
@@ -90,6 +97,7 @@ export default function SpaceExperience() {
       sim.target = null;
       setDocked(id);
       setTarget(null);
+      setEntering(id);
     setVisited((current) => {
       if (current.has(id)) return current;
       const next = new Set(current);
@@ -109,6 +117,8 @@ export default function SpaceExperience() {
     sim.target = null;
     setDocked(null);
     setTarget(null);
+    setWorld(null);
+    setEntering(null);
   }, [sim]);
 
   const handleSelectByIndex = useCallback(
@@ -119,7 +129,70 @@ export default function SpaceExperience() {
     [handleSelect]
   );
 
-  useFlightInput({ active: mode === "flight", onUndock: handleUndock, onSelectByIndex: handleSelectByIndex });
+  const handleCamera = useCallback((mode: CameraMode) => {
+    flightInput.cameraMode = mode;
+    setCameraMode(mode);
+  }, []);
+
+  const handleCycleCamera = useCallback(() => {
+    const next = CAMERA_MODES[(CAMERA_MODES.indexOf(flightInput.cameraMode) + 1) % CAMERA_MODES.length];
+    flightInput.cameraMode = next;
+    setCameraMode(next);
+  }, []);
+
+  /** Atmospheric entry: flash, then the new world takes over. */
+  useEffect(() => {
+    if (!entering) return;
+    const timer = window.setTimeout(() => {
+      setWorld(entering);
+      setEntering(null);
+    }, 1100);
+    return () => window.clearTimeout(timer);
+  }, [entering]);
+
+  const exitWorld = useCallback(() => {
+    setWorld(null);
+    handleUndock();
+  }, [handleUndock]);
+
+  const jumpWorld = useCallback(
+    (id: SectionId) => {
+      setWorld(null);
+      setEntering(null);
+      handleSelect(id);
+    },
+    [handleSelect]
+  );
+
+  // Tour mode: press T to auto-cycle planets
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "t") {
+        setTour((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    if (!tour || mode !== "flight") return;
+    const interval = window.setInterval(() => {
+      if (sim.docked || sim.target) return;
+      const idx = planets.findIndex((p) => p.id === (docked ?? target));
+      const nextIdx = (idx + 1 >= 0 ? idx : 0) % planets.length;
+      const nextPlanet = planets[(nextIdx + 1) % planets.length];
+      handleSelect(nextPlanet.id);
+    }, 8000);
+    return () => window.clearInterval(interval);
+  }, [tour, mode, docked, target, sim.docked, sim.target, handleSelect]);
+
+  useFlightInput({
+    active: mode === "flight",
+    onUndock: handleUndock,
+    onSelectByIndex: handleSelectByIndex,
+    onCycleCamera: handleCycleCamera,
+  });
 
   const launch = useCallback(() => {
     if (!capable) {
@@ -152,7 +225,7 @@ export default function SpaceExperience() {
 
       {flying && (
         <>
-          <div className="space__viewport" {...drag}>
+          <div className={`space__viewport ${sim.boosting ? "space__viewport--shake" : ""}`} {...drag}>
             <SpaceScene
               sim={sim}
               active={target ?? docked}
@@ -163,7 +236,17 @@ export default function SpaceExperience() {
             />
           </div>
           <div className="space__vignette" aria-hidden="true" />
-          <Hud sim={sim} docked={docked} target={target} visited={visited} onSelect={handleSelect} />
+          <Radar sim={sim} target={target} docked={docked} />
+          <AudioEngine sim={sim} />
+          <Hud
+            sim={sim}
+            docked={docked}
+            target={target}
+            visited={visited}
+            onSelect={handleSelect}
+            cameraMode={cameraMode}
+            onCamera={handleCamera}
+          />
           <AnimatePresence>
             {target && (
               <motion.p
@@ -177,7 +260,12 @@ export default function SpaceExperience() {
               </motion.p>
             )}
           </AnimatePresence>
-          <DockingPanel id={docked} onClose={handleUndock} onSelect={handleSelect} />
+          <AnimatePresence>
+            {entering && <EntryFlash key={`enter-${entering}`} id={entering} />}
+          </AnimatePresence>
+          <AnimatePresence>
+            {world && <PlanetWorld key={`world-${world}`} id={world} onExit={exitWorld} onJump={jumpWorld} />}
+          </AnimatePresence>
         </>
       )}
 

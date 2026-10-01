@@ -1,3 +1,7 @@
+export type CameraMode = "chase" | "side" | "top" | "free";
+
+export const CAMERA_MODES: CameraMode[] = ["chase", "side", "top", "free"];
+
 export interface FlightInput {
   /** Forward / reverse thrust, -1 to 1. */
   thrust: number;
@@ -17,6 +21,12 @@ export interface FlightInput {
   dragging: boolean;
   /** Set when a drag just happened, so a click can be ignored. */
   suppressClick: boolean;
+  /** Active chase-camera angle. */
+  cameraMode: CameraMode;
+  /** Mouse-look target set from cursor position (no click needed). */
+  lookYaw: number;
+  /** Mouse-look target set from cursor position (no click needed). */
+  lookPitch: number;
 }
 
 export const flightInput: FlightInput = {
@@ -30,6 +40,9 @@ export const flightInput: FlightInput = {
   cameraPitch: 0,
   dragging: false,
   suppressClick: false,
+  cameraMode: "chase",
+  lookYaw: 0,
+  lookPitch: 0,
 };
 
 export function resetFlightInput(): void {
@@ -43,6 +56,9 @@ export function resetFlightInput(): void {
   flightInput.cameraPitch = 0;
   flightInput.dragging = false;
   flightInput.suppressClick = false;
+  flightInput.cameraMode = "chase";
+  flightInput.lookYaw = 0;
+  flightInput.lookPitch = 0;
 }
 
 export function isFlightKey(code: string): boolean {

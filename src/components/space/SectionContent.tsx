@@ -10,7 +10,7 @@ function AboutPanel() {
     <div className="panel-body">
       <div className="panel-identity">
         <div className="panel-identity__avatar" aria-hidden="true">
-          <span>{profile.name.split(" ").map((part) => part[0]).join("")}</span>
+          <img src="/photo.jpg" alt="" />
         </div>
         <div>
           <h3>{profile.name}</h3>

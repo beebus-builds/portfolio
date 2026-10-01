@@ -194,7 +194,7 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
 
         {def.ring && (
           <mesh rotation={[Math.PI / 2, 0, 0]}>
-            <ringGeometry args={[def.radius * 1.45, def.radius * 2.35, 128]} />
+            <ringGeometry args={[def.radius * 1.4, def.radius * 2.6, 128]} />
             <meshBasicMaterial
               map={ringMap}
               color={def.ringColor}
@@ -211,7 +211,7 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
           <group ref={moonOrbit} rotation={[0.2, 0, 0.1]}>
             {Array.from({ length: def.moons }, (_, index) => {
               const distance = def.radius * (2.9 + index * 1.1);
-              const size = def.radius * (0.13 - index * 0.03);
+              const size = def.radius * (0.16 - index * 0.035);
               const angle = (index / def.moons) * Math.PI * 2;
               return (
                 <group key={index} rotation={[0, angle, 0]}>
@@ -256,6 +256,64 @@ type PlanetSystemProps = {
   onSelect: (id: SectionId) => void;
 };
 
+const BELT_ROCKS = ["#a08b74", "#8b93a6", "#c2b3a0", "#6f7686", "#9db8d8"];
+
+type AsteroidBeltProps = {
+  radius: number;
+  width: number;
+  count: number;
+  size: number;
+  opacity: number;
+  spin: number;
+  tilt?: [number, number, number];
+};
+
+/** A dense drifting rock field circling the system: cheap points, real depth. */
+function AsteroidBelt({ radius, width, count, size, opacity, spin, tilt = [0.08, 0, 0.05] }: AsteroidBeltProps) {
+  const points = useRef<THREE.Points>(null);
+  const texture = useMemo(() => createGlowTexture(), []);
+  const geometry = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const color = new THREE.Color();
+    for (let i = 0; i < count; i += 1) {
+      const angle = Math.random() * Math.PI * 2;
+      const r = radius + (Math.random() * 2 - 1) * width;
+      positions[i * 3] = Math.cos(angle) * r;
+      positions[i * 3 + 1] = (Math.random() * 2 - 1) * width * 0.16;
+      positions[i * 3 + 2] = Math.sin(angle) * r;
+      color.set(BELT_ROCKS[Math.floor(Math.random() * BELT_ROCKS.length)]);
+      const shade = 0.45 + Math.random() * 0.55;
+      colors[i * 3] = color.r * shade;
+      colors[i * 3 + 1] = color.g * shade;
+      colors[i * 3 + 2] = color.b * shade;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+    geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+    return geo;
+  }, [radius, width, count]);
+
+  useFrame((_, delta) => {
+    if (points.current) points.current.rotation.y += delta * spin;
+  });
+
+  return (
+    <points ref={points} rotation={tilt} geometry={geometry} frustumCulled={false}>
+      <pointsMaterial
+        map={texture}
+        size={size}
+        transparent
+        opacity={opacity}
+        depthWrite={false}
+        vertexColors
+        blending={THREE.AdditiveBlending}
+        toneMapped={false}
+      />
+    </points>
+  );
+}
+
 /** Recomputes every planet's world position once per frame, before the ship flies. */
 export function PlanetSystem({ sim, active, visited, onSelect }: PlanetSystemProps) {
   useFrame(({ clock }) => {
@@ -277,6 +335,8 @@ export function PlanetSystem({ sim, active, visited, onSelect }: PlanetSystemPro
           onSelect={onSelect}
         />
       ))}
+      <AsteroidBelt radius={195} width={14} count={1400} size={1.6} opacity={0.55} spin={0.012} />
+      <AsteroidBelt radius={430} width={26} count={2000} size={2} opacity={0.5} spin={-0.007} />
     </group>
   );
 }

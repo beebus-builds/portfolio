@@ -62,16 +62,16 @@ const fragmentShader = /* glsl */ `
     float slow = uTime * 0.004;
     float base = fbm(dir * 2.1 + vec3(slow, slow * 0.4, -slow));
     float detail = fbm(dir * 4.7 + base * 1.3 + vec3(3.1, 7.7, 1.9));
-    float clouds = smoothstep(0.32, 0.92, base * 0.68 + detail * 0.58);
+    float clouds = smoothstep(0.55, 0.96, base * 0.68 + detail * 0.58);
 
     vec3 color = mix(uDeep, uCloudA, clouds);
-    color = mix(color, uCloudB, smoothstep(0.52, 1.0, detail) * 0.85);
+    color = mix(color, uCloudB, smoothstep(0.62, 1.0, detail) * 0.6);
 
     float lanes = smoothstep(0.24, 0.66, fbm(dir * 8.0 + 11.0));
-    color *= 0.62 + 0.38 * lanes;
+    color *= 0.8 + 0.2 * lanes;
 
     float core = pow(max(0.0, 1.0 - distance(dir, normalize(uSunDir)) * 1.5), 5.0);
-    color += uCore * core * 0.5;
+    color += uCore * core * 0.35;
 
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
@@ -89,14 +89,14 @@ type NebulaProps = {
 };
 
 /**
- * Camera-locked gas cloud dome. Gives the void colour and depth instead of
- * flat black, and always surrounds the ship no matter where it flies.
+ * Camera-locked deep-space dome. Real space is near-black, so this stays a
+ * whisper of cold gas: faint cold wisps over black, never a cartoon sky.
  */
 export default function Nebula({
   radius = 1500,
-  deep = "#05060f",
-  cloudA = "#2b1b5e",
-  cloudB = "#0d4f6b",
+  deep = "#010208",
+  cloudA = "#0a0d1a",
+  cloudB = "#0a1420",
   core = "#ffb27a",
   sunDirection = [-0.6, 0.35, -0.72],
 }: NebulaProps) {

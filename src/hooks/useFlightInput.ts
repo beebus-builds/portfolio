@@ -8,6 +8,7 @@ type FlightInputOptions = {
   active: boolean;
   onUndock: () => void;
   onSelectByIndex: (index: number) => void;
+  onCycleCamera: () => void;
 };
 
 function isTypingTarget(target: EventTarget | null): boolean {
@@ -20,7 +21,7 @@ function isTypingTarget(target: EventTarget | null): boolean {
  * Binds keyboard input to the mutable `flightInput` singleton so the render loop
  * can read controls every frame without triggering React re-renders.
  */
-export function useFlightInput({ active, onUndock, onSelectByIndex }: FlightInputOptions): void {
+export function useFlightInput({ active, onUndock, onSelectByIndex, onCycleCamera }: FlightInputOptions): void {
   useEffect(() => {
     if (!active) {
       resetFlightInput();
@@ -56,6 +57,11 @@ export function useFlightInput({ active, onUndock, onSelectByIndex }: FlightInpu
         onSelectByIndex(Number(event.code.slice(5)) - 1);
         return;
       }
+      if (event.code === "KeyC") {
+        event.preventDefault();
+        if (!event.repeat) onCycleCamera();
+        return;
+      }
       if (isFlightKey(event.code)) {
         event.preventDefault();
         if (!event.repeat) {
@@ -82,7 +88,7 @@ export function useFlightInput({ active, onUndock, onSelectByIndex }: FlightInpu
       window.removeEventListener("blur", onBlur);
       resetFlightInput();
     };
-  }, [active, onUndock, onSelectByIndex]);
+  }, [active, onUndock, onSelectByIndex, onCycleCamera]);
 }
 
 export type CameraDragHandlers = {
@@ -90,11 +96,17 @@ export type CameraDragHandlers = {
   onPointerMove: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerUp: (event: ReactPointerEvent<HTMLElement>) => void;
   onPointerCancel: (event: ReactPointerEvent<HTMLElement>) => void;
+  onPointerLeave: (event: ReactPointerEvent<HTMLElement>) => void;
 };
 
+/** Max mouse-look swing in radians: how far the view leans toward the cursor. */
+const LOOK_YAW = 0.6;
+const LOOK_PITCH = 0.35;
+
 /**
- * Camera look is drag-only, so a plain click still lands on a planet.
- * Movement is written to `flightInput` and eased back by the camera rig.
+ * Camera look follows the mouse with no click needed; dragging still swings
+ * it further for touch and for bigger moves. Movement is written to
+ * `flightInput` and smoothed by the camera rig.
  */
 export function useCameraDrag(): CameraDragHandlers {
   const drag = useRef<{ id: number; x: number; y: number; moved: number } | null>(null);
@@ -109,15 +121,28 @@ export function useCameraDrag(): CameraDragHandlers {
       },
       onPointerMove: (event) => {
         const state = drag.current;
-        if (!state || state.id !== event.pointerId) return;
-        const dx = event.clientX - state.x;
-        const dy = event.clientY - state.y;
-        state.x = event.clientX;
-        state.y = event.clientY;
-        state.moved += Math.abs(dx) + Math.abs(dy);
-        if (state.moved > 8) flightInput.suppressClick = true;
-        flightInput.cameraYaw -= dx * 0.0042;
-        flightInput.cameraPitch = Math.max(-0.6, Math.min(0.85, flightInput.cameraPitch + dy * 0.0032));
+        if (state && state.id === event.pointerId) {
+          const dx = event.clientX - state.x;
+          const dy = event.clientY - state.y;
+          state.x = event.clientX;
+          state.y = event.clientY;
+          state.moved += Math.abs(dx) + Math.abs(dy);
+          if (state.moved > 8) flightInput.suppressClick = true;
+          flightInput.cameraYaw -= dx * 0.0042;
+          flightInput.cameraPitch = Math.max(-0.6, Math.min(0.85, flightInput.cameraPitch + dy * 0.0032));
+          return;
+        }
+        // Hover look: cursor position leans the camera, nothing to press.
+        if (state || event.pointerType !== "mouse") return;
+        const rect = event.currentTarget.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) return;
+        const nx = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        const ny = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+        const dead = 0.12;
+        const ax = Math.max(0, Math.abs(nx) - dead) / (1 - dead);
+        const ay = Math.max(0, Math.abs(ny) - dead) / (1 - dead);
+        flightInput.lookYaw = Math.sign(nx) * ax * ax * LOOK_YAW;
+        flightInput.lookPitch = Math.sign(ny) * ay * ay * LOOK_PITCH;
       },
       onPointerUp: (event) => {
         if (drag.current && drag.current.id !== event.pointerId) return;
@@ -127,6 +152,11 @@ export function useCameraDrag(): CameraDragHandlers {
       onPointerCancel: () => {
         drag.current = null;
         flightInput.dragging = false;
+      },
+      onPointerLeave: () => {
+        // Cursor left the viewport: ease the mouse-look back to center.
+        flightInput.lookYaw = 0;
+        flightInput.lookPitch = 0;
       },
     }),
     []

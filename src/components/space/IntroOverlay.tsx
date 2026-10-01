@@ -27,6 +27,7 @@ export default function IntroOverlay({ onLaunch, onTextMode }: IntroOverlayProps
         <p className="intro__eyebrow">
           <i /> {profile.callSign} · {profile.coordinates} · {profile.timezone}
         </p>
+        <p className="intro__presents">BP-07 Studios presents</p>
         <h1>
           You are the <em>ship</em>.
         </h1>

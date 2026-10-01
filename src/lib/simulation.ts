@@ -9,6 +9,8 @@ export type Simulation = {
   shipPosition: THREE.Vector3;
   shipQuaternion: THREE.Quaternion;
   shipSpeed: number;
+  /** Vertical speed in world units/s: proves climbs and dives on the HUD. */
+  climb: number;
   /** Compass heading in degrees. */
   heading: number;
   boosting: boolean;
@@ -24,6 +26,7 @@ export function createSimulation(): Simulation {
     shipPosition: new THREE.Vector3(),
     shipQuaternion: new THREE.Quaternion(),
     shipSpeed: 0,
+    climb: 0,
     heading: 0,
     boosting: false,
     docked: null,

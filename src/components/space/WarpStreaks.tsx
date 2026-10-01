@@ -56,7 +56,7 @@ export default function WarpStreaks({ sim }: { sim: Simulation }) {
     const delta = Math.min(rawDelta, 0.05);
     const attribute = geometry.getAttribute("position") as THREE.BufferAttribute;
     const array = attribute.array as Float32Array;
-    const intensity = THREE.MathUtils.clamp((sim.shipSpeed - 12) / 46, 0, 1);
+    const intensity = THREE.MathUtils.clamp((sim.shipSpeed - 16) / 80, 0, 1);
     material.opacity = intensity * 0.55;
     if (ref.current) ref.current.visible = intensity > 0.01;
     if (intensity <= 0.01) return;
