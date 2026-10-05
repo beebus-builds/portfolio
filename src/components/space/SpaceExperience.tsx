@@ -2,11 +2,13 @@
 
 import dynamic from "next/dynamic";
 import { AnimatePresence, motion } from "framer-motion";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCameraDrag, useFlightInput } from "@/hooks/useFlightInput";
 import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { planets, profile, type SectionId } from "@/lib/profile";
+import { achievements, useAchievements } from "@/lib/achievements";
 import { createSimulation } from "@/lib/simulation";
+import AchievementToast from "./AchievementToast";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
 import IntroOverlay from "./IntroOverlay";
@@ -23,8 +25,6 @@ const SpaceScene = dynamic(() => import("./SpaceScene"), {
     </div>
   ),
 });
-
-const VISITED_KEY = "bp07-visited-planets-v1";
 
 type Mode = "intro" | "flight" | "flat";
 
@@ -53,21 +53,56 @@ export default function SpaceExperience() {
 
   const sim = useMemo(() => createSimulation(), []);
   const drag = useCameraDrag();
+  const { unlocked, toast, report, hydrate } = useAchievements();
+  const progressLoaded = useRef(false);
+
+  /** Restore progress from the server (visitor cookie identifies the user). */
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/progress")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (cancelled || !data) return;
+        if (Array.isArray(data.visited)) {
+          setVisited(new Set(data.visited.filter((item: unknown) => typeof item === "string")));
+        }
+        if (Array.isArray(data.achievements)) {
+          hydrate(
+            data.achievements.filter((item: unknown): item is import("@/lib/achievements").AchievementId =>
+              typeof item === "string" && achievements.some((a) => a.id === item)
+            )
+          );
+        }
+      })
+      .catch(() => {
+        /* offline or DB unavailable: progress simply won't persist */
+      })
+      .finally(() => {
+        progressLoaded.current = true;
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrate]);
+
+  /** Push progress to the server whenever it changes (after initial load). */
+  useEffect(() => {
+    if (!progressLoaded.current) return;
+    const timer = window.setTimeout(() => {
+      fetch("/api/progress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ visited: [...visited], achievements: [...unlocked] }),
+      }).catch(() => {
+        /* best effort */
+      });
+    }, 600);
+    return () => window.clearTimeout(timer);
+  }, [visited, unlocked]);
 
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     setCapable(!reduced && supportsWebGL());
-    try {
-      const saved = window.localStorage.getItem(VISITED_KEY);
-      if (saved) {
-        const parsed: unknown = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          setVisited(new Set(parsed.filter((item): item is string => typeof item === "string")));
-        }
-      }
-    } catch {
-      setVisited(new Set<string>());
-    }
   }, []);
 
   /** Deep links such as /?planet=projects fly straight to that world. */
@@ -82,6 +117,24 @@ export default function SpaceExperience() {
   }, []);
 
   const handleSelect = useCallback(
+    (id: SectionId) => {
+      sim.docked = null;
+      sim.target = id;
+      setTarget(id);
+      setDocked(null);
+      setTour(false);
+    },
+    [sim]
+  );
+
+  /** Pilot grabbed the sticks: drop the course banner and stop any tour. */
+  const handleTakeover = useCallback(() => {
+    setTarget(null);
+    setTour(false);
+  }, []);
+
+  /** Tour advance: same flight, but the tour keeps running. */
+  const handleTourAdvance = useCallback(
     (id: SectionId) => {
       sim.docked = null;
       sim.target = id;
@@ -102,14 +155,10 @@ export default function SpaceExperience() {
       if (current.has(id)) return current;
       const next = new Set(current);
       next.add(id);
-      try {
-        window.localStorage.setItem(VISITED_KEY, JSON.stringify([...next]));
-      } catch {
-        /* storage unavailable: progress simply will not persist */
-      }
       return next;
     });
-  }, [sim]);
+      report({ type: "dock" });
+  }, [sim, report]);
 
   const handleRelease = useCallback(() => setDocked(null), []);
   const handleUndock = useCallback(() => {
@@ -140,15 +189,50 @@ export default function SpaceExperience() {
     setCameraMode(next);
   }, []);
 
-  /** Atmospheric entry: flash, then the new world takes over. */
+  /** All worlds charted? That's a medal. */
+  useEffect(() => {
+    if (visited.size >= planets.length) report({ type: "visit-all" });
+  }, [visited, report]);
+
+  /** Set course for comms? Medal. */
+  useEffect(() => {
+    if (target === "contact") report({ type: "contact" });
+  }, [target, report]);
+
+  /** Sustained boost earns the warpath medal. */
+  useEffect(() => {
+    if (mode !== "flight") return;
+    let held = 0;
+    const interval = window.setInterval(() => {
+      if (sim.boosting) {
+        held += 250;
+        if (held >= 3000) report({ type: "boost-hold" });
+      } else {
+        held = 0;
+      }
+    }, 250);
+    return () => window.clearInterval(interval);
+  }, [mode, sim, report]);
+
+  /** Atmospheric entry: three-beat flash, then the world takes over. */
   useEffect(() => {
     if (!entering) return;
     const timer = window.setTimeout(() => {
       setWorld(entering);
       setEntering(null);
-    }, 1100);
+    }, 1650);
     return () => window.clearTimeout(timer);
   }, [entering]);
+
+  /** While a world is open the flight canvas stays mounted behind it. */
+  useEffect(() => {
+    if (!world && !entering) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [world, entering]);
 
   const exitWorld = useCallback(() => {
     setWorld(null);
@@ -168,24 +252,30 @@ export default function SpaceExperience() {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key.toLowerCase() === "t") {
-        setTour((v) => !v);
+        setTour((v) => {
+          if (!v) report({ type: "tour" });
+          return !v;
+        });
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, []);
+  }, [report]);
 
+  // Guided tour: while idle, fly to the next uncharted world. Docking opens
+  // each world for reading; closing it resumes the tour. Ends at contact.
   useEffect(() => {
-    if (!tour || mode !== "flight") return;
-    const interval = window.setInterval(() => {
-      if (sim.docked || sim.target) return;
-      const idx = planets.findIndex((p) => p.id === (docked ?? target));
-      const nextIdx = (idx + 1 >= 0 ? idx : 0) % planets.length;
-      const nextPlanet = planets[(nextIdx + 1) % planets.length];
-      handleSelect(nextPlanet.id);
-    }, 8000);
-    return () => window.clearInterval(interval);
-  }, [tour, mode, docked, target, sim.docked, sim.target, handleSelect]);
+    if (!tour || mode !== "flight" || world || entering) return;
+    if (sim.docked || sim.target) return;
+    if (visited.size >= planets.length) {
+      setTour(false);
+      handleTourAdvance("contact");
+      return;
+    }
+    const next = planets.find((planet) => !visited.has(planet.id)) ?? planets[0];
+    const timer = window.setTimeout(() => handleTourAdvance(next.id), 2500);
+    return () => window.clearTimeout(timer);
+  }, [tour, mode, world, entering, visited, sim, handleTourAdvance]);
 
   useFlightInput({
     active: mode === "flight",
@@ -194,20 +284,25 @@ export default function SpaceExperience() {
     onCycleCamera: handleCycleCamera,
   });
 
-  const launch = useCallback(() => {
-    if (!capable) {
-      setFlatInitial(pendingPlanet ?? "about");
-      setMode("flat");
-    } else {
-      setMode("flight");
-      if (pendingPlanet) {
-        sim.target = pendingPlanet;
-        sim.docked = null;
-        setTarget(pendingPlanet);
+  const launch = useCallback(
+    (destination?: SectionId) => {
+      const course = destination ?? pendingPlanet;
+      report({ type: "launch" });
+      if (!capable) {
+        setFlatInitial(course ?? "about");
+        setMode("flat");
+      } else {
+        setMode("flight");
+        if (course) {
+          sim.target = course;
+          sim.docked = null;
+          setTarget(course);
+        }
       }
-    }
-    setPendingPlanet(null);
-  }, [capable, pendingPlanet, sim]);
+      setPendingPlanet(null);
+    },
+    [capable, pendingPlanet, sim, report]
+  );
 
   const enterTextMode = useCallback(() => {
     setFlatInitial(pendingPlanet ?? "about");
@@ -219,8 +314,24 @@ export default function SpaceExperience() {
 
   return (
     <div className="space" data-mode={mode}>
+      {mode === "intro" && capable && (
+        <div className="space__cinematic" aria-hidden="true">
+          <SpaceScene
+            sim={sim}
+            cinematic
+            active={null}
+            visited={visited}
+            onSelect={() => {}}
+            onDock={() => {}}
+            onRelease={() => {}}
+            onTakeover={() => {}}
+          />
+        </div>
+      )}
       <AnimatePresence>
-        {mode === "intro" && <IntroOverlay key="intro" onLaunch={launch} onTextMode={enterTextMode} />}
+        {mode === "intro" && (
+          <IntroOverlay key="intro" onLaunch={launch} onTextMode={enterTextMode} visitedCount={visited.size} />
+        )}
       </AnimatePresence>
 
       {flying && (
@@ -233,6 +344,7 @@ export default function SpaceExperience() {
               onSelect={handleSelect}
               onDock={handleDock}
               onRelease={handleRelease}
+              onTakeover={handleTakeover}
             />
           </div>
           <div className="space__vignette" aria-hidden="true" />
@@ -246,7 +358,17 @@ export default function SpaceExperience() {
             onSelect={handleSelect}
             cameraMode={cameraMode}
             onCamera={handleCamera}
+            tour={tour}
+            onToggleTour={() => {
+              setTour((value) => {
+                if (!value) report({ type: "tour" });
+                return !value;
+              });
+            }}
+            onContact={() => handleSelect("contact")}
+            medals={`${unlocked.size}/${achievements.length}`}
           />
+          <AchievementToast toast={toast} />
           <AnimatePresence>
             {target && (
               <motion.p
@@ -256,7 +378,8 @@ export default function SpaceExperience() {
                 exit={{ opacity: 0, y: 10 }}
               >
                 Autopilot engaged · flying to{" "}
-                <b>{planets.find((planet) => planet.id === target)?.label}</b> · any key to take over
+                <b>{planets.find((planet) => planet.id === target)?.label}</b>
+                {tour ? ` · tour ${visited.size}/${planets.length} · T to stop` : " · any key to take over"}
               </motion.p>
             )}
           </AnimatePresence>

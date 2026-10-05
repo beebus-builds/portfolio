@@ -6,7 +6,7 @@ function getPool(): Pool {
   if (!pool) {
     const connectionString = process.env.DATABASE_URL;
     if (!connectionString) {
-      throw new Error("DATABASE_URL is not set — add it to .env.local and restart the server.");
+      throw new Error("DATABASE_URL is not set — add it to .env and restart the server.");
     }
     pool = new Pool({ connectionString });
   }

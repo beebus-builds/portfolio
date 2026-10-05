@@ -43,12 +43,12 @@ export default function Radar({ sim, target, docked }: RadarProps) {
   }, [sim]);
 
   return (
-    <div className="radar">
-      <div className="radar__ring" />
-      <div className="radar__ring radar__ring--2" />
-      <div className="radar__tick" />
-      <div className="radar__tick radar__tick--v" />
-      <div className="radar__scan" />
+    <div className="radar" role="img" aria-label="Radar: relative positions of the five worlds">
+      <div className="radar__ring" aria-hidden="true" />
+      <div className="radar__ring radar__ring--2" aria-hidden="true" />
+      <div className="radar__tick" aria-hidden="true" />
+      <div className="radar__tick radar__tick--v" aria-hidden="true" />
+      <div className="radar__scan" aria-hidden="true" />
       {planets.map((p) => (
         <div
           key={p.id}
@@ -61,7 +61,7 @@ export default function Radar({ sim, target, docked }: RadarProps) {
           title={`${p.label} ${p.id === target || p.id === docked ? "(active)" : ""}`}
         />
       ))}
-      <label className="radar__tag">RADAR</label>
+      <span className="radar__tag" aria-hidden="true">RADAR</span>
     </div>
   );
 }

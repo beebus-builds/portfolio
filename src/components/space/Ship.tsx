@@ -30,13 +30,15 @@ type ShipProps = {
   sim: Simulation;
   onDock: (id: SectionId) => void;
   onRelease: () => void;
+  /** Fired when the pilot grabs the sticks and cancels an autopilot course. */
+  onTakeover?: () => void;
 };
 
 const HULL = "#c9d3e2";
 const DARK = "#3a4250";
 const ACCENT = "#6fd4ff";
 
-export default function Ship({ sim, onDock, onRelease }: ShipProps) {
+export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) {
   const group = useRef<THREE.Group>(null);
   const hull = useRef<THREE.Group>(null);
   const exhaust = useRef<THREE.Mesh>(null);
@@ -80,7 +82,10 @@ export default function Ship({ sim, onDock, onRelease }: ShipProps) {
         sim.docked = null;
         onRelease();
       }
-      if (sim.target) sim.target = null;
+      if (sim.target) {
+        sim.target = null;
+        onTakeover?.();
+      }
     }
 
     let thrust = flightInput.thrust;

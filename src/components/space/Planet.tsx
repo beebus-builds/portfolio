@@ -151,7 +151,7 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
           }}
         >
           <sphereGeometry args={[def.radius, 64, 48]} />
-          <meshStandardMaterial map={surface} roughness={0.82} metalness={0.04} emissive={def.bandColor} emissiveIntensity={0.16} />
+          <meshStandardMaterial map={surface} roughness={0.92} metalness={0.02} emissive={def.bandColor} emissiveIntensity={0.05} />
         </mesh>
 
         {def.id !== "skills" && (

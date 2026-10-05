@@ -8,49 +8,77 @@ type AudioEngineProps = {
   sim: Simulation;
 };
 
+function createEngine() {
+  const Ctx =
+    window.AudioContext ??
+    (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+  if (!Ctx) return null;
+  const ctx = new Ctx();
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1200;
+  osc.type = "sawtooth";
+  osc.frequency.value = 80;
+  gain.gain.value = 0;
+  osc.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  return { ctx, osc, gain, filter };
+}
+
+type Engine = NonNullable<ReturnType<typeof createEngine>>;
+
 export default function AudioEngine({ sim }: AudioEngineProps) {
-  const ctxRef = useRef<AudioContext | null>(null);
-  const oscRef = useRef<OscillatorNode | null>(null);
-  const gainRef = useRef<GainNode | null>(null);
-  const filterRef = useRef<BiquadFilterNode | null>(null);
+  const engineRef = useRef<Engine | null>(null);
 
+  // Lazy-init on first gesture: creating the context on mount wastes an
+  // oscillator and trips autoplay policy. Wait for a real interaction.
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    if (!ctxRef.current) {
-      const Ctx = (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext) as typeof AudioContext;
-      if (!Ctx) return;
-      const ctx = new Ctx();
-      ctxRef.current = ctx;
+    let disposed = false;
+    const ensure = () => {
+      if (disposed || engineRef.current) {
+        void engineRef.current?.ctx.resume().catch(() => {});
+        return;
+      }
+      try {
+        engineRef.current = createEngine();
+        void engineRef.current?.ctx.resume().catch(() => {});
+      } catch {
+        engineRef.current = null;
+      }
+    };
+    window.addEventListener("keydown", ensure);
+    window.addEventListener("pointerdown", ensure);
+    return () => {
+      disposed = true;
+      window.removeEventListener("keydown", ensure);
+      window.removeEventListener("pointerdown", ensure);
+    };
+  }, []);
 
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.value = 1200;
-      osc.type = "sawtooth";
-      osc.frequency.value = 80;
-      gain.gain.value = 0;
-      osc.connect(filter);
-      filter.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start();
-
-      oscRef.current = osc;
-      gainRef.current = gain;
-      filterRef.current = filter;
-    }
+  // Suspend while the tab is hidden so the hum never plays to an empty room.
+  useEffect(() => {
+    const onVisibility = () => {
+      const engine = engineRef.current;
+      if (!engine) return;
+      if (document.hidden) void engine.ctx.suspend().catch(() => {});
+      else void engine.ctx.resume().catch(() => {});
+    };
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
 
   // Live engine hum: sim mutates every frame without React re-renders,
   // so poll it on an interval instead of depending on snapshot props.
   useEffect(() => {
     const id = window.setInterval(() => {
-      const ctx = ctxRef.current;
-      const osc = oscRef.current;
-      const gain = gainRef.current;
-      const filter = filterRef.current;
-      if (!ctx || !osc || !gain) return;
-      if (ctx.state === "suspended") return;
+      const engine = engineRef.current;
+      if (!engine) return;
+      const { ctx, osc, gain, filter } = engine;
+      if (ctx.state !== "running") return;
 
       const speed = sim.shipSpeed;
       const boosting = sim.boosting;
@@ -61,7 +89,7 @@ export default function AudioEngine({ sim }: AudioEngineProps) {
       const targetGain = Math.max(0.0001, Math.min(0.18, (thrust > 0 ? 0.12 : 0.02) + speed / 2000));
       try {
         osc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.05);
-        filter?.frequency.setTargetAtTime(600 + speed * 6, ctx.currentTime, 0.05);
+        filter.frequency.setTargetAtTime(600 + speed * 6, ctx.currentTime, 0.05);
         gain.gain.setTargetAtTime(targetGain, ctx.currentTime, 0.05);
       } catch {
         /* audio param unavailable — stay silent */
@@ -70,18 +98,18 @@ export default function AudioEngine({ sim }: AudioEngineProps) {
     return () => window.clearInterval(id);
   }, [sim]);
 
-  // resume on interaction
-  useEffect(() => {
-    const resume = () => {
-      void ctxRef.current?.resume();
-    };
-    window.addEventListener("keydown", resume);
-    window.addEventListener("pointerdown", resume);
-    return () => {
-      window.removeEventListener("keydown", resume);
-      window.removeEventListener("pointerdown", resume);
-    };
-  }, []);
+  useEffect(
+    () => () => {
+      try {
+        engineRef.current?.osc.stop();
+        void engineRef.current?.ctx.close().catch(() => {});
+      } catch {
+        /* already closed */
+      }
+      engineRef.current = null;
+    },
+    []
+  );
 
   return null;
 }

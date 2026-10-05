@@ -1,21 +1,12 @@
 import type { NextConfig } from "next";
 
 /**
- * The space-flight rewrite collapsed a multi-route site into one page, so every
- * old path is now a 404. Five of them have an exact counterpart in the new
- * experience and hand off to it via the `?planet=` deep link that the sitemap
- * already advertises; the rest have nowhere to land but the front door.
- *
- * The old /api/* endpoints are deliberately absent: they were machine-facing,
- * so a 404 is the honest answer.
+ * The site is a classic multi-route portfolio (/, /about, /skills,
+ * /projects, /contact, /resume, /flight) with the space flight kept at
+ * /flight and as an overlay on `?planet=` / `?flight=` deep links.
+ * Only legacy paths with no counterpart land back at the front door.
  */
 const redirects = [
-  { source: "/about", destination: "/?planet=about" },
-  { source: "/skills", destination: "/?planet=skills" },
-  { source: "/projects", destination: "/?planet=projects" },
-  { source: "/projects/:slug", destination: "/?planet=projects" },
-  { source: "/contact", destination: "/?planet=contact" },
-  { source: "/resume", destination: "/?planet=resume" },
   { source: "/blog", destination: "/" },
   { source: "/blog/:slug", destination: "/" },
   { source: "/chess", destination: "/" },
@@ -31,6 +22,23 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.1.*"],
   async redirects() {
     return redirects;
+  },
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+      {
+        source: "/resume.pdf",
+        headers: [{ key: "Cache-Control", value: "public, max-age=86400, stale-while-revalidate=604800" }],
+      },
+    ];
   },
 };
 

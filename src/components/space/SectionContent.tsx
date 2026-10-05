@@ -10,7 +10,7 @@ function AboutPanel() {
     <div className="panel-body">
       <div className="panel-identity">
         <div className="panel-identity__avatar" aria-hidden="true">
-          <img src="/photo.jpg" alt="" />
+          <img src="/photo.jpg" alt="" width={124} height={124} loading="lazy" decoding="async" />
         </div>
         <div>
           <h3>{profile.name}</h3>

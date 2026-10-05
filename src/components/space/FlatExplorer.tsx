@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { planets, profile, type SectionId } from "@/lib/profile";
 import SectionContent from "./SectionContent";
@@ -15,6 +16,9 @@ export default function FlatExplorer({ initial = "about" }: { initial?: SectionI
 
   return (
     <div className="flat">
+      <Link className="flat__home" href="/">
+        ← bibashpoudel.dev
+      </Link>
       <header className="flat__header">
         <div>
           <p className="flat__eyebrow">
@@ -38,6 +42,8 @@ export default function FlatExplorer({ initial = "about" }: { initial?: SectionI
               type="button"
               onClick={() => setActive(item.id)}
               data-active={item.id === active || undefined}
+              aria-current={item.id === active ? "true" : undefined}
+              aria-label={`${item.label} — ${item.title}`}
               style={{ ["--planet" as string]: item.glowColor }}
             >
               <span className="flat__nav-dot" />

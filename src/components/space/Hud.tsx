@@ -13,18 +13,23 @@ type HudProps = {
   onSelect: (id: SectionId) => void;
   cameraMode: CameraMode;
   onCamera: (mode: CameraMode) => void;
+  tour: boolean;
+  onToggleTour: () => void;
+  onContact: () => void;
+  medals?: string;
 };
 
 /**
  * Readout frame around the viewport. Speed and heading are written straight to
  * the DOM from a rAF loop so flying never re-renders React.
  */
-export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera }: HudProps) {
+export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals }: HudProps) {
   const speedRef = useRef<HTMLSpanElement>(null);
   const throttleRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLSpanElement>(null);
   const climbRef = useRef<HTMLSpanElement>(null);
   const altRef = useRef<HTMLSpanElement>(null);
+  const nearestRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     let frame = 0;
@@ -42,6 +47,16 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
         climbRef.current.textContent = `${vsi >= 0 ? "+" : "−"}${String(Math.abs(vsi)).padStart(3, "0")}`;
       }
       if (altRef.current) altRef.current.textContent = String(Math.round(sim.shipPosition.y * 12));
+      if (nearestRef.current) {
+        let best: { label: string; dist: number } | null = null;
+        for (const planet of planets) {
+          const position = sim.positions.get(planet.id);
+          if (!position) continue;
+          const dist = position.distanceTo(sim.shipPosition);
+          if (!best || dist < best.dist) best = { label: planet.label, dist };
+        }
+        nearestRef.current.textContent = best ? `${best.label} ${Math.round(best.dist)}u` : "—";
+      }
     };
     frame = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(frame);
@@ -79,6 +94,29 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
             <small>{index + 1}</small>
           </button>
         ))}
+        <button
+          type="button"
+          onClick={(event) => {
+            event.currentTarget.blur();
+            onToggleTour();
+          }}
+          data-active={tour || undefined}
+          title="Guided tour of every world (T)"
+        >
+          <span>TOUR</span>
+          <small>{tour ? "ON" : "OFF"}</small>
+        </button>
+        <button
+          type="button"
+          className="hud__cta"
+          onClick={(event) => {
+            event.currentTarget.blur();
+            onContact();
+          }}
+          title="Fly to the contact world"
+        >
+          <span>SIGNAL ↗</span>
+        </button>
       </nav>
 
       <div className="hud__cam" role="group" aria-label="Camera angle">
@@ -98,7 +136,7 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
         ))}
       </div>
 
-      <div className="hud__telemetry">
+      <div className="hud__telemetry" aria-hidden="true">
         <div className="hud__speed">
           <span ref={speedRef}>0000</span>
           <small>u/s</small>
@@ -115,8 +153,16 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
             ALT <b ref={altRef}>0</b>
           </span>
           <span>
+            NEAR <b ref={nearestRef}>—</b>
+          </span>
+          <span>
             SYS <b>{profile.status.toUpperCase()}</b>
           </span>
+          {medals && (
+            <span>
+              MEDALS <b>{medals}</b>
+            </span>
+          )}
         </div>
       </div>
 

@@ -53,6 +53,9 @@ export const metadata: Metadata = {
     description,
     images: ["/opengraph-image"],
   },
+  alternates: { canonical: "https://bibashpoudel.dev" },
+  formatDetection: { email: false, address: false, telephone: false },
+  robots: { index: true, follow: true },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
@@ -65,7 +68,6 @@ export const viewport: Viewport = {
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -78,7 +80,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
         <a className="skip-link" href="#document">
-          Skip the flight, read the document
+          Skip to content
         </a>
         {children}
         <script

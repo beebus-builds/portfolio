@@ -71,7 +71,7 @@ const fragmentShader = /* glsl */ `
     color *= 0.8 + 0.2 * lanes;
 
     float core = pow(max(0.0, 1.0 - distance(dir, normalize(uSunDir)) * 1.5), 5.0);
-    color += uCore * core * 0.35;
+    color += uCore * core * 0.55;
 
     gl_FragColor = vec4(color, 1.0);
     #include <tonemapping_fragment>
@@ -94,9 +94,9 @@ type NebulaProps = {
  */
 export default function Nebula({
   radius = 1500,
-  deep = "#010208",
-  cloudA = "#0a0d1a",
-  cloudB = "#0a1420",
+  deep = "#020310",
+  cloudA = "#0d1226",
+  cloudB = "#0e1a2a",
   core = "#ffb27a",
   sunDirection = [-0.6, 0.35, -0.72],
 }: NebulaProps) {

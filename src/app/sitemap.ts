@@ -1,25 +1,26 @@
 import type { MetadataRoute } from "next";
-import { planets } from "@/lib/profile";
+import { projects } from "@/lib/projects";
 
 const baseUrl = "https://bibashpoudel.dev";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
 
-  const root: MetadataRoute.Sitemap = [
-    {
-      url: baseUrl,
-      lastModified: now,
-      changeFrequency: "monthly",
-      priority: 1,
-    },
+  const pages: MetadataRoute.Sitemap = [
+    { url: baseUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },
+    { url: `${baseUrl}/about`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/skills`, lastModified: now, changeFrequency: "monthly", priority: 0.8 },
+    { url: `${baseUrl}/projects`, lastModified: now, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${baseUrl}/contact`, lastModified: now, changeFrequency: "monthly", priority: 0.7 },
+    { url: `${baseUrl}/resume`, lastModified: now, changeFrequency: "yearly", priority: 0.6 },
+    { url: `${baseUrl}/flight`, lastModified: now, changeFrequency: "monthly", priority: 0.5 },
   ];
 
-  const sections: MetadataRoute.Sitemap = planets.map((planet) => ({
-    url: `${baseUrl}/?planet=${planet.id}`,
+  const caseStudies: MetadataRoute.Sitemap = projects.map((project) => ({
+    url: `${baseUrl}/projects/${project.slug}`,
     lastModified: now,
     changeFrequency: "monthly",
-    priority: 0.6,
+    priority: 0.7,
   }));
 
   const resume: MetadataRoute.Sitemap = [
@@ -31,5 +32,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  return [...root, ...sections, ...resume];
+  return [...pages, ...caseStudies, ...resume];
 }

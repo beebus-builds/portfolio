@@ -7,7 +7,6 @@ import type { Simulation } from "@/lib/simulation";
 
 const COUNT = 420;
 const SPREAD = 26;
-const NEAR = 14;
 const FAR = 90;
 
 /**

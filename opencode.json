@@ -1,0 +1,112 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Free-model setup verified 2026-10-02 for opencode 1.18.x (v1 `provider` schema).
+  // Already working in this environment (auth.json): opencode Zen free, openrouter :free, google, nvidia.
+  // Everything else below activates automatically once you add its free API key — no credit card for the permanent tiers.
+  "model": "openrouter/qwen/qwen3.8-27b:free",
+  "small_model": "google/gemini-3.1-flash-lite",
+  "provider": {
+    // ---------- Permanent free, no key needed (local) ----------
+    "ollama": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Ollama (local, free forever)",
+      "options": {
+        "baseURL": "http://localhost:11434/v1"
+      },
+      "models": {
+        "qwen3-coder:30b": {
+          "name": "Qwen3 Coder 30B (local)"
+        },
+        "qwen2.5-coder:7b": {
+          "name": "Qwen2.5 Coder 7B (local)"
+        },
+        "qwen2.5-coder:1.5b": {
+          "name": "Qwen2.5 Coder 1.5B fast (local)"
+        },
+        "deepseek-coder-v2:16b": {
+          "name": "DeepSeek Coder V2 16B (local)"
+        },
+        "llama3.1:8b": {
+          "name": "Llama 3.1 8B (local)"
+        },
+        "gemma3:4b": {
+          "name": "Gemma 3 4B (local)"
+        }
+      }
+    },
+    "lmstudio": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "LM Studio (local, free forever)",
+      "options": {
+        "baseURL": "http://127.0.0.1:1234/v1"
+      },
+      "models": {
+        "google/gemma-3n-e4b": {
+          "name": "Gemma 3n-e4b (local)"
+        }
+      }
+    },
+    "llama.cpp": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "llama-server (local, free forever)",
+      "options": {
+        "baseURL": "http://127.0.0.1:8080/v1"
+      },
+      "models": {
+        "qwen3-coder:a3b": {
+          "name": "Qwen3-Coder a3b-30b (local)",
+          "limit": {
+            "context": 128000,
+            "output": 65536
+          }
+        }
+      }
+    },
+    // ---------- Permanent free tiers, free API key required (no card) ----------
+    // Get a key, then set the env var or run `/connect` in the TUI. Provider activates on restart.
+    // Groq: console.groq.com — 30 RPM / 1,000 RPD, ~200K TPD on gpt-oss-120b/20b, qwen3.8-27b. No expiry.
+    "groq": {
+      "options": {
+        "apiKey": "{env:GROQ_API_KEY}"
+      }
+    },
+    // Cerebras: cloud.cerebras.ai — ~30 RPM / ~1M tokens/day on gpt-oss-120b, qwen-3.8-27b. Very fast wafer-scale.
+    "cerebras": {
+      "options": {
+        "apiKey": "{env:CEREBRAS_API_KEY}"
+      }
+    },
+    // Mistral La Plateforme Experiment tier: ~1B tokens/mo on codestral, mistral-small/medium. Great for code.
+    "mistral": {
+      "options": {
+        "apiKey": "{env:MISTRAL_API_KEY}"
+      }
+    },
+    // Hugging Face Inference Providers: small monthly free allowance + serverless rate limits. HF_TOKEN with inference.serverless.write.
+    "huggingface": {
+      "options": {
+        "apiKey": "{env:HF_TOKEN}"
+      }
+    },
+    // Cloudflare Workers AI: ~10K neurons/day, edge Llama/Qwen/Gemma. Needs CLOUDFLARE_API_KEY + CLOUDFLARE_ACCOUNT_ID.
+    "cloudflare-workers-ai": {
+      "options": {
+        "apiKey": "{env:CLOUDFLARE_API_KEY}"
+      }
+    },
+    // Cohere trial (non-commercial, good for RAG prototyping + north-mini-code).
+    "cohere": {
+      "options": {
+        "apiKey": "{env:COHERE_API_KEY}"
+      }
+    }
+    // NOTE: google, nvidia, openrouter, and opencode (Zen) are intentionally NOT overridden here —
+    // they already work via ~/.local/share/opencode/auth.json (`/connect` keys) and models.dev catalog:
+    //   opencode/*-free (10 models incl. big-pickle, muse-spark-1.3-contributor-free, nemotron-3-ultra-free)
+    //   openrouter/*:free (17 models) + openrouter/openrouter/free router
+    //   google/gemini-flash-latest, google/gemini-flash-lite-latest, google/gemini-2.5-flash-lite, ...
+    //   nvidia/nvidia/nemotron-3-super-120b-a12b, nvidia/nvidia/nemotron-3-ultra-550b-a55b, ...
+    // Trial-credit providers (Together, Fireworks, DeepInfra, Novita, Nebius, SambaNova, Scaleway, Upstage, AI21)
+    // are deliberately excluded — they expire and then bill. Add them via `/connect` only if you want a burst test.
+  }
+}

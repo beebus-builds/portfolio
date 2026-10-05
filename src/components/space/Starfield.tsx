@@ -217,9 +217,9 @@ function CosmicDust({ count = 550, radius = 85 }: { count?: number; radius?: num
     <points ref={points} geometry={geometry} frustumCulled={false}>
       <pointsMaterial
         map={texture}
-        size={0.55}
+        size={0.7}
         transparent
-        opacity={0.22}
+        opacity={0.3}
         color="#9db8d8"
         depthWrite={false}
         blending={THREE.AdditiveBlending}
