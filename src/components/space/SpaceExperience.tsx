@@ -148,6 +148,7 @@ export default function SpaceExperience() {
     (id: SectionId) => {
       sim.docked = id;
       sim.target = null;
+      sim.landing = id;
       setDocked(id);
       setTarget(null);
       setEntering(id);
@@ -164,6 +165,7 @@ export default function SpaceExperience() {
   const handleUndock = useCallback(() => {
     sim.docked = null;
     sim.target = null;
+    sim.landing = null;
     setDocked(null);
     setTarget(null);
     setWorld(null);
@@ -218,11 +220,13 @@ export default function SpaceExperience() {
   useEffect(() => {
     if (!entering) return;
     const timer = window.setTimeout(() => {
+      sim.landing = null;
+      sim.docked = null;
       setWorld(entering);
       setEntering(null);
     }, 1650);
     return () => window.clearTimeout(timer);
-  }, [entering]);
+  }, [entering, sim]);
 
   /** While a world is open the flight canvas stays mounted behind it. */
   useEffect(() => {
@@ -243,9 +247,10 @@ export default function SpaceExperience() {
     (id: SectionId) => {
       setWorld(null);
       setEntering(null);
+      sim.landing = null;
       handleSelect(id);
     },
-    [handleSelect]
+    [handleSelect, sim]
   );
 
   // Tour mode: press T to auto-cycle planets
@@ -345,6 +350,7 @@ export default function SpaceExperience() {
               onDock={handleDock}
               onRelease={handleRelease}
               onTakeover={handleTakeover}
+              dive={entering}
             />
           </div>
           <div className="space__vignette" aria-hidden="true" />

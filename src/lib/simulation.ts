@@ -16,6 +16,8 @@ export type Simulation = {
   boosting: boolean;
   docked: SectionId | null;
   target: SectionId | null;
+  /** Planet currently being descended onto (atmospheric entry). */
+  landing: SectionId | null;
 };
 
 export function createSimulation(): Simulation {
@@ -31,6 +33,7 @@ export function createSimulation(): Simulation {
     boosting: false,
     docked: null,
     target: null,
+    landing: null,
   };
 }
 

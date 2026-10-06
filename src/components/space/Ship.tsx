@@ -77,7 +77,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
       flightInput.roll !== 0 ||
       flightInput.brake;
 
-    if (manual) {
+    if (manual && !sim.landing) {
       if (sim.docked) {
         sim.docked = null;
         onRelease();
@@ -93,9 +93,19 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
     let pitch = flightInput.pitch;
     let roll = flightInput.roll;
     let boosting = flightInput.boost;
-    const docked = sim.docked;
 
-    if (docked) {
+    // During atmospheric descent the autopilot flies; ignore inputs.
+    if (sim.landing) {
+      thrust = 0;
+      yaw = 0;
+      pitch = 0;
+      roll = 0;
+      boosting = false;
+      velocity.current.multiplyScalar(0);
+    }
+    const docked = sim.landing ? null : sim.docked;
+
+    if (!sim.landing && docked) {
       thrust = 0;
       yaw = 0;
       pitch = 0;

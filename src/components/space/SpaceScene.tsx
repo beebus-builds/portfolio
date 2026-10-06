@@ -7,6 +7,7 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { SectionId } from "@/lib/profile";
 import type { Simulation } from "@/lib/simulation";import ChaseCamera from "./ChaseCamera";
+import DescentCamera from "./DescentCamera";
 import Nebula from "./Nebula";
 import { PlanetSystem } from "./Planet";
 import Ship from "./Ship";
@@ -24,6 +25,8 @@ type SpaceSceneProps = {
   onTakeover: () => void;
   /** Homepage mode: slow orbital establishing shot, no ship or chase cam. */
   cinematic?: boolean;
+  /** Planet currently being descended onto — camera hands off to the descent. */
+  dive?: SectionId | null;
 };
 
 /** Slow orbital establishing shot for the homepage: circles the system. */
@@ -46,6 +49,7 @@ export default function SpaceScene({
   onRelease,
   cinematic = false,
   onTakeover,
+  dive = null,
 }: SpaceSceneProps) {
   const sunPosition = useMemo(() => SUN_DIRECTION.clone().multiplyScalar(60), []);
   const sunDirection = useMemo(() => SUN_DIRECTION.toArray(), []);
@@ -79,7 +83,7 @@ export default function SpaceScene({
           <>
             <WarpStreaks sim={sim} />
             <Ship sim={sim} onDock={onDock} onRelease={onRelease} onTakeover={onTakeover} />
-            <ChaseCamera sim={sim} />
+            {dive ? <DescentCamera sim={sim} id={dive} /> : <ChaseCamera sim={sim} />}
           </>
         )}
         {cinematic && <CinematicCamera />}
