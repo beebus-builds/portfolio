@@ -2,9 +2,9 @@ import type { NextConfig } from "next";
 
 /**
  * The site is a classic multi-route portfolio (/, /about, /skills,
- * /projects, /contact, /resume, /flight) with the space flight kept at
- * /flight and as an overlay on `?planet=` / `?flight=` deep links.
- * Only legacy paths with no counterpart land back at the front door.
+ * /projects, /contact, /resume, /experience, /blog, /stats) with the
+ * space flight kept at /flight and as an overlay on `?planet=` / `?flight=`
+ * deep links. Only legacy paths with no counterpart land back at the front door.
  */
 const redirects = [
   { source: "/chess", destination: "/" },
