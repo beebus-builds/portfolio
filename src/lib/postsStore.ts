@@ -76,18 +76,38 @@ function rowToPost(row: PostRow): Post {
  * The serverless pool speaks HTTP and accepts one statement per query, so each
  * ALTER is sent separately and memoized under its own key.
  */
-const MIGRATIONS = [
-  "cover_accent",
-  "cover_variant",
-].map(
-  (column) =>
-    `ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS ${column} ${column === "cover_accent" ? "TEXT NOT NULL DEFAULT '#38bdf8'" : "INTEGER NOT NULL DEFAULT 0"}`,
-);
+const MIGRATIONS: Array<[string, string]> = [
+  ["cover_accent", "TEXT NOT NULL DEFAULT '#38bdf8'"],
+  ["cover_variant", "INTEGER NOT NULL DEFAULT 0"],
+];
+
+/**
+ * Two concurrent admin requests can race on the same ALTER TABLE and Neon will
+ * reject one with a tuple-lock error, so each migration gets a couple of
+ * retries before we give up. The pool speaks HTTP and takes one statement per
+ * query, so they cannot be batched.
+ */
+async function runMigration(key: string, sql: string): Promise<void> {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    try {
+      await ensureSchema(key, sql);
+      return;
+    } catch (error) {
+      lastError = error;
+      await new Promise((resolve) => setTimeout(resolve, 120 * (attempt + 1)));
+    }
+  }
+  throw lastError;
+}
 
 async function ensurePostsTable(): Promise<void> {
   await ensureSchema("blog_posts", SCHEMA);
-  for (const [index, migration] of MIGRATIONS.entries()) {
-    await ensureSchema(`blog_posts:migration:${index}`, migration);
+  for (const [column, definition] of MIGRATIONS) {
+    await runMigration(
+      `blog_posts:migration:${column}`,
+      `ALTER TABLE blog_posts ADD COLUMN IF NOT EXISTS ${column} ${definition}`
+    );
   }
 }
 
