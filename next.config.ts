@@ -7,14 +7,10 @@ import type { NextConfig } from "next";
  * Only legacy paths with no counterpart land back at the front door.
  */
 const redirects = [
-  { source: "/blog", destination: "/" },
-  { source: "/blog/:slug", destination: "/" },
   { source: "/chess", destination: "/" },
   { source: "/commands", destination: "/" },
   { source: "/education", destination: "/" },
   { source: "/rss.xml", destination: "/" },
-  { source: "/admin", destination: "/" },
-  { source: "/admin/:path*", destination: "/" },
 ].map((rule) => ({ ...rule, permanent: true }));
 
 const nextConfig: NextConfig = {

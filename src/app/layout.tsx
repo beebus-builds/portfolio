@@ -76,7 +76,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={`${display.variable} ${mono.variable}`}>
         <script
           dangerouslySetInnerHTML={{
-            __html: 'document.documentElement.setAttribute("data-js","on")',
+            __html: 'document.documentElement.setAttribute("data-js","on");try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}',
           }}
         />
         <a className="skip-link" href="#document">

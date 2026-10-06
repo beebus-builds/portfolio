@@ -11,6 +11,27 @@
   color-scheme: dark;
 }
 
+:root[data-theme="light"] {
+  --void: #f2f6fa;
+  --ink: #12202e;
+  --muted: #48606f;
+  --line: rgb(0 0 0 / 14%);
+  --planet: #0891b2;
+  color-scheme: light;
+}
+
+:root[data-theme="light"] body {
+  background: var(--void);
+  color: var(--ink);
+}
+
+:root[data-theme="light"] .site-card,
+:root[data-theme="light"] .flight-teaser,
+:root[data-theme="light"] .doc {
+  background: rgb(0 0 0 / 3%);
+  border-color: var(--line);
+}
+
 * {
   box-sizing: border-box;
 }

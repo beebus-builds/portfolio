@@ -8,7 +8,7 @@ import { projects } from "@/lib/projects";
 
 export const metadata: Metadata = {
   title: `Projects — ${profile.name}`,
-  description: `Six shipped builds with the constraint that shaped each one and the outcome it produced: ${projects
+  description: `Eight shipped builds with the constraint that shaped each one and the outcome it produced: ${projects
     .map((project) => project.title)
     .join("; ")}.`,
 };
@@ -19,7 +19,7 @@ export default function ProjectsPage() {
       hero={
         <PageHero
           kicker="03 / Archive — Oberon"
-          title="Six missions, fully logged"
+          title="Eight missions, fully logged"
           lede="Each build below carries the constraint that shaped it and the outcome it produced. Open any mission for highlights, process, and proof."
           meta={[`${projects.length} case studies`, "Full-stack · WordPress", "2024 — 2025"]}
         />

@@ -71,34 +71,80 @@ export async function POST(req: NextRequest) {
     )
     .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CHARS) }));
 
+  const models = (process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free")
+    .split(",")
+    .map((m) => m.trim())
+    .filter(Boolean)
+    .concat([
+      "google/gemma-4-31b-it:free",
+      "nvidia/nemotron-3-super-120b-a12b:free",
+      "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
+    ])
+    // de-dupe while preserving order
+    .filter((m, i, arr) => arr.indexOf(m) === i);
+
+  let reply: string | null = null;
   try {
-    const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": req.headers.get("origin") ?? "http://localhost:3000",
-        "X-Title": "devverse portfolio co-pilot",
-      },
-      body: JSON.stringify({
-        model: process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free",
-        messages: [{ role: "system", content: buildSystemPrompt() }, ...clean],
-        max_tokens: 300,
-      }),
-    });
-    if (!upstream.ok) {
-      const detail = await upstream.text();
-      console.error("OpenRouter error:", upstream.status, detail);
-      return NextResponse.json({ error: "The co-pilot lost the signal." }, { status: 502 });
+    for (const model of models) {
+      try {
+        const upstream = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": req.headers.get("origin") ?? "http://localhost:3000",
+            "X-Title": "devverse portfolio co-pilot",
+          },
+          body: JSON.stringify({
+            model,
+            messages: [{ role: "system", content: buildSystemPrompt() }, ...clean],
+            max_tokens: 400,
+          }),
+        });
+        if (!upstream.ok) {
+          console.error(`OpenRouter ${model} failed:`, upstream.status);
+          continue;
+        }
+        const data = (await upstream.json()) as {
+          choices?: Array<{ message?: { content?: string | null } }>;
+        };
+        const text = data.choices?.[0]?.message?.content?.trim();
+        if (text) {
+          reply = text;
+          break;
+        }
+      } catch (error) {
+        console.error(`OpenRouter ${model} error:`, error);
+      }
     }
-    const data = (await upstream.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const reply = data.choices?.[0]?.message?.content?.trim();
-    if (!reply) return NextResponse.json({ error: "Empty transmission." }, { status: 502 });
+  } finally {
+    // Free models can all be down at once. Never leave the visitor on a dead
+    // signal — fall back to a canned answer built from the local data.
+    reply ??= fallbackAnswer(clean[clean.length - 1]?.content ?? "");
     return NextResponse.json({ reply });
-  } catch (error) {
-    console.error("POST /api/copilot failed:", error);
-    return NextResponse.json({ error: "The co-pilot could not respond." }, { status: 500 });
   }
+}
+
+/** Last-resort, zero-network answer so the co-pilot always responds. */
+function fallbackAnswer(question: string): string {
+  const q = question.toLowerCase();
+  if (q.includes("contact") || q.includes("email") || q.includes("hire") || q.includes("reach")) {
+    return `You can reach Bibash at ${profile.links[0].value}, or fly to the CONTACT planet in the system.`;
+  }
+  if (q.includes("skill") || q.includes("stack") || q.includes("tech") || q.includes("build")) {
+    return `Bibash works across ${skills
+      .slice(0, 4)
+      .map((s) => s.name.toLowerCase())
+      .join(", ")}. FastAPI/PostgreSQL for data-heavy work, and strong in creative interface engineering.`;
+  }
+  if (q.includes("project") || q.includes("work") || q.includes("built") || q.includes("portfolio")) {
+    return `Recent work includes ${projects
+      .slice(0, 3)
+      .map((p) => p.title)
+      .join(", ")}. Fly to the PROJECTS planet for the full archive.`;
+  }
+  if (q.includes("where") || q.includes("location") || q.includes("based")) {
+    return `Bibash is based in ${profile.location} (${profile.coordinates}), working with teams everywhere.`;
+  }
+  return `I'm flying on backup power right now, so I can only give you the short brief: Bibash is a ${profile.role.toLowerCase()} based in ${profile.location}. Fly to a planet or send him a signal on the CONTACT planet.`;
 }

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { posts } from "@/lib/posts";
 import { projects } from "@/lib/projects";
 
 const baseUrl = "https://bibashpoudel.dev";
@@ -25,6 +26,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.7,
   }));
 
+  const postPages: MetadataRoute.Sitemap = posts.map((post) => ({
+    url: `${baseUrl}/blog/${post.slug}`,
+    lastModified: now,
+    changeFrequency: "monthly",
+    priority: 0.5,
+  }));
+
   const resume: MetadataRoute.Sitemap = [
     {
       url: `${baseUrl}/resume.pdf`,
@@ -34,5 +42,5 @@ export default function sitemap(): MetadataRoute.Sitemap {
     },
   ];
 
-  return [...pages, ...caseStudies, ...resume];
+  return [...pages, ...caseStudies, ...postPages, ...resume];
 }

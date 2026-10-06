@@ -28,7 +28,9 @@ export default function BlogPage() {
               <span className="site-card__kicker">
                 {post.date} · {post.minutes} min read
               </span>
-              <h3>{post.title}</h3>
+              <h3>
+                <Link href={`/blog/${post.slug}`}>{post.title}</Link>
+              </h3>
               <p>{post.excerpt}</p>
               <ul>
                 {post.tags.map((tag) => (

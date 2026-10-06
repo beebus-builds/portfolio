@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { profile } from "@/lib/profile";
+import ThemeToggle from "./ThemeToggle";
 
 const LINKS = [
   { href: "/about", label: "About" },
   { href: "/skills", label: "Skills" },
   { href: "/projects", label: "Projects" },
   { href: "/stats", label: "Stats" },
+  { href: "/experience", label: "Experience" },
+  { href: "/blog", label: "Blog" },
   { href: "/contact", label: "Contact" },
   { href: "/resume", label: "Resume" },
 ];
@@ -70,6 +73,7 @@ export default function SiteNavbar() {
               ))}
             </ul>
           </nav>
+          <ThemeToggle />
           <Link className="site-nav__cta" href="/flight">
             Enter flight ↗
           </Link>
