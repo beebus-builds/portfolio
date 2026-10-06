@@ -83,7 +83,7 @@ export default async function CaseStudyPage({ params }: CaseStudyProps) {
                 gap: "12px",
                 margin: 0,
                 paddingLeft: "22px",
-                color: "#b6c6d4",
+                color: "var(--muted)",
                 fontSize: "14.5px",
                 lineHeight: 1.7,
               }}

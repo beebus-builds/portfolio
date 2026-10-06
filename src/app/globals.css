@@ -6,9 +6,12 @@
   --void: #04050c;
   --ink: #eaf2f8;
   --muted: #9db2c4;
-  --line: rgb(255 255 255 / 12%);
+  --line: rgb(var(--glass) / 12%);
   --planet: #6fe6f4;
   color-scheme: dark;
+  --glass: 255 255 255;
+  --btn: #eaf2f8;
+  --btn-ink: #04050c;
 }
 
 :root[data-theme="light"] {
@@ -18,6 +21,9 @@
   --line: rgb(0 0 0 / 14%);
   --planet: #0891b2;
   color-scheme: light;
+  --glass: 0 0 0;
+  --btn: #12202e;
+  --btn-ink: #f2f6fa;
 }
 
 :root[data-theme="light"] body {
@@ -78,8 +84,8 @@ a:focus-visible {
   z-index: 200;
   padding: 10px 18px;
   border-radius: 999px;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
   font: 600 11px/1 var(--font-code);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -295,7 +301,7 @@ body:has(.index:target) {
   display: grid;
   gap: 2px;
   padding: 6px 12px;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid rgb(var(--glass) / 14%);
   border-radius: 3px;
   background: rgb(4 6 14 / 62%);
   backdrop-filter: blur(6px);
@@ -307,7 +313,7 @@ body:has(.index:target) {
 .planet-tag:hover,
 .planet-tag[data-hovered] {
   transform: translateY(-2px);
-  border-color: rgb(255 255 255 / 40%);
+  border-color: rgb(var(--glass) / 40%);
   background: rgb(8 12 24 / 82%);
 }
 
@@ -322,7 +328,7 @@ body:has(.index:target) {
 }
 
 .planet-tag__meta {
-  color: rgb(255 255 255 / 45%);
+  color: rgb(var(--glass) / 45%);
   font-size: 9px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -408,7 +414,7 @@ body:has(.index:target) {
   align-items: center;
   gap: 7px;
   padding: 7px 12px;
-  border: 1px solid rgb(255 255 255 / 12%);
+  border: 1px solid rgb(var(--glass) / 12%);
   border-radius: 999px;
   font: 500 9px/1 var(--font-code);
   letter-spacing: 0.2em;
@@ -419,13 +425,13 @@ body:has(.index:target) {
 .hud__nav button[data-active] {
   border-color: var(--planet);
   color: var(--planet);
-  background: rgb(255 255 255 / 4%);
+  background: rgb(var(--glass) / 4%);
 }
 
 .hud__nav button.hud__cta {
   border-color: transparent;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
 }
 
 .hud__nav button.hud__cta:hover {
@@ -435,7 +441,7 @@ body:has(.index:target) {
 }
 
 .hud__nav small {
-  color: rgb(255 255 255 / 32%);
+  color: rgb(var(--glass) / 32%);
   font-size: 8px;
 }
 
@@ -448,7 +454,7 @@ body:has(.index:target) {
   align-items: center;
   gap: 6px;
   padding: 4px;
-  border: 1px solid rgb(255 255 255 / 10%);
+  border: 1px solid rgb(var(--glass) / 10%);
   border-radius: 999px;
   background: rgb(4 6 14 / 55%);
   backdrop-filter: blur(8px);
@@ -474,13 +480,13 @@ body:has(.index:target) {
 
 .hud__cam button:hover {
   color: var(--ink);
-  border-color: rgb(255 255 255 / 20%);
+  border-color: rgb(var(--glass) / 20%);
 }
 
 .hud__cam button[data-active] {
   border-color: var(--planet);
   color: var(--planet);
-  background: rgb(255 255 255 / 4%);
+  background: rgb(var(--glass) / 4%);
 }
 
 .hud__telemetry {
@@ -519,7 +525,7 @@ body:has(.index:target) {
   width: 100%;
   height: 3px;
   overflow: hidden;
-  background: rgb(255 255 255 / 12%);
+  background: rgb(var(--glass) / 12%);
 }
 
 .hud__throttle::after {
@@ -569,7 +575,7 @@ body:has(.index:target) {
   align-self: end;
   justify-self: center;
   margin: 0;
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--glass) / 40%);
   font: 400 9px/1 var(--font-code);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -583,7 +589,7 @@ body:has(.index:target) {
   transform: translateX(-50%);
   min-width: 240px;
   padding: 12px 16px;
-  border: 1px solid rgb(255 255 255 / 16%);
+  border: 1px solid rgb(var(--glass) / 16%);
   border-radius: 10px;
   background: rgb(8 10 18 / 80%);
   backdrop-filter: blur(8px);
@@ -608,7 +614,7 @@ body:has(.index:target) {
 
 .achievement p {
   margin: 4px 0 0;
-  color: rgb(255 255 255 / 55%);
+  color: rgb(var(--glass) / 55%);
   font-size: 11px;
 }
 
@@ -621,7 +627,7 @@ body:has(.index:target) {
   align-items: center;
   gap: 8px;
   padding: 10px 16px;
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid rgb(var(--glass) / 18%);
   border-radius: 999px;
   background: rgb(8 10 18 / 78%);
   backdrop-filter: blur(8px);
@@ -644,7 +650,7 @@ body:has(.index:target) {
   max-height: min(480px, calc(100vh - 140px));
   display: flex;
   flex-direction: column;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid rgb(var(--glass) / 14%);
   border-radius: 14px;
   background: rgb(6 8 15 / 92%);
   backdrop-filter: blur(10px);
@@ -657,7 +663,7 @@ body:has(.index:target) {
   justify-content: space-between;
   align-items: center;
   padding: 10px 14px;
-  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  border-bottom: 1px solid rgb(var(--glass) / 10%);
   font: 600 10px/1 var(--font-code);
   letter-spacing: 0.24em;
   color: #8ad6ff;
@@ -666,7 +672,7 @@ body:has(.index:target) {
 .copilot__head button {
   background: none;
   border: 0;
-  color: rgb(255 255 255 / 60%);
+  color: rgb(var(--glass) / 60%);
   cursor: pointer;
 }
 
@@ -690,7 +696,7 @@ body:has(.index:target) {
 
 .copilot__log p[data-role="assistant"] {
   align-self: flex-start;
-  background: rgb(255 255 255 / 7%);
+  background: rgb(var(--glass) / 7%);
   color: var(--ink);
 }
 
@@ -701,7 +707,7 @@ body:has(.index:target) {
 }
 
 .copilot__typing {
-  color: rgb(255 255 255 / 45%);
+  color: rgb(var(--glass) / 45%);
   letter-spacing: 0.2em;
 }
 
@@ -715,9 +721,9 @@ body:has(.index:target) {
 .copilot__suggest button {
   padding: 5px 10px;
   border-radius: 999px;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid rgb(var(--glass) / 14%);
   background: transparent;
-  color: rgb(255 255 255 / 70%);
+  color: rgb(var(--glass) / 70%);
   font-size: 11px;
   cursor: pointer;
 }
@@ -726,15 +732,15 @@ body:has(.index:target) {
   display: flex;
   gap: 8px;
   padding: 10px 14px;
-  border-top: 1px solid rgb(255 255 255 / 10%);
+  border-top: 1px solid rgb(var(--glass) / 10%);
 }
 
 .copilot__form input {
   flex: 1;
   padding: 8px 11px;
   border-radius: 8px;
-  border: 1px solid rgb(255 255 255 / 14%);
-  background: rgb(255 255 255 / 6%);
+  border: 1px solid rgb(var(--glass) / 14%);
+  background: rgb(var(--glass) / 6%);
   color: var(--ink);
   font-size: 12.5px;
 }
@@ -758,7 +764,7 @@ body:has(.index:target) {
 kbd {
   min-width: 22px;
   padding: 3px 6px;
-  border: 1px solid rgb(255 255 255 / 16%);
+  border: 1px solid rgb(var(--glass) / 16%);
   border-radius: 3px;
   color: var(--ink);
   font: inherit;
@@ -772,7 +778,7 @@ kbd {
   z-index: 25;
   margin: 0;
   padding: 9px 18px;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid rgb(var(--glass) / 14%);
   border-radius: 999px;
   background: rgb(4 6 14 / 70%);
   backdrop-filter: blur(8px);
@@ -878,7 +884,7 @@ kbd {
 
 .intro__presents {
   margin: 0 0 14px;
-  color: rgb(255 255 255 / 38%);
+  color: rgb(var(--glass) / 38%);
   font: 500 10px/1 var(--font-code);
   letter-spacing: 0.42em;
   text-transform: uppercase;
@@ -928,9 +934,9 @@ kbd {
   position: absolute;
   inset: -20%;
   background:
-    radial-gradient(1.5px 22px at 20% 50%, rgb(255 255 255 / 55%), transparent 70%),
+    radial-gradient(1.5px 22px at 20% 50%, rgb(var(--glass) / 55%), transparent 70%),
     radial-gradient(1.5px 30px at 65% 40%, color-mix(in srgb, var(--planet) 70%, #fff), transparent 70%),
-    radial-gradient(1px 18px at 82% 62%, rgb(255 255 255 / 40%), transparent 70%),
+    radial-gradient(1px 18px at 82% 62%, rgb(var(--glass) / 40%), transparent 70%),
     radial-gradient(2px 42px at 42% 70%, color-mix(in srgb, var(--planet) 55%, transparent), transparent 70%);
   opacity: 0.7;
   animation: flashStreak 1.4s ease-in forwards;
@@ -960,7 +966,7 @@ kbd {
 
 .flash__label {
   position: relative;
-  color: #eaf2f8;
+  color: var(--ink);
   font: 600 clamp(18px, 3.4vw, 26px)/1 var(--font-code);
   letter-spacing: inherit;
   text-transform: uppercase;
@@ -981,7 +987,7 @@ kbd {
   margin-top: 10px;
   overflow: hidden;
   border-radius: 999px;
-  background: rgb(255 255 255 / 14%);
+  background: rgb(var(--glass) / 14%);
 }
 
 .flash__progress {
@@ -1150,7 +1156,7 @@ kbd {
   padding: 18px 28px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 2.5%);
+  background: rgb(var(--glass) / 2.5%);
 }
 
 .world__meta div {
@@ -1183,7 +1189,7 @@ kbd {
   padding: 2px 7px;
   border: 1px solid var(--line);
   border-radius: 4px;
-  background: rgb(255 255 255 / 4%);
+  background: rgb(var(--glass) / 4%);
   font-family: inherit;
 }
 
@@ -1251,9 +1257,9 @@ kbd {
   gap: 6px;
   justify-items: start;
   padding: 14px 16px;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid rgb(var(--glass) / 14%);
   border-radius: 10px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
   text-align: left;
   transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
 }
@@ -1275,7 +1281,7 @@ kbd {
 .world__jump button:hover {
   transform: translateY(-2px);
   border-color: var(--planet);
-  background: rgb(255 255 255 / 4%);
+  background: rgb(var(--glass) / 4%);
 }
 
 .intro h1 {
@@ -1363,8 +1369,8 @@ kbd {
 }
 
 .intro__sys--charted {
-  border-color: rgb(255 255 255 / 16%);
-  background: rgb(255 255 255 / 3%);
+  border-color: rgb(var(--glass) / 16%);
+  background: rgb(var(--glass) / 3%);
   color: var(--muted);
 }
 
@@ -1401,9 +1407,9 @@ kbd {
   align-items: center;
   gap: 12px;
   padding: 14px 16px;
-  border: 1px solid rgb(255 255 255 / 12%);
+  border: 1px solid rgb(var(--glass) / 12%);
   border-radius: 14px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
   text-align: left;
   transition: border-color 200ms ease, background 200ms ease, transform 200ms ease, box-shadow 200ms ease;
 }
@@ -1411,7 +1417,7 @@ kbd {
 .intro__planet:hover {
   transform: translateY(-2px);
   border-color: color-mix(in srgb, var(--planet) 60%, transparent);
-  background: rgb(255 255 255 / 4%);
+  background: rgb(var(--glass) / 4%);
 }
 
 .intro__planet[data-active] {
@@ -1459,7 +1465,7 @@ kbd {
   padding: 5px 8px;
   border: 1px solid var(--line);
   border-radius: 6px;
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--glass) / 40%);
   font: 500 10px/1 var(--font-code);
 }
 
@@ -1491,8 +1497,8 @@ kbd {
   padding: 15px 30px;
   overflow: hidden;
   border-radius: 999px;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
   font: 600 11px/1 var(--font-code);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -1519,14 +1525,14 @@ kbd {
 }
 
 .intro__actions .intro__secondary {
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid rgb(var(--glass) / 18%);
   background: transparent;
   color: var(--ink);
 }
 
 .intro__actions .intro__secondary:hover {
   box-shadow: none;
-  border-color: rgb(255 255 255 / 40%);
+  border-color: rgb(var(--glass) / 40%);
 }
 
 .intro__keys {
@@ -1561,7 +1567,7 @@ kbd {
 .panel-label {
   display: block;
   margin-bottom: 5px;
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--glass) / 40%);
   font: 400 8px/1 var(--font-code);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -1661,8 +1667,8 @@ kbd {
 
 .panel-links a:hover {
   transform: translateX(3px);
-  border-color: rgb(255 255 255 / 28%);
-  background: rgb(255 255 255 / 3%);
+  border-color: rgb(var(--glass) / 28%);
+  background: rgb(var(--glass) / 3%);
 }
 
 .panel-links b {
@@ -1680,7 +1686,7 @@ kbd {
 }
 
 .panel-links em {
-  color: rgb(255 255 255 / 38%);
+  color: rgb(var(--glass) / 38%);
   font: 400 9px/1.3 var(--font-code);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -1747,13 +1753,13 @@ kbd {
 .skill-bar {
   display: block;
   height: 2px;
-  background: rgb(255 255 255 / 10%);
+  background: rgb(var(--glass) / 10%);
 }
 
 .skill-bar span {
   display: block;
   height: 100%;
-  background: linear-gradient(90deg, var(--planet), rgb(255 255 255 / 70%));
+  background: linear-gradient(90deg, var(--planet), rgb(var(--glass) / 70%));
   box-shadow: 0 0 12px -2px var(--planet);
 }
 
@@ -1767,7 +1773,7 @@ kbd {
   border: 1px solid var(--line);
   border-left-width: 2px;
   border-radius: 3px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .project-card__head {
@@ -1778,7 +1784,7 @@ kbd {
 }
 
 .project-card__index {
-  color: rgb(255 255 255 / 30%);
+  color: rgb(var(--glass) / 30%);
   font: 500 11px/1 var(--font-code);
 }
 
@@ -1870,11 +1876,11 @@ kbd {
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 2px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .project-card__more summary {
-  color: rgb(255 255 255 / 45%);
+  color: rgb(var(--glass) / 45%);
   font: 500 9px / 1 var(--font-code);
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -1916,7 +1922,7 @@ kbd {
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 3px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .signal-form__row {
@@ -1925,7 +1931,7 @@ kbd {
 }
 
 .signal-form label {
-  color: rgb(255 255 255 / 45%);
+  color: rgb(var(--glass) / 45%);
   font: 400 8px/1 var(--font-code);
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -1945,7 +1951,7 @@ kbd {
 
 .signal-form input::placeholder,
 .signal-form textarea::placeholder {
-  color: rgb(255 255 255 / 24%);
+  color: rgb(var(--glass) / 24%);
 }
 
 .signal-form input:focus,
@@ -1961,8 +1967,8 @@ kbd {
   gap: 9px;
   padding: 13px 22px;
   border-radius: 999px;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
   font: 600 10px/1 var(--font-code);
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1985,7 +1991,7 @@ kbd {
 
 .signal-form__count {
   justify-self: end;
-  color: rgb(255 255 255 / 32%);
+  color: rgb(var(--glass) / 32%);
   font: 400 9px/1 var(--font-code);
   letter-spacing: 0.12em;
 }
@@ -2237,7 +2243,7 @@ kbd {
 .flat__nav button:hover,
 .flat__nav button[data-active] {
   border-color: var(--planet);
-  background: rgb(255 255 255 / 3%);
+  background: rgb(var(--glass) / 3%);
 }
 
 .flat__nav-dot {
@@ -2267,7 +2273,7 @@ kbd {
 .flat__resume {
   margin-top: 6px;
   padding: 13px 16px;
-  border: 1px dashed rgb(255 255 255 / 22%);
+  border: 1px dashed rgb(var(--glass) / 22%);
   border-radius: 3px;
   color: var(--muted);
   font: 500 10px/1 var(--font-code);
@@ -2360,7 +2366,7 @@ kbd {
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 @media (min-width: 720px) {
@@ -2381,7 +2387,7 @@ kbd {
   border: 1px solid var(--line);
   border-left-width: 3px;
   border-radius: 12px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 3%), rgb(255 255 255 / 1%));
+  background: linear-gradient(180deg, rgb(var(--glass) / 3%), rgb(var(--glass) / 1%));
 }
 
 .project-card h4 {
@@ -2545,7 +2551,7 @@ kbd {
 
 .site-nav__links a:hover {
   color: var(--ink);
-  background: rgb(255 255 255 / 5%);
+  background: rgb(var(--glass) / 5%);
 }
 
 .site-nav__links a[aria-current="page"] {
@@ -2557,8 +2563,8 @@ kbd {
   flex: none;
   padding: 10px 18px;
   border-radius: 999px;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
   font: 600 10px/1 var(--font-code);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2671,7 +2677,7 @@ kbd {
 }
 
 .archive-search input::placeholder {
-  color: rgb(255 255 255 / 28%);
+  color: rgb(var(--glass) / 28%);
 }
 
 .archive-search input:focus {
@@ -2697,7 +2703,7 @@ kbd {
 }
 
 .archive-chip:hover {
-  border-color: rgb(255 255 255 / 32%);
+  border-color: rgb(var(--glass) / 32%);
   color: var(--ink);
 }
 
@@ -2729,7 +2735,7 @@ kbd {
   justify-items: center;
   gap: 16px;
   padding: 56px 24px;
-  border: 1px dashed rgb(255 255 255 / 20%);
+  border: 1px dashed rgb(var(--glass) / 20%);
   border-radius: 14px;
   text-align: center;
 }
@@ -2812,8 +2818,8 @@ kbd {
   gap: 10px;
   padding: 15px 30px;
   border-radius: 999px;
-  background: #eaf2f8;
-  color: #04050c;
+  background: var(--btn);
+  color: var(--btn-ink);
   font: 600 11px/1 var(--font-code);
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -2826,14 +2832,14 @@ kbd {
 }
 
 .btn--ghost {
-  border: 1px solid rgb(255 255 255 / 18%);
+  border: 1px solid rgb(var(--glass) / 18%);
   background: transparent;
   color: var(--ink);
 }
 
 .btn--ghost:hover {
   box-shadow: none;
-  border-color: rgb(255 255 255 / 40%);
+  border-color: rgb(var(--glass) / 40%);
 }
 
 .btn--small {
@@ -2854,7 +2860,7 @@ kbd {
   padding: 14px 16px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .site-hero__stats b {
@@ -2946,7 +2952,7 @@ kbd {
   padding: 22px;
   border: 1px solid var(--line);
   border-radius: 14px;
-  background: linear-gradient(180deg, rgb(255 255 255 / 3%), rgb(255 255 255 / 1%));
+  background: linear-gradient(180deg, rgb(var(--glass) / 3%), rgb(var(--glass) / 1%));
   transition: transform 200ms ease, border-color 200ms ease;
 }
 
@@ -3011,7 +3017,7 @@ a.site-card:hover {
   border-radius: 18px;
   background:
     radial-gradient(80% 120% at 50% 120%, color-mix(in srgb, var(--planet) 14%, transparent), transparent 65%),
-    rgb(255 255 255 / 2%);
+    rgb(var(--glass) / 2%);
 }
 
 .flight-teaser__planets {
@@ -3027,7 +3033,7 @@ a.site-card:hover {
   display: grid;
   gap: 6px;
   padding: 14px 16px;
-  border: 1px solid rgb(255 255 255 / 12%);
+  border: 1px solid rgb(var(--glass) / 12%);
   border-radius: 12px;
   background: rgb(4 6 14 / 55%);
   transition: transform 200ms ease, border-color 200ms ease;
@@ -3115,7 +3121,7 @@ a.site-card:hover {
   padding: 16px 18px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .fact-grid b {
@@ -3134,7 +3140,7 @@ a.site-card:hover {
   padding: 16px 18px;
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: rgb(255 255 255 / 2%);
+  background: rgb(var(--glass) / 2%);
 }
 
 .faq summary {
@@ -3246,7 +3252,7 @@ a.site-card:hover {
 
 .site-footer__label {
   margin-bottom: 8px;
-  color: rgb(255 255 255 / 40%);
+  color: rgb(var(--glass) / 40%);
   font: 600 9px/1 var(--font-code);
   letter-spacing: 0.24em;
   text-transform: uppercase;
@@ -3268,7 +3274,7 @@ a.site-card:hover {
   margin: 0 auto;
   padding: 18px clamp(20px, 4vw, 40px) 26px;
   border-top: 1px solid var(--line);
-  color: rgb(255 255 255 / 38%);
+  color: rgb(var(--glass) / 38%);
   font: 400 10px/1.6 var(--font-code);
   letter-spacing: 0.1em;
 }
