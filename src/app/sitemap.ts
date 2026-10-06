@@ -1,11 +1,16 @@
 import type { MetadataRoute } from "next";
-import { posts } from "@/lib/posts";
+import { listPosts } from "@/lib/postsStore";
 import { projects } from "@/lib/projects";
 
 const baseUrl = "https://bibashpoudel.dev";
 
-export default function sitemap(): MetadataRoute.Sitemap {
+// Posts come from Neon now, so the sitemap reads them at request time and is
+// rebuilt on the same revalidation window as the blog.
+export const revalidate = 3600;
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
+  const posts = await listPosts();
 
   const pages: MetadataRoute.Sitemap = [
     { url: baseUrl, lastModified: now, changeFrequency: "weekly", priority: 1 },

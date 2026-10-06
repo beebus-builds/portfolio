@@ -5,4 +5,5 @@ dist
 next-env.d.ts
 .env
 dev-server.log
+dev-server*.log
 .vercel

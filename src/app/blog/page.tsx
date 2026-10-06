@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import SitePage, { PageHero } from "@/components/site/SitePage";
-import { posts } from "@/lib/posts";
+import { listPosts } from "@/lib/postsStore";
 import { profile } from "@/lib/profile";
 
 export const metadata: Metadata = {
@@ -9,9 +9,12 @@ export const metadata: Metadata = {
   description: `Notes from the cockpit: ${profile.name} writing about shipping real software, lessons from real launches.`,
 };
 
-export default function BlogPage() {
-  // Newest first. The library is ordered by writing date, not by publish date.
-  const ordered = [...posts].sort((a, b) => b.date.localeCompare(a.date));
+// Posts come from Neon now, so this page reads at request time. `revalidate`
+// keeps it cheap: one query per window, not one per visitor.
+export const revalidate = 60;
+
+export default async function BlogPage() {
+  const posts = await listPosts();
 
   return (
     <SitePage
@@ -26,7 +29,7 @@ export default function BlogPage() {
     >
       <section className="site-section" aria-label="Blog posts">
         <ul className="site-grid" style={{ listStyle: "none", padding: 0 }}>
-          {ordered.map((post, index) => (
+          {posts.map((post, index) => (
             <li className="site-card site-card--post" key={post.slug}>
               <Link
                 className="site-card__media"

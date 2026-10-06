@@ -2,24 +2,22 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SitePage, { PageHero } from "@/components/site/SitePage";
-import { posts } from "@/lib/posts";
+import { getPost, listPosts } from "@/lib/postsStore";
 import { profile } from "@/lib/profile";
 
 type PostProps = {
   params: Promise<{ slug: string }>;
 };
 
-function findPost(slug: string) {
-  return posts.find((post) => post.slug === slug);
-}
-
-export function generateStaticParams() {
-  return posts.map((post) => ({ slug: post.slug }));
-}
+// Post bodies live in Neon now, so slugs are resolved at request time. Unknown
+// slugs 404 normally; `dynamicParams` stays on so a post published in the
+// admin is reachable immediately, without a redeploy.
+export const revalidate = 60;
+export const dynamicParams = true;
 
 export async function generateMetadata({ params }: PostProps): Promise<Metadata> {
   const { slug } = await params;
-  const post = findPost(slug);
+  const post = await getPost(slug);
   if (!post) return {};
   return {
     title: `${post.title} — ${profile.name}`,
@@ -40,10 +38,11 @@ export async function generateMetadata({ params }: PostProps): Promise<Metadata>
 
 export default async function PostPage({ params }: PostProps) {
   const { slug } = await params;
-  const post = findPost(slug);
+  const post = await getPost(slug);
   if (!post) notFound();
 
-  const more = posts.filter((candidate) => candidate.slug !== post.slug).slice(0, 2);
+  const all = await listPosts();
+  const more = all.filter((candidate) => candidate.slug !== post.slug).slice(0, 2);
 
   return (
     <SitePage
@@ -57,7 +56,7 @@ export default async function PostPage({ params }: PostProps) {
       }
     >
       <figure className="post-cover">
-        {/* Procedural SVG: inline-free, cached hard, and legible at any width. */}
+        {/* Procedural SVG: cached hard, and legible at any width. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={post.cover.src}

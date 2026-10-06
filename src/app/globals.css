@@ -3570,6 +3570,227 @@ a.site-card:hover .site-card__media img,
   }
 }
 
+/* ---------- admin: editor + tabs ---------- */
+
+.admin__tabs {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.admin__list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.admin__list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.admin__link {
+  color: var(--muted);
+  font: 400 10px/1 var(--font-code);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.admin__link:hover {
+  color: var(--planet);
+}
+
+.editor {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+  padding: clamp(18px, 3vw, 26px);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgb(var(--glass) / 2%);
+}
+
+.editor__row {
+  display: grid;
+  gap: 14px;
+}
+
+.editor__row--split {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.editor__field {
+  display: grid;
+  gap: 6px;
+}
+
+.editor__field label {
+  color: var(--muted);
+  font: 600 9px/1.4 var(--font-code);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.editor__field input,
+.editor__field textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgb(3 8 14 / 55%);
+  color: var(--ink);
+  font: 400 14px/1.5 var(--font-body);
+}
+
+.editor__field textarea {
+  resize: vertical;
+}
+
+.editor__field .editor__body {
+  font: 400 13.5px/1.75 var(--font-code);
+}
+
+.editor__field input:focus-visible,
+.editor__field textarea:focus-visible {
+  border-color: var(--planet);
+}
+
+.editor__hint {
+  color: var(--muted);
+  font: 400 11px/1.5 var(--font-code);
+  letter-spacing: 0.04em;
+}
+
+.editor__hint code,
+.section-head__lede code {
+  color: var(--planet);
+}
+
+.editor__cover {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.editor__cover legend {
+  padding: 0 6px;
+  color: var(--muted);
+  font: 600 9px/1.4 var(--font-code);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.editor__field select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgb(3 8 14 / 55%);
+  color: var(--ink);
+  font: 400 13px/1.4 var(--font-code);
+}
+
+.editor__accents {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  height: 38px;
+}
+
+.editor__accents button {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 150ms ease;
+}
+
+.editor__accents button:hover {
+  transform: scale(1.15);
+}
+
+.editor__accents button.is-active {
+  border-color: var(--ink);
+  transform: scale(1.15);
+}
+
+.editor__preview {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #050b13;
+}
+
+.editor__preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.editor__toggle {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: #b6c6d4;
+  font: 400 13px/1.5 var(--font-body);
+  cursor: pointer;
+}
+
+.editor__errors {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 12px 14px 12px 30px;
+  border: 1px solid color-mix(in srgb, #ff6b6b 45%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, #ff6b6b 8%, transparent);
+  color: #ffb3b3;
+  font: 400 13px/1.6 var(--font-body);
+}
+
+.editor__status {
+  margin: 0;
+  color: #8dffd2;
+  font: 400 13px/1.5 var(--font-body);
+}
+
+.editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.editor__counts {
+  margin: 0;
+  color: var(--muted);
+  font: 400 11px/1.5 var(--font-code);
+  letter-spacing: 0.06em;
+}
+
+:root[data-theme="light"] .editor {
+  background: rgb(0 0 0 / 2%);
+}
+
+:root[data-theme="light"] .editor__field input,
+:root[data-theme="light"] .editor__field textarea {
+  background: rgb(255 255 255 / 70%);
+  color: #0b1220;
+}
+
+:root[data-theme="light"] .editor__toggle {
+  color: #1c2b3a;
+}
+
 .fact-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
