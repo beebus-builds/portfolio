@@ -167,6 +167,56 @@ export const projects: Project[] = [
     outcome:
       "Audit remediation that used to take an afternoon now runs from a single screen.",
   },
+  {
+    slug: "open-trails",
+    title: "Open Trails Nepal",
+    tag: "Full-Stack",
+    repo: "open-trails",
+    description:
+      "A trekking route planner for Nepal's major trails. GPX import, elevation profiles, lodge availability, and offline-first packing lists for the hills between Kathmandu and Everest.",
+    tech: ["Next.js", "TypeScript", "PostgreSQL", "MapLibre GL", "Tailwind CSS"],
+    color: "#34d399",
+    url: null,
+    role: "Developer",
+    year: "2026",
+    highlights: [
+      "Elevation profiles rendered client-side from GPX tracks in under a second",
+      "Offline-first packing lists that survive ridge-top dead zones",
+      "Lodge availability stitched together from community updates",
+    ],
+    process: [
+      "Started from my own trek logs: distance, altitude, and water sources mattered more than photos.",
+      "Parsed GPX in the browser so no route data ever needs a round trip.",
+      "Designed the map UI touch-first, since most usage is on a phone at the trailhead.",
+    ],
+    outcome:
+      "A planner that answers the three questions every trekker actually asks: how far, how steep, where to sleep.",
+  },
+  {
+    slug: "signal-board",
+    title: "Signal Board",
+    tag: "Full-Stack",
+    repo: "signal-board",
+    description:
+      "A lightweight status dashboard for small teams. Uptime pings, incident timelines, and a public status page generated from the same data the team sees.",
+    tech: ["TypeScript", "Next.js", "Neon", "Cron Jobs", "Tailwind CSS"],
+    color: "#60a5fa",
+    url: null,
+    role: "Developer",
+    year: "2026",
+    highlights: [
+      "Public status page auto-generated from internal incidents",
+      "Edge cron pings keep latency honest without a monitoring budget",
+      "Incident timeline that reads like a logbook, not a wall of JSON",
+    ],
+    process: [
+      "Built it for a team tired of paying for enterprise monitoring.",
+      "Stored every ping in Neon and rolled up rollups hourly to keep queries cheap.",
+      "Made the incident form fast enough to fill out mid-outage on a phone.",
+    ],
+    outcome:
+      "One dashboard for the team, one page for the users, zero meetings about what broke.",
+  },
 ];
 
 const GITHUB_HANDLE = "beebus-builds";

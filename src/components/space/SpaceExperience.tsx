@@ -9,6 +9,7 @@ import { planets, profile, type SectionId } from "@/lib/profile";
 import { achievements, useAchievements } from "@/lib/achievements";
 import { createSimulation } from "@/lib/simulation";
 import AchievementToast from "./AchievementToast";
+import CopilotChat from "./CopilotChat";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
 import IntroOverlay from "./IntroOverlay";
@@ -408,6 +409,8 @@ export default function SpaceExperience() {
           )}
         </div>
       )}
+
+      {mode !== "intro" && <CopilotChat />}
 
       <span className="sr-only" aria-hidden="true">
         {profile.name} — {profile.role} based in {profile.location}. Interactive 3D portfolio: five

@@ -38,6 +38,8 @@ export const skills: Skill[] = [
   { name: "Serverless & edge", detail: "Vercel · Cloudinary · Neon serverless · CI pipelines", level: 84, group: "Platform" },
   { name: "Creative direction", detail: "Concept · prototyping · interaction storytelling", level: 86, group: "Craft" },
   { name: "Technical writing", detail: "Docs · architecture notes · teaching what I build", level: 80, group: "Craft" },
+  { name: "Motion & interaction", detail: "Framer Motion · scroll choreography · reduced-motion aware", level: 87, group: "Interface" },
+  { name: "Testing & reliability", detail: "Vitest · Playwright · CI gating · honest uptime bars", level: 79, group: "Systems" },
 ];
 
 export type SectionId = "about" | "skills" | "projects" | "contact" | "resume";
@@ -109,14 +111,14 @@ export const planets: PlanetDef[] = [
     ring: true,
     ringColor: "#c9b6ff",
     moons: 1,
-    readout: "Ringed giant · 0 moons · 8 instrument clusters",
+    readout: "Ringed giant · 0 moons · 10 instrument clusters",
   },
   {
     id: "projects",
     label: "PROJECTS",
     title: "Oberon",
     kicker: "03 / ARCHIVE",
-    blurb: "Six worlds I pulled apart, rebuilt, and shipped.",
+    blurb: "Eight worlds I pulled apart, rebuilt, and shipped.",
     color: "#ff9f45",
     bandColor: "#6b2f0d",
     glowColor: "#ffc48a",
@@ -130,7 +132,7 @@ export const planets: PlanetDef[] = [
     ring: true,
     ringColor: "#ffc48a",
     moons: 3,
-    readout: "Desert giant · 2 moons · 6 logged missions",
+    readout: "Desert giant · 2 moons · 8 logged missions",
   },
   {
     id: "contact",

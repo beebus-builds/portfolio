@@ -1,49 +1,40 @@
-import { Pool } from "@neondatabase/serverless";
+import { ensureSchema, query } from "@/lib/db";
 
-let pool: Pool | null = null;
+const SCHEMA = `CREATE TABLE IF NOT EXISTS contact_messages (
+  id SERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+)`;
 
-function getPool(): Pool {
-  if (!pool) {
-    const connectionString = process.env.DATABASE_URL;
-    if (!connectionString) {
-      throw new Error("DATABASE_URL is not set — add it to .env and restart the server.");
-    }
-    pool = new Pool({ connectionString });
-  }
-  return pool;
-}
-
-let schemaReady: Promise<void> | null = null;
-
-function ensureSchema(): Promise<void> {
-  if (!schemaReady) {
-    schemaReady = (async () => {
-      await query(
-        `CREATE TABLE IF NOT EXISTS contact_messages (
-          id SERIAL PRIMARY KEY,
-          name TEXT NOT NULL,
-          email TEXT NOT NULL,
-          message TEXT NOT NULL,
-          created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-        )`
-      );
-    })().catch((error) => {
-      schemaReady = null;
-      throw error;
-    });
-  }
-  return schemaReady;
-}
-
-async function query<T>(text: string, params: unknown[] = []): Promise<T[]> {
-  const result = await getPool().query(text, params);
-  return result.rows as T[];
-}
+export type ContactMessage = {
+  id: number;
+  name: string;
+  email: string;
+  message: string;
+  created_at: string;
+};
 
 export async function saveMessage(name: string, email: string, message: string): Promise<void> {
-  await ensureSchema();
+  await ensureSchema("contact_messages", SCHEMA);
   await query(
     `INSERT INTO contact_messages (name, email, message) VALUES ($1, $2, $3)`,
     [name, email, message]
   );
+}
+
+export async function listRecentMessages(limit = 50): Promise<ContactMessage[]> {
+  await ensureSchema("contact_messages", SCHEMA);
+  const capped = Math.min(Math.max(Math.floor(limit), 1), 200);
+  return query<ContactMessage>(
+    `SELECT id, name, email, message, created_at FROM contact_messages ORDER BY created_at DESC LIMIT $1`,
+    [capped]
+  );
+}
+
+export async function countMessages(): Promise<number> {
+  await ensureSchema("contact_messages", SCHEMA);
+  const rows = await query<{ count: string }>(`SELECT COUNT(*)::text AS count FROM contact_messages`);
+  return Number(rows[0]?.count ?? 0);
 }

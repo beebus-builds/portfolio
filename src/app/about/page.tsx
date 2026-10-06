@@ -4,6 +4,7 @@ import SectionContent from "@/components/space/SectionContent";
 import SectionHeading from "@/components/site/SectionHeading";
 import SitePage, { PageHero } from "@/components/site/SitePage";
 import { profile } from "@/lib/profile";
+import { testimonials } from "@/lib/testimonials";
 
 export const metadata: Metadata = {
   title: `About — ${profile.name}`,
@@ -55,6 +56,25 @@ export default function AboutPage() {
               <span className="site-card__kicker">0{index + 1}</span>
               <h3>{principle.title}</h3>
               <p>{principle.body}</p>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="site-section" aria-labelledby="about-testimonials">
+        <SectionHeading
+          kicker="Signals received"
+          title="What people say after launch"
+          lede="Unedited notes from the people who hired me. Specific projects, specific outcomes."
+        />
+        <ul className="site-grid" id="about-testimonials">
+          {testimonials.map((t, index) => (
+            <li className="site-card" key={t.name}>
+              <span className="site-card__kicker">0{index + 1} — {t.project}</span>
+              <h3>&ldquo;{t.quote}&rdquo;</h3>
+              <p>
+                <b>{t.name}</b> · {t.role}
+              </p>
             </li>
           ))}
         </ul>

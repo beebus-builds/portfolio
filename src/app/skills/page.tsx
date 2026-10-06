@@ -7,7 +7,7 @@ import { profile, skills } from "@/lib/profile";
 
 export const metadata: Metadata = {
   title: `Skills — ${profile.name}`,
-  description: `Eight skill clusters across systems, interface, platform and craft: ${skills
+  description: `Ten skill clusters across systems, interface, platform and craft: ${skills
     .slice(0, 4)
     .map((skill) => skill.name)
     .join(", ")}, and more.`,
@@ -35,7 +35,7 @@ export default function SkillsPage() {
         <PageHero
           kicker="02 / Capability — Ferrovia"
           title="The instrument panel"
-          lede="Eight clusters across systems, interface, platform, and craft. This page shows all of them — plus how to read the numbers honestly."
+          lede="Ten clusters across systems, interface, platform, and craft. This page shows all of them — plus how to read the numbers honestly."
           meta={[
             `${skills.length} clusters`,
             "4 disciplines",
