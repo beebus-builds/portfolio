@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { CAMERA_MODES, type CameraMode } from "@/lib/flight";
+import { useEffect, useRef, useState } from "react";
+import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { flightHelp, planets, profile, type SectionId } from "@/lib/profile";
 import type { Simulation } from "@/lib/simulation";
 
@@ -17,13 +17,16 @@ type HudProps = {
   onToggleTour: () => void;
   onContact: () => void;
   medals?: string;
+  onShowAchievements: () => void;
+  onPlayArcade: () => void;
 };
 
 /**
  * Readout frame around the viewport. Speed and heading are written straight to
  * the DOM from a rAF loop so flying never re-renders React.
  */
-export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals }: HudProps) {
+export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals, onShowAchievements, onPlayArcade }: HudProps) {
+  const [muted, setMuted] = useState(false);
   const speedRef = useRef<HTMLSpanElement>(null);
   const throttleRef = useRef<HTMLElement>(null);
   const headingRef = useRef<HTMLSpanElement>(null);
@@ -159,10 +162,44 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
             SYS <b>{profile.status.toUpperCase()}</b>
           </span>
           {medals && (
-            <span>
+            <button
+              type="button"
+              className="hud__medals"
+              onClick={(event) => {
+                event.currentTarget.blur();
+                onShowAchievements();
+              }}
+              title="View medals"
+            >
               MEDALS <b>{medals}</b>
-            </span>
+            </button>
           )}
+        </div>
+
+        <div className="hud__tools" role="group" aria-label="Ship systems">
+          <button
+            type="button"
+            onClick={(event) => {
+              event.currentTarget.blur();
+              const next = !muted;
+              setMuted(next);
+              flightInput.muted = next;
+            }}
+            data-active={!muted || undefined}
+            title="Toggle engine audio (M)"
+          >
+            {muted ? "MUTE" : "SND"}
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.currentTarget.blur();
+              onPlayArcade();
+            }}
+            title="Play the asteroid field mini-game"
+          >
+            ARCADE
+          </button>
         </div>
       </div>
 

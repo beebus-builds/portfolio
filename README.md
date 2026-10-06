@@ -59,6 +59,8 @@ src/
 
 ## Notable bits
 
+See [docs/CASE_STUDY.md](docs/CASE_STUDY.md) for the full architecture write-up.
+
 - Security headers in `next.config.ts` (nosniff, frame-deny, referrer & permissions policy).
 - Contact endpoint: per-IP in-memory rate limiting + strict input validation.
 - Progress endpoint: httpOnly visitor cookie, deduplicated/validated payloads, DB outage fallback.

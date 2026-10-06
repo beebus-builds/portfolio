@@ -66,7 +66,26 @@ export const posts: Post[] = [
       "A portfolio has one job: make the person reading it remember the person behind it. Templates optimize for the opposite — blending in.",
       "So I built the site around a ship. Five planets, each one a section: who I am, what I can build, the work I shipped, how to reach me, and the printed record of it all. Steering the ship is the navigation.",
       "The flight view is opt-in. Every planet also opens as a classic, readable page — the document is always one link away. The spectacle explains itself through interaction, not a wall of motion sickness.",
-      "React Three Fiber made the scene approachable: planets as components, cameras as props, input as a hook. The stack beneath the cockpit is the stack in the case studies — that overlap is the point.",
+      "React Three Fiber made the scene approachable: planets as components, cameras as props, input as a hook. The stack beneath the cockpit is the stack in the case studies - that overlap is the point.",
+    ],
+  },
+  {
+    slug: "devverse-case-study",
+    title: "Case study: Devverse, a portfolio that proves its stack",
+    date: "2026-10-06",
+    excerpt:
+      "One mutable simulation driving a 3D scene and a HUD, progress persisted in Neon, a rate-limited contact API, tests and CI — the plumbing behind the flight deck.",
+    tags: ["Next.js", "TypeScript", "Postgres", "Testing"],
+    minutes: 8,
+    body: [
+      "A conventional portfolio asks visitors to take its claims on faith. I wanted the site itself to be the proof: interface craft, real-time 3D, and a working backend all demonstrated in the act of being browsed — with a completely conventional site one link away.",
+      "The core of the 3D mode is a single simulation object. Planet positions, ship state, heading, and docking targets all live on one plain mutable object that the 3D scene and the HUD both read. React never re-renders per frame: useFrame mutates refs, and React only renders on mode changes — intro, flight, docked, flat.",
+      "The flight view is progressive enhancement. A WebGL probe at startup falls back to a flat explorer with identical content and identical progress tracking, so the planetary concept survives a bad GPU or a stern company laptop.",
+      "Progress is server-backed. An httpOnly visitor cookie identifies the pilot, and /api/progress upserts visited planets and unlocked achievements into Neon. If the database is down, the flight degrades to empty progress instead of an error screen.",
+      "The contact endpoint validates input strictly and rate-limits per IP with an in-memory, bounded map — honest about its limits (per instance), zero infrastructure, spam that blunts itself before it reaches the inbox. Messages land in Postgres with timestamps, viewable at /admin behind a bearer token.",
+      "A public /stats page aggregates pilots, total docks, achievements, and messages. It is the same data the admin inbox sees, minus anything private — a nice story about sharing telemetry without sharing people.",
+      "Every DB query goes through one pooled client in src/lib/db.ts, with schema creation memoized per process. A fresh environment is one request away from a ready database.",
+      "Quality bar: 15 Vitest tests covering API validation, rate limiting, progress fallback, and the simulation math; CI running lint, typecheck, tests, and a production build on every push; security headers in next.config. Full write-up in docs/CASE_STUDY.md.",
     ],
   },
 ];

@@ -27,6 +27,8 @@ export interface FlightInput {
   lookYaw: number;
   /** Mouse-look target set from cursor position (no click needed). */
   lookPitch: number;
+  /** Engine audio mute switch (HUD button). */
+  muted: boolean;
 }
 
 export const flightInput: FlightInput = {
@@ -43,6 +45,7 @@ export const flightInput: FlightInput = {
   cameraMode: "chase",
   lookYaw: 0,
   lookPitch: 0,
+  muted: false,
 };
 
 export function resetFlightInput(): void {

@@ -761,6 +761,298 @@ body:has(.index:target) {
   cursor: wait;
 }
 
+.medals {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  background: rgb(2 4 10 / 72%);
+  backdrop-filter: blur(6px);
+}
+
+.medals__card {
+  width: min(420px, calc(100vw - 40px));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  background: rgb(6 8 15 / 96%);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 60%);
+  overflow: hidden;
+}
+
+.medals__card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.24em;
+  color: #ffd166;
+}
+
+.medals__card header button {
+  background: none;
+  border: 0;
+  color: rgb(255 255 255 / 60%);
+  cursor: pointer;
+}
+
+.medals__card ul {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medals__card li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 10px;
+  border-radius: 9px;
+  opacity: 0.45;
+}
+
+.medals__card li[data-unlocked] {
+  opacity: 1;
+  background: rgb(255 209 102 / 8%);
+}
+
+.medals__card li span {
+  color: #ffd166;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.medals__card li b {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.medals__card li small {
+  display: block;
+  margin-top: 2px;
+  color: rgb(255 255 255 / 55%);
+  font-size: 11.5px;
+}
+
+.arcade {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 72;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 24px));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  background: rgb(3 5 12 / 96%);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 65%);
+  overflow: hidden;
+}
+
+.arcade__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.22em;
+  color: #8ad6ff;
+}
+
+.arcade__bar button {
+  background: none;
+  border: 0;
+  color: rgb(255 255 255 / 60%);
+  cursor: pointer;
+}
+
+.arcade canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.arcade__hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  color: rgb(255 255 255 / 55%);
+  font: 400 10px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.arcade__hint button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hud__medals {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hud__tools {
+  display: flex;
+  gap: 6px;
+  align-self: end;
+  justify-self: end;
+}
+
+.hud__tools button {
+  padding: 6px 10px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  background: rgb(8 10 18 / 60%);
+  color: rgb(255 255 255 / 70%);
+  font: 600 9px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  cursor: pointer;
+}
+
+.hud__tools button[data-active] {
+  color: #8ad6ff;
+  border-color: rgb(138 214 255 / 45%);
+}
+
+.touch {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 45;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.touch__stick {
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  background: rgb(8 10 18 / 45%);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch__throttle {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.touch__col {
+  width: 64px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 32px;
+  background: rgb(8 10 18 / 45%);
+  color: rgb(255 255 255 / 55%);
+  font-size: 14px;
+  touch-action: none;
+}
+
+.touch__boost {
+  height: 64px;
+  padding: 0 14px;
+  border-radius: 32px;
+  border: 1px solid rgb(138 214 255 / 45%);
+  background: rgb(138 214 255 / 16%);
+  color: var(--ink);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.2em;
+  touch-action: none;
+}
+
+.constellation {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.constellation__sky {
+  position: relative;
+  height: 320px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 14px;
+  background: radial-gradient(circle at 50% 50%, #0a1024, #02040a 70%);
+  overflow: hidden;
+}
+
+.constellation__sky a {
+  position: absolute;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  box-shadow: 0 0 12px currentColor;
+  transition: transform 0.2s ease;
+}
+
+.constellation__sky a:hover {
+  transform: translate(-50%, -50%) scale(1.5);
+}
+
+.constellation__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 8px;
+}
+
+.constellation__list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid rgb(255 255 255 / 10%);
+  border-radius: 9px;
+  font-size: 12.5px;
+}
+
+.constellation__list span,
+.constellation__list small {
+  color: rgb(255 255 255 / 55%);
+}
+
+.constellation__status {
+  margin: 0;
+  color: rgb(255 255 255 / 45%);
+  font: 400 10px/1.5 var(--font-code);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
 kbd {
   min-width: 22px;
   padding: 3px 6px;

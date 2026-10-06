@@ -8,8 +8,11 @@ import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { planets, profile, type SectionId } from "@/lib/profile";
 import { achievements, useAchievements } from "@/lib/achievements";
 import { createSimulation } from "@/lib/simulation";
+import Arcade from "./Arcade";
+import AchievementsPanel from "./AchievementsPanel";
 import AchievementToast from "./AchievementToast";
 import CopilotChat from "./CopilotChat";
+import TouchControls from "./TouchControls";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
 import IntroOverlay from "./IntroOverlay";
@@ -51,6 +54,8 @@ export default function SpaceExperience() {
   const [world, setWorld] = useState<SectionId | null>(null);
   const [entering, setEntering] = useState<SectionId | null>(null);
   const [tour, setTour] = useState<boolean>(false);
+  const [medalsOpen, setMedalsOpen] = useState(false);
+  const [arcadeOpen, setArcadeOpen] = useState(false);
 
   const sim = useMemo(() => createSimulation(), []);
   const drag = useCameraDrag();
@@ -374,8 +379,17 @@ export default function SpaceExperience() {
             }}
             onContact={() => handleSelect("contact")}
             medals={`${unlocked.size}/${achievements.length}`}
+            onShowAchievements={() => setMedalsOpen(true)}
+            onPlayArcade={() => setArcadeOpen(true)}
           />
           <AchievementToast toast={toast} />
+          <TouchControls />
+          <AnimatePresence>
+            {medalsOpen && <AchievementsPanel unlocked={unlocked} onClose={() => setMedalsOpen(false)} />}
+          </AnimatePresence>
+          <AnimatePresence>
+            {arcadeOpen && <Arcade onClose={() => setArcadeOpen(false)} />}
+          </AnimatePresence>
           <AnimatePresence>
             {target && (
               <motion.p

@@ -86,7 +86,9 @@ export default function AudioEngine({ sim }: AudioEngineProps) {
 
       const base = 70 + Math.min(speed, 120) * 2.2;
       const targetFreq = base + (boosting ? 30 : 0);
-      const targetGain = Math.max(0.0001, Math.min(0.18, (thrust > 0 ? 0.12 : 0.02) + speed / 2000));
+      const targetGain = flightInput.muted
+        ? 0.0001
+        : Math.max(0.0001, Math.min(0.18, (thrust > 0 ? 0.12 : 0.02) + speed / 2000));
       try {
         osc.frequency.setTargetAtTime(targetFreq, ctx.currentTime, 0.05);
         filter.frequency.setTargetAtTime(600 + speed * 6, ctx.currentTime, 0.05);

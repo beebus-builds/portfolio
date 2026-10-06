@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import SectionContent from "@/components/space/SectionContent";
 import SectionHeading from "@/components/site/SectionHeading";
+import GitHubConstellation from "@/components/site/GitHubConstellation";
 import SitePage, { PageHero } from "@/components/site/SitePage";
 import { profile } from "@/lib/profile";
 import { testimonials } from "@/lib/testimonials";
@@ -59,6 +60,17 @@ export default function AboutPage() {
             </li>
           ))}
         </ul>
+      </section>
+
+      <section className="site-section" aria-labelledby="about-constellation">
+        <SectionHeading
+          kicker="Open source"
+          title="The repo constellation"
+          lede="Every repository plotted as a star — brighter ones carry more stars of their own."
+        />
+        <div id="about-constellation">
+          <GitHubConstellation />
+        </div>
       </section>
 
       <section className="site-section" aria-labelledby="about-testimonials">
