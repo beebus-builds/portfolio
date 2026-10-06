@@ -1,8 +1,7 @@
 import type { MetadataRoute } from "next";
 import { listPosts } from "@/lib/postsStore";
 import { projects } from "@/lib/projects";
-
-const baseUrl = "https://bibashpoudel.dev";
+import { siteUrl as baseUrl } from "@/lib/site";
 
 // Posts come from Neon now, so the sitemap reads them at request time and is
 // rebuilt on the same revalidation window as the blog.

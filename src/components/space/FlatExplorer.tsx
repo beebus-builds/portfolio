@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { planets, profile, type SectionId } from "@/lib/profile";
+import { siteUrl } from "@/lib/site";
 import SectionContent from "./SectionContent";
 
 /**
@@ -17,7 +18,7 @@ export default function FlatExplorer({ initial = "about" }: { initial?: SectionI
   return (
     <div className="flat">
       <Link className="flat__home" href="/">
-        ← bibashpoudel.dev
+        ← {siteUrl.replace(/^https?:\/\//, "")}
       </Link>
       <header className="flat__header">
         <div>

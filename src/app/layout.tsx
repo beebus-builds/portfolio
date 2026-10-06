@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { profile } from "@/lib/profile";
+import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
 const display = Space_Grotesk({
@@ -20,12 +21,12 @@ const title = `${profile.name} — ${profile.role} in ${profile.location}`;
 const description = `Fly the ${profile.callSign} and dock with five planets: about, skills, projects, contact and resume. An interactive WebGL portfolio by ${profile.name}, a ${profile.role} based in ${profile.location}.`;
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bibashpoudel.dev"),
+  metadataBase: new URL(siteUrl),
   title,
   description,
   manifest: "/manifest.webmanifest",
   applicationName: `${profile.name} — Portfolio`,
-  authors: [{ name: profile.name, url: "https://bibashpoudel.dev" }],
+  authors: [{ name: profile.name, url: siteUrl }],
   creator: profile.name,
   keywords: [
     profile.name,
@@ -41,7 +42,7 @@ export const metadata: Metadata = {
   openGraph: {
     title,
     description,
-    url: "https://bibashpoudel.dev",
+    url: siteUrl,
     siteName: `${profile.name} — Portfolio`,
     locale: "en_US",
     type: "website",
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
     description,
     images: ["/opengraph-image"],
   },
-  alternates: { canonical: "https://bibashpoudel.dev" },
+  alternates: { canonical: siteUrl },
   formatDetection: { email: false, address: false, telephone: false },
   robots: { index: true, follow: true },
   appleWebApp: {
@@ -90,7 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               "@context": "https://schema.org",
               "@type": "Person",
               name: profile.name,
-              url: "https://bibashpoudel.dev",
+              url: siteUrl,
               jobTitle: profile.role,
               email: "mailto:bibashpoudel@email.com",
               address: {
