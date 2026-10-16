@@ -1,12 +1,24 @@
 import type { NextConfig } from "next";
 
 /**
- * The site is a classic multi-route portfolio (/, /about, /skills,
- * /projects, /contact, /resume, /experience, /blog, /stats) with the
- * space flight kept at /flight and as an overlay on `?planet=` / `?flight=`
- * deep links. Only legacy paths with no counterpart land back at the front door.
+ * The flight experience is the site, so `/` is the entry point. The classic
+ * section pages are gone; these permanent redirects keep old links, bookmarks
+ * and search results working by sending each path to the flight world that now
+ * carries its content.
  */
 const redirects = [
+  // The flight used to live at its own address.
+  { source: "/flight", destination: "/" },
+  // Section pages → the world that holds the same content.
+  { source: "/about", destination: "/?planet=about" },
+  { source: "/skills", destination: "/?planet=skills" },
+  { source: "/projects", destination: "/?planet=projects" },
+  { source: "/projects/:slug", destination: "/?planet=projects" },
+  { source: "/contact", destination: "/?planet=contact" },
+  { source: "/resume", destination: "/?planet=resume" },
+  { source: "/experience", destination: "/?planet=resume" },
+  { source: "/stats", destination: "/" },
+  // Legacy paths from before the current structure.
   { source: "/chess", destination: "/" },
   { source: "/commands", destination: "/" },
   { source: "/education", destination: "/" },

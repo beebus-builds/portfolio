@@ -15,7 +15,7 @@ export const profile = {
     "Based in Sindhuli, in the hills south of Kathmandu, working with teams everywhere. I like small teams, hard problems, and products where the details are the point.",
   ],
   links: [
-    { label: "Email", value: "bibashpoudel@email.com", href: "mailto:bibashpoudel@email.com", note: "Best for professional inquiries" },
+    { label: "Email", value: "poudelbibash044@gmail.com", href: "mailto:poudelbibash044@gmail.com", note: "Best for professional inquiries" },
     { label: "GitHub", value: "/beebus-builds", href: "https://github.com/beebus-builds", note: "Code, experiments, side projects" },
     { label: "LinkedIn", value: "/in/bibashpoudel", href: "https://linkedin.com/in/bibashpoudel", note: "Work history and network" },
   ],
@@ -66,8 +66,16 @@ export interface PlanetDef {
   ring: boolean;
   ringColor: string;
   moons: number;
-  /** Flavour text shown in the docking panel. */
-  readout: string;
+  /** Short flavour descriptor shown before the derived counts. */
+  descriptor: string;
+  /** Trailing fact, appended to the readout verbatim. */
+  detail: string;
+}
+
+/** Readout line for a planet, derived from its real moon count so it can never drift. */
+export function planetReadout(planet: PlanetDef): string {
+  const moons = `${planet.moons} ${planet.moons === 1 ? "moon" : "moons"}`;
+  return `${planet.descriptor} · ${moons} · ${planet.detail}`;
 }
 
 export const planets: PlanetDef[] = [
@@ -90,7 +98,8 @@ export const planets: PlanetDef[] = [
     ring: false,
     ringColor: "#8ad6ff",
     moons: 2,
-    readout: "Ocean world · 1 moon · 27.7172° N",
+    descriptor: "Ocean world",
+    detail: "27.7172° N",
   },
   {
     id: "skills",
@@ -111,7 +120,8 @@ export const planets: PlanetDef[] = [
     ring: true,
     ringColor: "#c9b6ff",
     moons: 1,
-    readout: "Ringed giant · 0 moons · 10 instrument clusters",
+    descriptor: "Ringed giant",
+    detail: "10 instrument clusters",
   },
   {
     id: "projects",
@@ -132,7 +142,8 @@ export const planets: PlanetDef[] = [
     ring: true,
     ringColor: "#ffc48a",
     moons: 3,
-    readout: "Desert giant · 2 moons · 8 logged missions",
+    descriptor: "Desert giant",
+    detail: "8 logged missions",
   },
   {
     id: "contact",
@@ -153,7 +164,8 @@ export const planets: PlanetDef[] = [
     ring: true,
     ringColor: "#8dffd2",
     moons: 2,
-    readout: "Signal relay · 1 moon · reply window 24h",
+    descriptor: "Signal relay",
+    detail: "reply window 24h",
   },
   {
     id: "resume",
@@ -174,7 +186,8 @@ export const planets: PlanetDef[] = [
     ring: false,
     ringColor: "#ffb3cb",
     moons: 1,
-    readout: "Archive moon · 0 moons · 1 page PDF",
+    descriptor: "Archive moon",
+    detail: "1 page PDF",
   },
 ];
 

@@ -15,7 +15,6 @@ import CopilotChat from "./CopilotChat";
 import TouchControls from "./TouchControls";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
-import IntroOverlay from "./IntroOverlay";
 import PlanetWorld, { EntryFlash } from "./PlanetWorld";
 import Radar from "./Radar";
 import AudioEngine from "./AudioEngine";
@@ -30,7 +29,7 @@ const SpaceScene = dynamic(() => import("./SpaceScene"), {
   ),
 });
 
-type Mode = "intro" | "flight" | "flat";
+type Mode = "flight" | "flat";
 
 function supportsWebGL() {
   if (typeof document === "undefined") return false;
@@ -43,12 +42,11 @@ function supportsWebGL() {
 }
 
 export default function SpaceExperience() {
-  const [mode, setMode] = useState<Mode>("intro");
+  const [mode, setMode] = useState<Mode>("flight");
   const [capable, setCapable] = useState<boolean | null>(null);
   const [target, setTarget] = useState<SectionId | null>(null);
   const [docked, setDocked] = useState<SectionId | null>(null);
   const [visited, setVisited] = useState<Set<string>>(() => new Set<string>());
-  const [pendingPlanet, setPendingPlanet] = useState<SectionId | null>(null);
   const [flatInitial, setFlatInitial] = useState<SectionId>("about");
   const [cameraMode, setCameraMode] = useState<CameraMode>("chase");
   const [world, setWorld] = useState<SectionId | null>(null);
@@ -92,13 +90,22 @@ export default function SpaceExperience() {
   }, [hydrate]);
 
   /** Push progress to the server whenever it changes (after initial load). */
+  const lastSent = useRef<{ visited: string[]; achievements: string[] } | null>(null);
   useEffect(() => {
     if (!progressLoaded.current) return;
+    const payload = { visited: [...visited], achievements: [...unlocked] };
+    const same =
+      lastSent.current &&
+      lastSent.current.visited.join(",") === payload.visited.join(",") &&
+      lastSent.current.achievements.join(",") === payload.achievements.join(",");
+    if (same) return;
     const timer = window.setTimeout(() => {
       fetch("/api/progress", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ visited: [...visited], achievements: [...unlocked] }),
+        body: JSON.stringify(payload),
+      }).then(() => {
+        lastSent.current = payload;
       }).catch(() => {
         /* best effort */
       });
@@ -106,21 +113,65 @@ export default function SpaceExperience() {
     return () => window.clearTimeout(timer);
   }, [visited, unlocked]);
 
+  /** Flush progress on unload with sendBeacon so a fast close still saves. */
+  useEffect(() => {
+    const onPageHide = () => {
+      if (!progressLoaded.current) return;
+      const payload = JSON.stringify({ visited: [...visited], achievements: [...unlocked] });
+      navigator.sendBeacon?.("/api/progress", payload);
+    };
+    window.addEventListener("pagehide", onPageHide);
+    window.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "hidden") onPageHide();
+    });
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      window.removeEventListener("visibilitychange", onPageHide);
+    };
+  }, [visited, unlocked]);
+
+  /**
+   * There is no landing page — the visitor starts in the cockpit. The only
+   * branch is capability: without WebGL (or with reduced motion) there is no
+   * ship to fly, so drop straight to the flat explorer carrying the same
+   * content rather than showing a briefing screen first.
+   */
   useEffect(() => {
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    setCapable(!reduced && supportsWebGL());
+    const ok = !reduced && supportsWebGL();
+    setCapable(ok);
+    if (!ok) setMode("flat");
   }, []);
 
-  /** Deep links such as /?planet=projects fly straight to that world. */
+  /**
+   * "Ignition" is earned the moment the ship is actually flying. With no
+   * briefing screen there is no launch button to hang it on, so it fires when
+   * capability resolves to a live cockpit.
+   */
+  const ignitionReported = useRef(false);
   useEffect(() => {
+    if (capable !== true || ignitionReported.current) return;
+    ignitionReported.current = true;
+    report({ type: "launch" });
+  }, [capable, report]);
+
+  /**
+   * Deep links such as `/?planet=projects` fly straight to that world. With the
+   * cockpit live that is just an autopilot course; without WebGL it selects
+   * the opening panel instead.
+   */
+  useEffect(() => {
+    if (capable === null) return;
     const requested = new URLSearchParams(window.location.search).get("planet");
-    if (!requested) return;
     const match = planets.find((planet) => planet.id === requested);
-    if (match) {
-      setMode("intro");
-      setPendingPlanet(match.id);
+    if (!match) return;
+    if (capable) {
+      sim.target = match.id;
+      setTarget(match.id);
+    } else {
+      setFlatInitial(match.id);
     }
-  }, []);
+  }, [capable, sim]);
 
   const handleSelect = useCallback(
     (id: SectionId) => {
@@ -295,56 +346,16 @@ export default function SpaceExperience() {
     onCycleCamera: handleCycleCamera,
   });
 
-  const launch = useCallback(
-    (destination?: SectionId) => {
-      const course = destination ?? pendingPlanet;
-      report({ type: "launch" });
-      if (!capable) {
-        setFlatInitial(course ?? "about");
-        setMode("flat");
-      } else {
-        setMode("flight");
-        if (course) {
-          sim.target = course;
-          sim.docked = null;
-          setTarget(course);
-        }
-      }
-      setPendingPlanet(null);
-    },
-    [capable, pendingPlanet, sim, report]
-  );
-
   const enterTextMode = useCallback(() => {
-    setFlatInitial(pendingPlanet ?? "about");
     setMode("flat");
-    setPendingPlanet(null);
-  }, [pendingPlanet]);
+  }, []);
 
-  const flying = mode === "flight";
+  // Never mount the canvas before capability is known — a WebGL-less browser
+  // would throw instead of falling back.
+  const flying = mode === "flight" && capable === true;
 
   return (
-    <div className="space" data-mode={mode}>
-      {mode === "intro" && capable && (
-        <div className="space__cinematic" aria-hidden="true">
-          <SpaceScene
-            sim={sim}
-            cinematic
-            active={null}
-            visited={visited}
-            onSelect={() => {}}
-            onDock={() => {}}
-            onRelease={() => {}}
-            onTakeover={() => {}}
-          />
-        </div>
-      )}
-      <AnimatePresence>
-        {mode === "intro" && (
-          <IntroOverlay key="intro" onLaunch={launch} onTextMode={enterTextMode} visitedCount={visited.size} />
-        )}
-      </AnimatePresence>
-
+    <div className="space" data-mode={flying ? "flight" : mode}>
       {flying && (
         <>
           <div className={`space__viewport ${sim.boosting ? "space__viewport--shake" : ""}`} {...drag}>
@@ -381,6 +392,7 @@ export default function SpaceExperience() {
             medals={`${unlocked.size}/${achievements.length}`}
             onShowAchievements={() => setMedalsOpen(true)}
             onPlayArcade={() => setArcadeOpen(true)}
+            onTextMode={enterTextMode}
           />
           <AchievementToast toast={toast} />
           <TouchControls />
@@ -424,7 +436,7 @@ export default function SpaceExperience() {
         </div>
       )}
 
-      {mode !== "intro" && <CopilotChat />}
+      <CopilotChat />
 
       <span className="sr-only" aria-hidden="true">
         {profile.name} — {profile.role} based in {profile.location}. Interactive 3D portfolio: five

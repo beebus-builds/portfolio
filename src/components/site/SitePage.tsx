@@ -1,5 +1,4 @@
 import type { ReactNode } from "react";
-import FlightOverlay from "./FlightOverlay";
 import SiteFooter from "./SiteFooter";
 import SiteNavbar from "./SiteNavbar";
 
@@ -30,7 +29,7 @@ export function PageHero({
   );
 }
 
-/** Classic page shell: navbar, document main, footer, flight overlay. */
+/** Classic page shell: navbar, document main, footer. */
 export default function SitePage({ hero, children }: { hero: ReactNode; children: ReactNode }) {
   return (
     <div className="site">
@@ -40,7 +39,6 @@ export default function SitePage({ hero, children }: { hero: ReactNode; children
         {children}
       </main>
       <SiteFooter />
-      <FlightOverlay />
     </div>
   );
 }

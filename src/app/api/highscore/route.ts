@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { id, fresh } = visitorId(req);
+  const { id } = visitorId(req);
   let body: unknown;
   try {
     body = await req.json();

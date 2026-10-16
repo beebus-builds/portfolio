@@ -9,6 +9,7 @@ import { flightInput } from "@/lib/flight";
 import { planets, type PlanetDef, type SectionId } from "@/lib/profile";
 import { orbitPosition, planetSpin, type Simulation } from "@/lib/simulation";
 import { createCloudTexture, createGlowTexture, createPlanetTexture, createRingTexture, type PlanetStyle } from "./textures";
+import { CLOUD_MAPS, MOON_MAP, PLANET_MAPS, RING_MAP, useBumpMap, useRealAlphaMap, useRealMap } from "./realAssets";
 
 const atmosphereVertex = /* glsl */ `
   varying vec3 vNormal;
@@ -44,6 +45,19 @@ const STYLES: Record<SectionId, PlanetStyle> = {
   resume: "crystalline",
 };
 
+/**
+ * Surface response once a real map is in place. Rocky bodies stay matte and
+ * dusty; the cloud tops of the gas giants are smoother and pick up a specular
+ * sheen from the key light, the way real cloud decks do.
+ */
+const SURFACE_ROUGHNESS: Record<PlanetStyle, number> = {
+  ocean: 0.78,
+  gaseous: 0.82,
+  rocky: 0.95,
+  bands: 0.88,
+  crystalline: 0.92,
+};
+
 function seedFrom(text: string): number {
   let hash = 0;
   for (let i = 0; i < text.length; i += 1) hash = (hash * 31 + text.charCodeAt(i)) >>> 0;
@@ -63,6 +77,7 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
   const clouds = useRef<THREE.Mesh>(null);
   const moonOrbit = useRef<THREE.Group>(null);
   const orbitRing = useRef<THREE.Mesh>(null);
+  const surfaceMesh = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
 
   const seed = useMemo(() => seedFrom(def.id), [def.id]);
@@ -70,6 +85,17 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
   const cloudMap = useMemo(() => createCloudTexture(seed + 77), [seed]);
   const ringMap = useMemo(() => createRingTexture(def.ringColor), [def.ringColor]);
   const glowMap = useMemo(() => createGlowTexture(), []);
+
+  /* Real NASA-derived imagery, swapped in over the procedural surface as soon
+     as it arrives. Until then the procedural map keeps the planet readable. */
+  const realSurface = useRealMap(PLANET_MAPS[def.id]);
+  const realBump = useBumpMap(realSurface, STYLES[def.id] === "ocean" ? 1.4 : 3.1);
+  const realClouds = useRealAlphaMap(CLOUD_MAPS[def.id]);
+  const realRing = useRealAlphaMap(def.ring ? RING_MAP : null);
+  const moonTexture = useRealMap(def.moons > 0 ? MOON_MAP : null);
+
+  const activeMap = realSurface ?? surface;
+  const activeNormal = realSurface ? realBump : null;
 
   const atmosphereUniforms = useMemo(
     () => ({
@@ -83,6 +109,13 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
   useEffect(() => {
     atmosphereUniforms.uIntensity.value = hovered || active ? 1.55 : 1.05;
   }, [atmosphereUniforms, hovered, active]);
+
+  // Adding a normal map turns on a shader define the material was compiled
+  // without, so the program has to be rebuilt once the bump map lands.
+  useEffect(() => {
+    const material = surfaceMesh.current?.material as THREE.MeshStandardMaterial | undefined;
+    if (material) material.needsUpdate = true;
+  }, [activeNormal]);
 
   useEffect(
     () => () => {
@@ -139,6 +172,7 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
 
       <group ref={group}>
         <mesh
+          ref={surfaceMesh}
           onClick={handleClick}
           onPointerOver={(event) => {
             event.stopPropagation();
@@ -151,17 +185,26 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
           }}
         >
           <sphereGeometry args={[def.radius, 64, 48]} />
-          <meshStandardMaterial map={surface} roughness={0.92} metalness={0.02} emissive={def.bandColor} emissiveIntensity={0.05} />
+          <meshStandardMaterial
+            map={activeMap}
+            normalMap={activeNormal}
+            normalScale={new THREE.Vector2(0.85, 0.85)}
+            roughness={SURFACE_ROUGHNESS[STYLES[def.id]]}
+            metalness={0.02}
+            envMapIntensity={0.4}
+            emissive={def.bandColor}
+            emissiveIntensity={0.05}
+          />
         </mesh>
 
         {def.id !== "skills" && (
           <mesh ref={clouds}>
             <sphereGeometry args={[def.radius * 1.015, 48, 32]} />
             <meshStandardMaterial
-              map={cloudMap}
-              alphaMap={cloudMap}
+              map={realClouds ?? cloudMap}
+              alphaMap={realClouds ?? cloudMap}
               transparent
-              opacity={0.4}
+              opacity={realClouds ? 0.85 : 0.4}
               roughness={1}
               depthWrite={false}
             />
@@ -196,7 +239,8 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
           <mesh rotation={[Math.PI / 2, 0, 0]}>
             <ringGeometry args={[def.radius * 1.4, def.radius * 2.6, 128]} />
             <meshBasicMaterial
-              map={ringMap}
+              map={realRing ?? ringMap}
+              alphaMap={realRing ?? ringMap}
               color={def.ringColor}
               transparent
               opacity={0.8}
@@ -217,7 +261,13 @@ export default function Planet({ def, sim, active, visited, onSelect }: PlanetPr
                 <group key={index} rotation={[0, angle, 0]}>
                   <mesh position={[distance, Math.sin(angle * 2) * def.radius * 0.3, 0]}>
                     <sphereGeometry args={[size, 24, 16]} />
-                    <meshStandardMaterial color="#8b93a6" roughness={0.95} metalness={0.02} />
+                    <meshStandardMaterial
+                      map={moonTexture ?? undefined}
+                      color={moonTexture ? "#ffffff" : "#8b93a6"}
+                      roughness={0.96}
+                      metalness={0.02}
+                      envMapIntensity={0.35}
+                    />
                   </mesh>
                 </group>
               );

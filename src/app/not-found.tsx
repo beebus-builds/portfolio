@@ -1,46 +1,100 @@
 import Link from "next/link";
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteNavbar from "@/components/site/SiteNavbar";
+import { planets, profile } from "@/lib/profile";
+
+/** A few useful vectors out of a dead end — straight into the worlds. */
+const RECOVERY = [
+  { href: "/?planet=projects", label: "The archive", note: "Every shipped mission, in the field" },
+  { href: "/?planet=about", label: "Origin", note: "Who is flying this ship" },
+  { href: "/?planet=contact", label: "Open a channel", note: "Ask for what you need" },
+];
 
 export default function NotFound() {
   return (
-    <main
-      style={{
-        display: "grid",
-        placeContent: "center",
-        justifyItems: "center",
-        gap: "18px",
-        minHeight: "100dvh",
-        padding: "40px",
-        textAlign: "center",
-        fontFamily: "var(--font-body)",
-      }}
-    >
-      <p style={{ margin: 0, color: "#6fe6f4", fontFamily: "var(--font-mono)", fontSize: "11px", letterSpacing: "0.3em" }}>
-        SIGNAL LOST
-      </p>
-      <h1 style={{ margin: 0, fontSize: "clamp(32px, 6vw, 60px)", fontWeight: 600, letterSpacing: "-0.02em" }}>
-        Nothing orbits this address
-      </h1>
-      <p style={{ margin: 0, maxWidth: "48ch", color: "#8ea2b4", lineHeight: 1.6 }}>
-        The coordinates you followed do not exist in this system. Head back to the ship and pick another
-        vector.
-      </p>
-      <Link
-        href="/"
-        style={{
-          marginTop: "10px",
-          padding: "14px 28px",
-          borderRadius: "999px",
-          background: "#eaf2f8",
-          color: "#04050c",
-          fontFamily: "var(--font-mono)",
-          fontSize: "11px",
-          fontWeight: 600,
-          letterSpacing: "0.14em",
-          textTransform: "uppercase",
-        }}
-      >
-        Return to the ship
-      </Link>
-    </main>
+    <div className="site">
+      <SiteNavbar />
+
+      <main className="site__main" id="document">
+        <header className="page-hero">
+          <p className="section-head__kicker">Error 404 · {profile.callSign}</p>
+          <h1>Nothing orbits this address</h1>
+          <p className="page-hero__lede">
+            The coordinates you followed do not exist in this system. The flight log is intact —
+            pick another vector and keep moving.
+          </p>
+          <ul className="page-hero__meta">
+            <li>Path unresolved</li>
+            <li>Ship systems nominal</li>
+          </ul>
+        </header>
+
+        <section className="site-section" aria-labelledby="recovery-title">
+          <div className="section-head">
+            <p className="section-head__kicker">Recovery</p>
+            <h2 className="section-head__title" id="recovery-title">
+              Three ways back on course
+            </h2>
+          </div>
+          <ul className="site-grid">
+            {RECOVERY.map((item) => (
+              <li className="site-card" key={item.href}>
+                <span className="site-card__kicker">Navigate</span>
+                <h3>
+                  <Link className="text-link" href={item.href}>
+                    {item.label}
+                  </Link>
+                </h3>
+                <p>{item.note}</p>
+                <p className="site-card__meta">
+                  <Link className="text-link" href={item.href}>
+                    Go →
+                  </Link>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section className="site-section" aria-labelledby="worlds-title">
+          <div className="section-head">
+            <p className="section-head__kicker">Index</p>
+            <h2 className="section-head__title" id="worlds-title">
+              Or jump straight to a world
+            </h2>
+          </div>
+          <ul className="site-grid">
+            {planets.map((planet) => (
+              <li className="site-card" key={planet.id} style={{ ["--planet" as string]: planet.glowColor }}>
+                <span className="site-card__kicker">{planet.kicker}</span>
+                <h3>
+                  <Link className="text-link" href={`/flight?planet=${planet.id}`}>
+                    {planet.title}
+                  </Link>
+                </h3>
+                <p>{planet.blurb}</p>
+                <p className="site-card__meta">
+                  <Link className="text-link" href={`/flight?planet=${planet.id}`}>
+                    Fly there →
+                  </Link>{" "}
+                  ·{" "}
+                  <Link className="text-link" href={`/${planet.id}`}>
+                    Read it
+                  </Link>
+                </p>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <div className="site-section">
+          <Link className="btn" href="/">
+            Return to the ship ↗
+          </Link>
+        </div>
+      </main>
+
+      <SiteFooter />
+    </div>
   );
 }

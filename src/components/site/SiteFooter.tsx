@@ -13,19 +13,19 @@ export default function SiteFooter() {
             {profile.responseWindow.toLowerCase()}.
           </p>
           <p>
-            Prefer the scenic route?{" "}
-            <Link className="text-link" href="/flight">
+            The whole portfolio is one flight.{" "}
+            <Link className="text-link" href="/">
               Fly the ship ↗
             </Link>
           </p>
         </div>
         <nav aria-label="Sections">
           <span className="site-footer__label">Index</span>
-          <Link href="/about">About</Link>
-          <Link href="/skills">Skills</Link>
-          <Link href="/projects">Projects</Link>
-          <Link href="/contact">Contact</Link>
-          <Link href="/resume">Resume</Link>
+          {planets.map((planet) => (
+            <Link key={planet.id} href={`/?planet=${planet.id}`}>
+              {planet.label} · {planet.title}
+            </Link>
+          ))}
         </nav>
         <nav aria-label="Elsewhere">
           <span className="site-footer__label">Elsewhere</span>
@@ -38,7 +38,7 @@ export default function SiteFooter() {
             Worlds
           </span>
           {planets.map((planet) => (
-            <Link key={planet.id} href={`/flight?planet=${planet.id}`}>
+            <Link key={planet.id} href={`/?planet=${planet.id}`}>
               {planet.label} · {planet.title}
             </Link>
           ))}

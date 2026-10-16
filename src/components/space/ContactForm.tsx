@@ -1,55 +1,30 @@
 "use client";
 
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { profile } from "@/lib/profile";
-
-type Status = "idle" | "sending" | "sent" | "error";
+import { sendMessage } from "@/app/contact/action";
 
 export default function ContactForm() {
-  const [status, setStatus] = useState<Status>("idle");
-  const [error, setError] = useState("");
+  const [state, formAction, isPending] = useActionState(sendMessage, {
+    status: "idle",
+    error: null,
+  });
   const [messageLength, setMessageLength] = useState(0);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const data = new FormData(form);
-    // Honeypot: bots fill this; humans never see it.
-    if (String(data.get("company") ?? "").trim() !== "") {
-      form.reset();
+  // Reset the form and counter after a terminal status so the pilot can send
+  // another signal without stale values lingering.
+  useEffect(() => {
+    if (state.status === "sent" || state.status === "error") {
+      formRef.current?.reset();
       setMessageLength(0);
-      setStatus("sent");
-      return;
     }
-    setStatus("sending");
-    setError("");
+  }, [state.status]);
 
-    try {
-      const response = await fetch("/api/contact", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: String(data.get("name") ?? ""),
-          email: String(data.get("email") ?? ""),
-          message: String(data.get("message") ?? ""),
-        }),
-      });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
-      if (!response.ok) throw new Error(payload?.error ?? "The channel could not receive that message.");
-      form.reset();
-      setMessageLength(0);
-      setStatus("sent");
-    } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "The channel could not receive that message.");
-      setStatus("error");
-    }
-  }
-
-  const sending = status === "sending";
+  const sending = isPending;
 
   return (
-    <form className="signal-form" onSubmit={handleSubmit} aria-busy={sending}>
+    <form ref={formRef} action={formAction} className="signal-form" aria-busy={sending}>
       <div className="signal-form__row" aria-hidden="true" style={{ position: "absolute", left: "-9999px", top: "auto", width: "1px", height: "1px", overflow: "hidden" }}>
         <label htmlFor="signal-company">Company</label>
         <input id="signal-company" name="company" autoComplete="off" tabIndex={-1} placeholder="Company" />
@@ -75,28 +50,24 @@ export default function ContactForm() {
           aria-describedby="signal-message-count"
           onChange={(event) => {
             setMessageLength(event.currentTarget.value.length);
-            if (status === "sent" || status === "error") {
-              setStatus("idle");
-              setError("");
-            }
           }}
         />
         <small id="signal-message-count" className="signal-form__count" aria-live="off">
           {messageLength}/4000
         </small>
       </div>
-      <button type="submit" disabled={status === "sending"}>
-        {status === "sending" ? "Transmitting…" : "Transmit signal"}
+      <button type="submit" disabled={sending}>
+        {sending ? "Transmitting…" : "Transmit signal"}
         <span aria-hidden="true">↗</span>
       </button>
-      {status === "sent" && (
+      {state.status === "sent" && (
         <p className="signal-form__status" data-tone="success" role="status">
           Signal received. I&apos;ll reply to {profile.responseWindow.toLowerCase()}.
         </p>
       )}
-      {status === "error" && (
+      {state.status === "error" && (
         <p className="signal-form__status" data-tone="error" role="alert">
-          {error}
+          {state.error}
         </p>
       )}
     </form>

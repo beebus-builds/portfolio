@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
-import { getPlanet, planets, type SectionId } from "@/lib/profile";
+import { getPlanet, planets, planetReadout, type SectionId } from "@/lib/profile";
 import SectionContent from "./SectionContent";
 
 /**
@@ -61,7 +61,7 @@ export function EntryFlash({ id }: { id: SectionId }) {
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5, delay: 0.45 }}
         >
-          {planet.title} · {planet.readout}
+          {planet.title} · {planetReadout(planet)}
         </motion.span>
         <span className="flash__track" aria-hidden="true">
           <motion.span
@@ -165,7 +165,7 @@ export default function PlanetWorld({ id, onExit, onJump }: PlanetWorldProps) {
           {planet.label}
         </motion.h2>
         <motion.p custom={2} variants={heroChild} initial="hidden" animate="show" className="world__sub">
-          {planet.title} · {planet.readout}
+          {planet.title} · {planetReadout(planet)}
         </motion.p>
         <motion.p custom={3} variants={heroChild} initial="hidden" animate="show" className="world__blurb">
           {planet.blurb}

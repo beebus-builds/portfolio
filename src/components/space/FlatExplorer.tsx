@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { planets, profile, type SectionId } from "@/lib/profile";
+import { planets, planetReadout, profile, type SectionId } from "@/lib/profile";
 import { siteUrl } from "@/lib/site";
 import SectionContent from "./SectionContent";
 
@@ -63,7 +63,7 @@ export default function FlatExplorer({ initial = "about" }: { initial?: SectionI
           <header>
             <span className="flat__kicker">{planet.kicker}</span>
             <h2>{planet.label}</h2>
-            <p>{planet.readout}</p>
+            <p>{planetReadout(planet)}</p>
           </header>
           <p className="flat__blurb">{planet.blurb}</p>
           <SectionContent id={planet.id} />

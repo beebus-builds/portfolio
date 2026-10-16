@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { parsePostContent, serializePostContent } from "@/lib/postBody";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { parsePostContent, serializePostContent, IMAGE_RE } from "@/lib/postBody";
 import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
 
 /**
@@ -11,6 +11,10 @@ import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
  * src/lib/postBody.ts — a nested form with repeater rows would make writing
  * harder, and writing is the part that should be easy. Everything else is a
  * normal field.
+ *
+ * A toolbar inserts the supported block syntax at the cursor, drafts autosave
+ * to localStorage so a refresh never loses a half-written post, and an SEO
+ * preview shows the live URL plus title/excerpt character budgets.
  */
 
 export type EditorPost = {
@@ -60,6 +64,11 @@ const BLANK: Draft = {
   published: true,
 };
 
+const TITLE_MIN = 8;
+const TITLE_MAX = 140;
+const EXCERPT_MIN = 40;
+const EXCERPT_MAX = 300;
+
 function slugify(value: string): string {
   return value
     .toLowerCase()
@@ -91,6 +100,28 @@ function toDraft(post: EditorPost): Draft {
   };
 }
 
+/** LocalStorage key for a draft: stable per post being edited, one slot for new posts. */
+function draftKey(slug: string | undefined): string {
+  return `post:draft:${slug ?? "new"}`;
+}
+
+function loadDraft(key: string): Draft | null {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? (JSON.parse(raw) as Draft) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(key: string, draft: Draft): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(draft));
+  } catch {
+    /* storage full or private mode: draft won't persist, that's acceptable */
+  }
+}
+
 export default function PostEditor({
   token,
   editing,
@@ -101,11 +132,23 @@ export default function PostEditor({
   editing: EditorPost | null;
   onSaved: (slug: string) => void;
 }) {
+  const key = draftKey(editing?.slug);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const [draft, setDraft] = useState<Draft>(BLANK);
   const [slugLocked, setSlugLocked] = useState(false);
   const [busy, setBusy] = useState(false);
   const [errors, setErrors] = useState<string[]>([]);
   const [status, setStatus] = useState<string | null>(null);
+  const [restored, setRestored] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const today = new Date().toISOString().slice(0, 10);
+  const scheduled = draft.date > today;
+
+  const titleWarn = draft.title.length > 0 && (draft.title.length < TITLE_MIN || draft.title.length > TITLE_MAX);
+  const excerptWarn = draft.excerpt.length > 0 && (draft.excerpt.length < EXCERPT_MIN || draft.excerpt.length > EXCERPT_MAX);
 
   // Load the selected post into the form. Keyed on the slug so picking the same
   // post again still refreshes the fields.
@@ -116,6 +159,38 @@ export default function PostEditor({
     setErrors([]);
     setStatus("Loaded for editing.");
   }, [editing]);
+
+  /** Restore a saved local draft for a brand-new post the first time the editor opens. */
+  useEffect(() => {
+    if (editing) return;
+    if (draft.title !== "" || draft.content !== "" || draft.excerpt !== "") return;
+    const saved = loadDraft(key);
+    if (saved) {
+      setDraft(saved);
+      setRestored(true);
+      setStatus("Restored your saved draft.");
+    }
+  }, [editing, key, draft.title, draft.content, draft.excerpt]);
+
+  /** Autosave every change so a closed tab never loses a draft. */
+  useEffect(() => {
+    const hasSomething =
+      draft.title ||
+      draft.excerpt ||
+      draft.tags ||
+      draft.content ||
+      draft.cover_alt ||
+      draft.slug;
+    if (!hasSomething) return;
+    const timer = setTimeout(() => saveDraft(key, draft), 1500);
+    return () => clearTimeout(timer);
+  }, [draft, key]);
+
+  useEffect(() => {
+    const onBeforeUnload = () => saveDraft(key, draft);
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [draft, key]);
 
   function update<K extends keyof Draft>(key: K, value: Draft[K]) {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -129,6 +204,62 @@ export default function PostEditor({
       slug: slugLocked ? current.slug : slugify(title),
     }));
     setStatus(null);
+  }
+
+  /** Insert text at the caret, replacing any selection, and keep the caret after it. */
+  function insertAtCursor(insert: string) {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart ?? 0;
+    const end = el.selectionEnd ?? 0;
+    const value = el.value;
+    const newValue = value.slice(0, start) + insert + value.slice(end);
+    el.value = newValue;
+    const caret = start + insert.length;
+    el.setSelectionRange(caret, caret);
+    setDraft((current) => ({ ...current, content: newValue }));
+    setStatus(null);
+  }
+
+  function block(lead: string, trail: string) {
+    insertAtCursor(`${lead}${trail}`);
+  }
+
+  async function uploadImage() {
+    if (!fileInputRef.current) return;
+    fileInputRef.current.click();
+  }
+
+  async function handleImageSelect(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    setErrors([]);
+    setStatus(null);
+
+    const form = new FormData();
+    form.append("file", file);
+
+    try {
+      const res = await fetch("/api/admin/upload", {
+        method: "POST",
+        headers: { authorization: `Bearer ${token}` },
+        body: form,
+      });
+      const data = (await res.json()) as { url?: string; error?: string };
+      if (res.status === 401) throw new Error("Wrong token.");
+      if (!res.ok) throw new Error(data.error ?? "Upload failed.");
+      if (!data.url) throw new Error("No image URL returned.");
+
+      const alt = file.name.replace(/\.[^/.]+$/, "");
+      insertAtCursor(`\n\n![${alt}](${data.url})\n\n`);
+      setStatus(`Image inserted: ${data.url}`);
+    } catch (error) {
+      setErrors([error instanceof Error ? error.message : "Image upload failed."]);
+    } finally {
+      setUploading(false);
+      event.target.value = "";
+    }
   }
 
   const parsed = useMemo(() => parsePostContent(draft.content), [draft.content]);
@@ -176,6 +307,7 @@ export default function PostEditor({
 
       setSlugLocked(true);
       setStatus(`Saved. Live at /blog/${draft.slug}`);
+      try { localStorage.removeItem(key); } catch {}
       onSaved(draft.slug);
     } catch (error) {
       setErrors([error instanceof Error ? error.message : "Unknown error"]);
@@ -204,6 +336,7 @@ export default function PostEditor({
       }
       setDraft({ ...BLANK, date: new Date().toISOString().slice(0, 10) });
       setSlugLocked(false);
+      try { localStorage.removeItem(key); } catch {}
       setStatus("Deleted.");
       onSaved("");
     } catch (error) {
@@ -220,8 +353,28 @@ export default function PostEditor({
     setStatus("Cleared. Writing a new post.");
   }
 
+  const slugPreview = draft.slug || "my-post-slug";
+
   return (
     <div className="editor">
+      {restored && (
+        <div className="editor__draft-banner" role="status">
+          <p>Unsaved draft restored.</p>
+          <button
+            type="button"
+            onClick={() => {
+              setDraft({ ...BLANK, date: new Date().toISOString().slice(0, 10) });
+              setSlugLocked(false);
+              setRestored(false);
+              try { localStorage.removeItem(key); } catch {}
+              setStatus("Cleared. Writing a new post.");
+            }}
+          >
+            Start over
+          </button>
+        </div>
+      )}
+
       <div className="editor__row editor__row--split">
         <div className="editor__field">
           <label htmlFor="post-title">Title</label>
@@ -231,6 +384,9 @@ export default function PostEditor({
             onChange={(event) => updateTitle(event.target.value)}
             placeholder="What shipped, and what it taught you"
           />
+          <small className="editor__hint">
+            {draft.title.length} / {TITLE_MAX} characters ({TITLE_MIN} minimum)
+          </small>
         </div>
         <div className="editor__field editor__field--narrow">
           <label htmlFor="post-date">Date</label>
@@ -240,6 +396,9 @@ export default function PostEditor({
             value={draft.date}
             onChange={(event) => update("date", event.target.value)}
           />
+          {scheduled && (
+            <span className="editor__scheduled">Schedules for {draft.date}</span>
+          )}
         </div>
       </div>
 
@@ -282,7 +441,9 @@ export default function PostEditor({
           onChange={(event) => update("excerpt", event.target.value)}
           placeholder="One or two sentences. This is what people see when they share the link."
         />
-        <small className="editor__hint">{draft.excerpt.length} characters (40 minimum).</small>
+        <small className="editor__hint">
+          {draft.excerpt.length} / {EXCERPT_MAX} characters ({EXCERPT_MIN} minimum)
+        </small>
       </div>
 
       <div className="editor__field">
@@ -293,12 +454,75 @@ export default function PostEditor({
           onChange={(event) => update("tags", event.target.value)}
           placeholder="Next.js, Performance"
         />
-        <small className="editor__hint">Comma separated, up to six.</small>
+        <small className="editor__hint">
+          {draft.tags.split(",").filter(Boolean).length} / 6 · comma separated
+        </small>
+      </div>
+
+      {/* ---------- writing toolbar ---------- */}
+      <div className="editor__toolbar" aria-label="Writing shortcuts">
+        <button
+          type="button"
+          title="Section heading (## )"
+          aria-label="Insert a section heading"
+          onClick={() => block("\n\n## ", "\n\n")}
+        >
+          § Heading
+        </button>
+        <button
+          type="button"
+          title="Bullet list (- )"
+          aria-label="Insert a bullet"
+          onClick={() => block("\n- ", "\n")}
+        >
+          • Bullet
+        </button>
+        <button
+          type="button"
+          title="Code block (```ts)"
+          aria-label="Insert a fenced code block"
+          onClick={() => block("\n\n```ts\n", "\n```\n\n")}
+        >
+          {"<"}{" "}{">"} Code
+        </button>
+        <button
+          type="button"
+          title="Pull quote (> )"
+          aria-label="Insert a pull quote"
+          onClick={() => block("\n> ", "\n")}
+        >
+          “ Quote
+        </button>
+        <button
+          type="button"
+          title="Upload and insert an image"
+          aria-label="Upload an image"
+          onClick={uploadImage}
+          disabled={uploading}
+        >
+          {uploading ? "Uploading…" : "🖼 Image"}
+        </button>
+        <button
+          type="button"
+          title="Preview this draft as a published post"
+          aria-label="Preview draft"
+          onClick={() => setPreviewOpen(true)}
+        >
+          Preview
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/png, image/jpeg, image/webp, image/avif"
+          onChange={handleImageSelect}
+          hidden
+        />
       </div>
 
       <div className="editor__field">
         <label htmlFor="post-content">Post</label>
         <textarea
+          ref={textareaRef}
           id="post-content"
           className="editor__body"
           rows={22}
@@ -312,6 +536,36 @@ export default function PostEditor({
           Blank line = new paragraph · <code>## </code> = section · <code>- </code> = bullet ·{" "}
           <code>&gt; </code> = pull quote · <code>```lang</code> = code block.
         </small>
+      </div>
+
+      {/* ---------- SEO preview ---------- */}
+      <div className="editor__seo" aria-label="SEO preview">
+        <div className="editor__seo__row">
+          <label>Live URL</label>
+          <span className="editor__seo__url">/blog/{slugPreview}</span>
+        </div>
+        <div className="editor__seo__row">
+          <label>Title</label>
+          <span className={`editor__seo__count ${titleWarn ? "warn" : ""}`}>
+            {draft.title.length} / {TITLE_MAX}
+          </span>
+        </div>
+        <div className="editor__seo__row">
+          <label>Excerpt</label>
+          <span className={`editor__seo__count ${excerptWarn ? "warn" : ""}`}>
+            {draft.excerpt.length} / {EXCERPT_MAX}
+          </span>
+        </div>
+        <div className="editor__seo__row">
+          <label>Tags</label>
+          <span className="editor__seo__count">
+            {draft.tags.split(",").filter(Boolean).length} / 6
+          </span>
+        </div>
+        <div className="editor__seo__row">
+          <label>Read time</label>
+          <span className="editor__seo__value">{draft.minutes} min</span>
+        </div>
       </div>
 
       <fieldset className="editor__cover">
@@ -378,6 +632,9 @@ export default function PostEditor({
           onChange={(event) => update("published", event.target.checked)}
         />
         Published (uncheck to keep it as a draft)
+        {scheduled && draft.published && (
+          <span className="editor__scheduled"> · publishes {draft.date}</span>
+        )}
       </label>
 
       {errors.length > 0 && (
@@ -413,7 +670,76 @@ export default function PostEditor({
         {parsed.sections.filter((section) => section.code).length} code blocks
         {parsed.quote ? " · 1 pull quote" : ""}
       </p>
+
+      {/* ---------- draft preview dialog ---------- */}
+      <dialog className="editor__preview-dialog" open={previewOpen} onClose={() => setPreviewOpen(false)}>
+        <div className="editor__preview-dialog__panel">
+          <button
+            type="button"
+            className="editor__preview-dialog__close"
+            aria-label="Close preview"
+            onClick={() => setPreviewOpen(false)}
+          >
+            Close
+          </button>
+          <div className="editor__preview-dialog__header">
+            <h2 style={{ margin: 0 }}>{draft.title || "Untitled"}</h2>
+            <p className="editor__preview-dialog__muted">
+              {draft.date} · {draft.excerpt ? draft.excerpt.length + " chars" : "no excerpt"}
+            </p>
+          </div>
+          <div className="editor__preview-dialog__body">
+            {parsed.body.map((paragraph, index) => {
+              const image = IMAGE_RE.exec(paragraph);
+              if (image) {
+                return (
+                  <figure key={`preview-body-${index}`} className="editor__preview-dialog__image">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
+                    {image[1] && <figcaption>{image[1]}</figcaption>}
+                  </figure>
+                );
+              }
+              return <p key={`preview-body-${index}`}>{paragraph}</p>;
+            })}
+            {parsed.quote && (
+              <blockquote className="editor__preview-dialog__quote">
+                <p>{parsed.quote}</p>
+              </blockquote>
+            )}
+            {parsed.sections.map((section, sIndex) => (
+              <div key={section.heading || String(sIndex)} className="editor__preview-dialog__section">
+                <h3>{section.heading}</h3>
+                {section.paragraphs.map((paragraph, pIndex) => {
+                  const image = IMAGE_RE.exec(paragraph);
+                  if (image) {
+                    return (
+                      <figure key={`preview-section-${sIndex}-${pIndex}`} className="editor__preview-dialog__image">
+                        <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
+                        {image[1] && <figcaption>{image[1]}</figcaption>}
+                      </figure>
+                    );
+                  }
+                  return <p key={`preview-section-${sIndex}-${pIndex}`}>{paragraph}</p>;
+                })}
+                {section.bullets?.length && (
+                  <ul>
+                    {section.bullets.map((bullet, bIndex) => (
+                      <li key={`preview-section-${sIndex}-bullet-${bIndex}`}>{bullet}</li>
+                    ))}
+                  </ul>
+                )}
+                {section.code && (
+                  <figure className="editor__preview-dialog__code">
+                    <figcaption>{section.code.lang}</figcaption>
+                    <pre><code>{section.code.snippet}</code></pre>
+                  </figure>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </dialog>
     </div>
   );
 }
-

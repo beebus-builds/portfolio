@@ -155,7 +155,11 @@ export default function AdminPage() {
                           type="button"
                           onClick={() => setEditing(post)}
                         >
-                          {post.published ? "" : "draft · "}
+                          {post.published && new Date(post.date) > new Date(new Date().toISOString().slice(0, 10))
+                            ? "scheduled · "
+                            : post.published
+                              ? ""
+                              : "draft · "}
                           {post.title}
                         </button>{" "}
                         <Link className="admin__link" href={`/blog/${post.slug}`}>

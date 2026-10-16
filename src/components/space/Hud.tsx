@@ -19,13 +19,15 @@ type HudProps = {
   medals?: string;
   onShowAchievements: () => void;
   onPlayArcade: () => void;
+  /** Drops to the flat explorer: the same content, no WebGL required. */
+  onTextMode: () => void;
 };
 
 /**
  * Readout frame around the viewport. Speed and heading are written straight to
  * the DOM from a rAF loop so flying never re-renders React.
  */
-export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals, onShowAchievements, onPlayArcade }: HudProps) {
+export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals, onShowAchievements, onPlayArcade, onTextMode }: HudProps) {
   const [muted, setMuted] = useState(false);
   const speedRef = useRef<HTMLSpanElement>(null);
   const throttleRef = useRef<HTMLElement>(null);
@@ -194,6 +196,16 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
             type="button"
             onClick={(event) => {
               event.currentTarget.blur();
+              onTextMode();
+            }}
+            title="Read the same content without the 3D scene"
+          >
+            TEXT
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.currentTarget.blur();
               onPlayArcade();
             }}
             title="Play the asteroid field mini-game"
@@ -213,6 +225,14 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
       </div>
 
       <p className="hud__hint">Click a planet to fly there · press Esc to undock</p>
+
+      <p className="hud__credits">
+        Imagery:{" "}
+        <a href="https://www.solarsystemscope.com/textures/" target="_blank" rel="noreferrer">
+          Solar System Scope
+        </a>{" "}
+        (CC BY 4.0, NASA data)
+      </p>
     </div>
   );
 }

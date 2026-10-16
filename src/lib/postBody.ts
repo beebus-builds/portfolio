@@ -19,6 +19,8 @@ import type { Post, PostSection } from "./posts";
  *   - a bullet
  *   - another bullet
  *
+ *   ![alt text](/uploads/image.png)
+ *
  *   ```ts
  *   fenced code, back to back
  *   ```
@@ -31,6 +33,7 @@ const FENCE_RE = /^```(\w*)\s*$/;
 const HEADING_RE = /^##\s+(.+)$/;
 const QUOTE_RE = /^>\s?(.*)$/;
 const BULLET_RE = /^-\s+(.+)$/;
+export const IMAGE_RE = /^!\[([^\]]*)\]\(([^)]+)\)\s*$/;
 
 export type PostContent = {
   body: string[];
@@ -111,6 +114,15 @@ export function parsePostContent(source: string): PostContent {
     if (bullet && current) {
       flushParagraph();
       (current.bullets ??= []).push(bullet[1].trim());
+      continue;
+    }
+
+    const image = IMAGE_RE.exec(line.trim());
+    if (image) {
+      flushParagraph();
+      const block = `![${image[1]}](${image[2]})`;
+      if (current) current.paragraphs.push(block);
+      else body.push(block);
       continue;
     }
 

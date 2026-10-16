@@ -73,7 +73,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${display.variable} ${mono.variable}`}>
         <script
           dangerouslySetInnerHTML={{
@@ -93,13 +93,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               name: profile.name,
               url: siteUrl,
               jobTitle: profile.role,
-              email: "mailto:bibashpoudel@email.com",
+              email: emailHref(),
               address: {
                 "@type": "PostalAddress",
                 addressLocality: "Sindhuli",
                 addressCountry: "NP",
               },
-              sameAs: ["https://github.com/beebus-builds", "https://linkedin.com/in/bibashpoudel"],
+              sameAs: profile.links
+                .filter((link) => link.href.startsWith("http"))
+                .map((link) => link.href),
               knowsAbout: skillsLabel(),
             }),
           }}
@@ -107,6 +109,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </body>
     </html>
   );
+}
+
+/** The email entry from the profile, so structured data can never drift from the page. */
+function emailHref(): string {
+  return profile.links.find((link) => link.label === "Email")?.href ?? "";
 }
 
 function skillsLabel() {

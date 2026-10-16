@@ -2,24 +2,22 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
-import { profile } from "@/lib/profile";
+import { usePathname, useSearchParams } from "next/navigation";
+import { planets, profile } from "@/lib/profile";
 import ThemeToggle from "./ThemeToggle";
 
+/** The flight is the site, so the nav is the world index plus the logbook. */
 const LINKS = [
-  { href: "/about", label: "About" },
-  { href: "/skills", label: "Skills" },
-  { href: "/projects", label: "Projects" },
-  { href: "/stats", label: "Stats" },
-  { href: "/experience", label: "Experience" },
+  ...planets.map((planet) => ({ href: `/?planet=${planet.id}`, label: planet.label })),
   { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact" },
-  { href: "/resume", label: "Resume" },
+  { href: "/resume.pdf", label: "Resume" },
 ];
 
-/** Sticky site navbar: shared by the homepage and all five section pages. */
+/** Sticky site navbar: the flight is the site, so the nav is the world index. */
 export default function SiteNavbar() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const search = searchParams.toString() ? `?${searchParams.toString()}` : "";
   const [open, setOpen] = useState(false);
 
   // Collapse the mobile menu on navigation.
@@ -65,7 +63,7 @@ export default function SiteNavbar() {
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    aria-current={pathname === link.href ? "page" : undefined}
+                    aria-current={pathname + search === link.href ? "page" : undefined}
                   >
                     {link.label}
                   </Link>
@@ -74,8 +72,8 @@ export default function SiteNavbar() {
             </ul>
           </nav>
           <ThemeToggle />
-          <Link className="site-nav__cta" href="/flight">
-            Enter flight ↗
+          <Link className="site-nav__cta" href={`/?planet=contact`}>
+            Open a channel ↗
           </Link>
         </div>
       </div>

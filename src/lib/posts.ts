@@ -208,7 +208,7 @@ export const posts: Post[] = [
         bullets: [
           "One mutable sim object; React never sees per-frame state.",
           "useFrame writes to refs and the HUD, never to component state.",
-          "React re-renders on mode change only: intro, flight, docked, flat.",
+          "React re-renders on mode change only: flight, docked, flat.",
         ],
       },
       {
@@ -233,7 +233,7 @@ export const posts: Post[] = [
     },
     body: [
       "A conventional portfolio asks visitors to take its claims on faith. I wanted the site itself to be the proof: interface craft, real-time 3D, and a working backend all demonstrated in the act of being browsed — with a completely conventional site one link away.",
-      "The core of the 3D mode is a single simulation object. Planet positions, ship state, heading, and docking targets all live on one plain mutable object that the 3D scene and the HUD both read. React never re-renders per frame: useFrame mutates refs, and React only renders on mode changes — intro, flight, docked, flat.",
+      "The core of the 3D mode is a single simulation object. Planet positions, ship state, heading, and docking targets all live on one plain mutable object that the 3D scene and the HUD both read. React never re-renders per frame: useFrame mutates refs, and React only renders on mode changes — flight, docked, flat.",
       "Everything else follows from that decision: the flat explorer is a second renderer over the same state, progress is persisted server-side so it survives a reload, and the contact endpoint is a real API rather than a mailto link.",
     ],
     quote:

@@ -187,6 +187,62 @@ function DistantGalaxies() {
   );
 }
 
+/** A handful of bright, colourful pointer stars — the sky's navigation marks. */
+const POINTER_STARS: Array<{
+  dir: [number, number, number];
+  color: string;
+  magnitude: number;
+  pulse: number;
+}> = [
+  { dir: [0.9, 0.2, -0.3], color: "#ffffff", magnitude: 1, pulse: 1.1 },
+  { dir: [-0.75, 0.4, -0.5], color: "#cfe0ff", magnitude: 0.8, pulse: 0.9 },
+  { dir: [0.3, -0.8, 0.5], color: "#ffc98a", magnitude: 0.85, pulse: 1 },
+  { dir: [-0.2, -0.6, -0.75], color: "#9fc0ff", magnitude: 0.7, pulse: 1.2 },
+  { dir: [0.6, 0.6, -0.5], color: "#ff9a5c", magnitude: 0.65, pulse: 0.85 },
+];
+
+/** Distant pinpricks that pulse like real variable stars, pinned to infinity. */
+function BrightStars() {
+  const group = useRef<THREE.Group>(null);
+  const materials = useRef<THREE.SpriteMaterial[]>([]);
+  const glowMap = useMemo(() => createGlowTexture(), []);
+  const items = useMemo(
+    () =>
+      POINTER_STARS.map((s) => ({
+        ...s,
+        position: new THREE.Vector3(...s.dir).normalize().multiplyScalar(1400),
+      })),
+    []
+  );
+
+  useFrame(({ camera, clock }) => {
+    if (group.current) group.current.position.copy(camera.position);
+    materials.current.forEach((material, index) => {
+      const star = items[index];
+      const phase = clock.elapsedTime * star.pulse + index;
+      material.opacity = 0.3 + 0.14 * Math.sin(phase);
+    });
+  });
+
+  return (
+    <group ref={group}>
+      {items.map((s, index) => (
+        <sprite key={index} ref={(ref) => (materials.current[index] = ref?.material as THREE.SpriteMaterial)} position={s.position} scale={[s.magnitude * 280, s.magnitude * 280, 1]}>
+          <spriteMaterial
+            map={glowMap}
+            color={s.color}
+            transparent
+            opacity={0.3}
+            depthWrite={false}
+            blending={THREE.AdditiveBlending}
+            toneMapped={false}
+          />
+        </sprite>
+      ))}
+    </group>
+  );
+}
+
 /** Near-field ice-crystal dust drifting past the hull: sells motion at any speed. */
 function CosmicDust({ count = 550, radius = 85 }: { count?: number; radius?: number }) {
   const points = useRef<THREE.Points>(null);
@@ -233,6 +289,10 @@ function CosmicDust({ count = 550, radius = 85 }: { count?: number; radius?: num
  * Deep-space backdrop: temperature-weighted star shells with parallax, a dense
  * Milky Way band with dark-lane dimming, island galaxies at infinity, and dust
  * motes drifting past the camera.
+ *
+ * The real Milky Way panorama (RealSky) carries the galactic band, so the band
+ * layer here is deliberately restrained — it only adds the crisp bright points
+ * that a compressed JPEG cannot hold, on top of the real structure.
  */
 export default function Starfield() {
   return (
@@ -241,16 +301,17 @@ export default function Starfield() {
       <StarLayer count={2600} radius={620} size={2.6} opacity={0.85} spin={0.004} spread={0.45} saturation={[0.9, 0.12]} />
       <StarLayer count={900} radius={260} size={3.4} opacity={0.7} spin={-0.008} spread={0.55} saturation={[1.1, 0.2]} />
       <StarLayer
-        count={4500}
+        count={1600}
         radius={1250}
-        size={1.5}
-        opacity={0.8}
+        size={2.3}
+        opacity={0.45}
         follows
         spread={0.05}
         saturation={[0.8, 0.1]}
         band={{ thickness: 0.16, tilt: [0.42, 0, 0.9] }}
       />
       <DistantGalaxies />
+      <BrightStars />
       <CosmicDust />
     </group>
   );

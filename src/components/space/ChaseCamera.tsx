@@ -13,6 +13,10 @@ const MAX_PITCH = 0.8;
  * Third-person chase rig with selectable camera angles. Chase sits behind the
  * nose, Side and Top lock to cinematic offsets, and Free keeps whatever angle
  * the drag leaves behind. Switching modes glides via the position lerp.
+ *
+ * All offsets are in world units and sized against the 2.8x airframe
+ * (`SHIP_SCALE`), which measures roughly 29 units long. Too close and the
+ * camera ends up inside the fuselage.
  */
 export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; enabled?: boolean }) {
   const { camera } = useThree();
@@ -66,28 +70,34 @@ export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; 
     scratch.quat.setFromEuler(scratch.euler);
     scratch.forward.set(0, 0, 1).applyQuaternion(sim.shipQuaternion);
 
-    const boostPullback = sim.boosting ? 10 : 0;
+    // Standoffs are sized for the 2.8x airframe. The hull is ~29 units long
+    // and ~26 across, so the old 30-unit chase put the camera inside the
+    // fuselage; these frame the whole craft with margin and leave sky ahead.
+    const boostPullback = sim.boosting ? 20 : 0;
     if (mode === "side") {
       // Locked broadside dolly: profile view of the hull, ship centered.
       scratch.combined.copy(sim.shipQuaternion);
-      scratch.offset.set(48, 6, -8);
+      scratch.offset.set(68, 10, -14);
       scratch.offset.applyQuaternion(scratch.combined);
       scratch.desired.copy(sim.shipPosition).add(scratch.offset);
-      scratch.lookTarget.copy(sim.shipPosition).addScaledVector(scratch.forward, 10);
+      scratch.lookTarget.copy(sim.shipPosition).addScaledVector(scratch.forward, 20);
     } else if (mode === "top") {
       // Locked high overlook, tilted forward so the nose stays in frame.
       scratch.combined.copy(sim.shipQuaternion);
-      scratch.offset.set(0, 62, -18);
+      scratch.offset.set(0, 78, -26);
       scratch.offset.applyQuaternion(scratch.combined);
       scratch.desired.copy(sim.shipPosition).add(scratch.offset);
-      scratch.lookTarget.copy(sim.shipPosition).addScaledVector(scratch.forward, 18);
+      scratch.lookTarget.copy(sim.shipPosition).addScaledVector(scratch.forward, 26);
     } else {
       // Chase + free: behind the ship in ship-local space (-Z). The drag
       // swing orbits it around the hull; combining with the ship quaternion
       // keeps the view glued behind the nose through turns. Free mode simply
       // never eases the swing back, so any dragged angle sticks.
       scratch.combined.copy(sim.shipQuaternion).multiply(scratch.quat);
-      scratch.offset.set(0, 6.5 + pitch * 10, -(30 + boostPullback));
+      // Sit above and slightly off the spine. Dead astern, a 29-unit
+      // fuselage foreshortens into a dot; the small lateral offset gives a
+      // three-quarter read so the wingspan and the canopy both show.
+      scratch.offset.set(13, 20 + pitch * 15, -(66 + boostPullback));
       scratch.offset.applyQuaternion(scratch.combined);
       scratch.desired.copy(sim.shipPosition).add(scratch.offset);
       scratch.lookTarget.copy(sim.shipPosition).addScaledVector(scratch.forward, 26);
@@ -104,6 +114,18 @@ export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; 
 
     lookAt.current.lerp(scratch.lookTarget, 1 - Math.exp(-9 * delta));
     camera.lookAt(lookAt.current);
+
+    // TEMP DEBUG
+    (window as unknown as Record<string, unknown>).__dbg = {
+      camToShip: +camera.position.distanceTo(sim.shipPosition).toFixed(2),
+      cam: camera.position.toArray().map((n) => +n.toFixed(1)),
+      ship: sim.shipPosition.toArray().map((n) => +n.toFixed(1)),
+      target: sim.target,
+      docked: sim.docked,
+      landing: sim.landing,
+      speed: +sim.shipSpeed.toFixed(2),
+      delta: +delta.toFixed(4),
+    };
 
     const perspective = camera as THREE.PerspectiveCamera;
     if (perspective.isPerspectiveCamera) {

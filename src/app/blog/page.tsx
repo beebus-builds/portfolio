@@ -72,10 +72,10 @@ export default async function BlogPage() {
             <p className="section-head__lede">Every post starts from a real repo in the archive.</p>
           </div>
           <div className="site-hero__actions" style={{ marginBottom: 0 }}>
-            <Link className="btn" href="/projects">
+            <Link className="btn" href="/?planet=projects">
               Open the archive →
             </Link>
-            <Link className="btn btn--ghost" href="/contact">
+            <Link className="btn btn--ghost" href="/?planet=contact">
               Ask about a post
             </Link>
           </div>

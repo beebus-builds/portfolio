@@ -1,7 +1,10 @@
 # Devverse — Bibash Poudel's portfolio
 
-A space-age portfolio site: the classic multi-page site at `/`, plus an interactive
-3D space flight at `/flight` where every section is a planet you dock with.
+A space-age portfolio site. **The site *is* the flight**: landing on `/` puts you
+straight in the cockpit of an interactive 3D space flight where every section is a
+planet you dock with. There is no landing page and no briefing screen in front of
+it. The logbook at `/blog` and the admin inbox at `/admin` are the only other
+routes.
 
 Built with Next.js 16 (App Router), React 19, three.js / react-three-fiber, Tailwind CSS 4,
 and a Neon Postgres database for the contact inbox and per-visitor flight progress.
@@ -47,15 +50,34 @@ Tables are created on first request — no manual migrations needed for local de
 
 ```
 src/
-  app/                 # routes: /, /about, /skills, /projects, /contact, /resume, /flight, /stats, /admin
-    api/contact/       # contact form inbox (rate-limited, validated)
-    api/progress/      # per-visitor flight progress (cookie-identified)
-    api/stats/         # public aggregate stats for the /stats page
-  components/site/     # classic site chrome (navbar, footer, cards)
-  components/space/    # the 3D space experience (scene, ship, HUD, audio)
+  app/
+    page.tsx           # the flight experience — this is the site
+    loading.tsx        # route-transition loading screen
+    blog/              # logbook (DB-backed with a static fallback)
+    admin/             # token-gated message inbox + post editor
+    api/               # contact, progress, stats, highscore, copilot, cover
+  components/site/     # shared chrome for /blog and /admin
+  components/space/    # the 3D experience (scene, ship, HUD, worlds, audio)
   hooks/               # shared hooks
   lib/                 # data + domain logic (profile, projects, simulation, db helpers)
 ```
+
+## Routes
+
+| Route         | What it is                                                    |
+| ------------- | ------------------------------------------------------------- |
+| `/`           | The flight, from the first frame. Deep links: `/?planet=about\|skills\|projects\|contact\|resume` |
+| `/blog`       | The logbook — posts from Neon, static fallback                |
+| `/blog/[slug]`| A single post                                                 |
+| `/admin`      | Bearer-token message inbox and post editor                    |
+
+`/` boots into flight immediately. The only branch is capability: without WebGL,
+or with `prefers-reduced-motion`, it falls back to the flat explorer carrying the
+same content. The **TEXT** button in the HUD switches to it at any time.
+
+Old section URLs (`/about`, `/skills`, `/projects/...`, `/contact`, `/resume`,
+`/experience`, `/stats`, `/flight`) permanently redirect (308) to the flight
+world that now carries their content — see `next.config.ts`.
 
 ## Notable bits
 

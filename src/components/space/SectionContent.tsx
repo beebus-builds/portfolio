@@ -3,6 +3,8 @@
 import type { ReactElement } from "react";
 import { profile, skills, type SectionId } from "@/lib/profile";
 import { projects, repoUrl } from "@/lib/projects";
+import { experience } from "@/lib/experience";
+import { numberWord } from "@/lib/format";
 import ContactForm from "./ContactForm";
 
 function AboutPanel() {
@@ -26,6 +28,30 @@ function AboutPanel() {
       {profile.bio.map((paragraph) => (
         <p key={paragraph.slice(0, 24)}>{paragraph}</p>
       ))}
+
+      <section className="panel-log" aria-labelledby="panel-log-title">
+        <h4 className="panel-label" id="panel-log-title">
+          Flight record
+        </h4>
+        <ol className="panel-log__list">
+          {experience.map((role) => (
+            <li key={role.company}>
+              <div className="panel-log__head">
+                <b>{role.company}</b>
+                <span>{role.period}</span>
+              </div>
+              <small>
+                {role.role} · {role.location}
+              </small>
+              <ul>
+                {role.points.map((point) => (
+                  <li key={point}>{point}</li>
+                ))}
+              </ul>
+            </li>
+          ))}
+        </ol>
+      </section>
 
       <div className="panel-grid">
         <div>
@@ -68,8 +94,8 @@ function SkillsPanel() {
   return (
     <div className="panel-body">
       <p>
-        Eight clusters, tuned by shipping rather than by certification. Percentages are self-assessed
-        against real delivery, not quiz scores.
+        {numberWord(skills.length)} clusters, tuned by shipping rather than by certification. Percentages
+        are self-assessed against real delivery, not quiz scores.
       </p>
       {GROUP_ORDER.map((group) => {
         const groupSkills = skills.filter((skill) => skill.group === group);
@@ -101,8 +127,8 @@ function ProjectsPanel() {
   return (
     <div className="panel-body">
       <p>
-        Six builds, each with the constraint that shaped it and the outcome it produced. Open any
-        mission for the full breakdown.
+        {numberWord(projects.length)} builds, each with the constraint that shaped it and the outcome it
+        produced. Open any mission for the full breakdown.
       </p>
       <div className="project-list">
         {projects.map((project, index) => (
