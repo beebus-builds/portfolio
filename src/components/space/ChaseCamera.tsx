@@ -115,18 +115,6 @@ export default function ChaseCamera({ sim, enabled = true }: { sim: Simulation; 
     lookAt.current.lerp(scratch.lookTarget, 1 - Math.exp(-9 * delta));
     camera.lookAt(lookAt.current);
 
-    // TEMP DEBUG
-    (window as unknown as Record<string, unknown>).__dbg = {
-      camToShip: +camera.position.distanceTo(sim.shipPosition).toFixed(2),
-      cam: camera.position.toArray().map((n) => +n.toFixed(1)),
-      ship: sim.shipPosition.toArray().map((n) => +n.toFixed(1)),
-      target: sim.target,
-      docked: sim.docked,
-      landing: sim.landing,
-      speed: +sim.shipSpeed.toFixed(2),
-      delta: +delta.toFixed(4),
-    };
-
     const perspective = camera as THREE.PerspectiveCamera;
     if (perspective.isPerspectiveCamera) {
       const targetFov = sim.boosting ? 82 : 68;

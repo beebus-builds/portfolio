@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
+import { MAX_IMAGE_BYTES, saveImage } from "@/lib/images";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
-const UPLOAD_DIR = join(process.cwd(), "public", "uploads");
 
 function authorized(req: NextRequest): boolean {
   const token = process.env.ADMIN_TOKEN;
@@ -45,16 +42,18 @@ export async function POST(req: NextRequest) {
   }
 
   const bytes = await file.arrayBuffer();
-  if (bytes.byteLength > MAX_BYTES) {
+  if (bytes.byteLength > MAX_IMAGE_BYTES) {
     return NextResponse.json({ error: "Image must be 5 MB or smaller." }, { status: 400 });
   }
 
   try {
-    await mkdir(UPLOAD_DIR, { recursive: true });
+    // Images are stored in Postgres rather than the filesystem: Vercel's
+    // runtime disk is read-only, so files written at request time would not
+    // survive the next deploy and post bodies would point at dead URLs.
     const buffer = Buffer.from(bytes);
     const name = safeName(file.name);
-    await writeFile(join(UPLOAD_DIR, name), buffer);
-    return NextResponse.json({ url: `/uploads/${name}` });
+    await saveImage(name, file.type, buffer);
+    return NextResponse.json({ url: `/api/images/${name}` });
   } catch (error) {
     console.error("POST /api/admin/upload failed:", error);
     return NextResponse.json({ error: "Could not save the image." }, { status: 500 });

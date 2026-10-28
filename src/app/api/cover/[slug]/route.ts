@@ -48,16 +48,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
   }
 
   if (!code) {
-    try {
-      // Number the cover from the post's position in the library, so BP-LOG
-      // labels stay in order rather than depending on the slug.
-      const rows = await query<{ n: string }>(
-        `SELECT COUNT(*)::text AS n FROM blog_posts WHERE date <= (SELECT date FROM blog_posts WHERE slug = $1)`,
-        [slug],
-      );
-      code = coverCode(Math.max(1, Number(rows[0]?.n ?? 1)));
-    } catch {
+    // The editor previews artwork for an unsaved draft, so there is no row to
+    // count — skip the lookup entirely instead of querying for a slug that
+    // will never exist.
+    if (slug === "preview") {
       code = coverCode(1);
+    } else {
+      try {
+        // Number the cover from the post's position in the library, so BP-LOG
+        // labels stay in order rather than depending on the slug.
+        const rows = await query<{ n: string }>(
+          `SELECT COUNT(*)::text AS n FROM blog_posts WHERE date <= (SELECT date FROM blog_posts WHERE slug = $1)`,
+          [slug],
+        );
+        code = coverCode(Math.max(1, Number(rows[0]?.n ?? 1)));
+      } catch {
+        code = coverCode(1);
+      }
     }
   }
 

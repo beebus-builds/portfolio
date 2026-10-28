@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const { id } = visitorId(req);
+  const { id, fresh } = visitorId(req);
   let body: unknown;
   try {
     body = await req.json();
@@ -73,7 +73,19 @@ export async function POST(req: NextRequest) {
        DO UPDATE SET score = GREATEST(arcade_scores.score, $2), updated_at = now()`,
       [id, clean]
     );
-    return NextResponse.json({ ok: true, score: clean });
+    const res = NextResponse.json({ ok: true, score: clean });
+    if (fresh) {
+      // First contact: hand back the identity so later reads (GET best score,
+      // future POSTs) land on the same row instead of a new anonymous one.
+      res.cookies.set(COOKIE, id, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 60 * 60 * 24 * 365,
+        path: "/",
+      });
+    }
+    return res;
   } catch (error) {
     console.error("POST /api/highscore failed:", error);
     return NextResponse.json({ error: "Score could not be saved." }, { status: 500 });

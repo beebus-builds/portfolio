@@ -145,12 +145,30 @@ export async function seedMissingPosts(): Promise<number> {
 }
 
 /**
+ * Seeding is idempotent, so it only needs to happen once per process — but it
+ * must not be cached when it fails, or a transient database outage would stick
+ * until redeploy. Reads therefore run one schema check + scan per process
+ * instead of one per request.
+ */
+let seedOncePromise: Promise<void> | null = null;
+
+function seedOnce(): Promise<void> {
+  seedOncePromise ??= seedMissingPosts()
+    .then(() => undefined)
+    .catch((error: unknown) => {
+      seedOncePromise = null;
+      throw error;
+    });
+  return seedOncePromise;
+}
+
+/**
  * Every published post, newest first. Falls back to the static library when
  * the database is unreachable so the blog is never empty.
  */
 export async function listPosts(): Promise<Post[]> {
   try {
-    await seedMissingPosts();
+    await seedOnce();
     const rows = await query<PostRow>(
       `SELECT ${SELECT_COLUMNS} FROM blog_posts WHERE published = TRUE ORDER BY date DESC, id DESC`,
     );
@@ -165,7 +183,7 @@ export async function listPosts(): Promise<Post[]> {
 /** A single post by slug, or undefined. Drafts are excluded. */
 export async function getPost(slug: string): Promise<Post | undefined> {
   try {
-    await seedMissingPosts();
+    await seedOnce();
     const rows = await query<PostRow>(
       `SELECT ${SELECT_COLUMNS} FROM blog_posts WHERE slug = $1 AND published = TRUE`,
       [slug],
@@ -179,7 +197,7 @@ export async function getPost(slug: string): Promise<Post | undefined> {
 
 /** Admin view: published and draft posts, newest first. */
 export async function listAllPosts(): Promise<PostRow[]> {
-  await seedMissingPosts();
+  await seedOnce();
   return query<PostRow>(`SELECT ${SELECT_COLUMNS} FROM blog_posts ORDER BY date DESC, id DESC`);
 }
 

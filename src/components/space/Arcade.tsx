@@ -12,6 +12,7 @@ const SHIP_R = 13;
 /** 2D asteroid dodge: steer with A/D or drag, survive for score. */
 export default function Arcade({ onClose }: { onClose: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const scoreRef = useRef<HTMLSpanElement>(null);
   const [score, setScore] = useState(0);
   const [best, setBest] = useState<number | null>(null);
   const [over, setOver] = useState(false);
@@ -145,7 +146,9 @@ export default function Arcade({ onClose }: { onClose: () => void }) {
       ctx.fillStyle = "rgba(138,214,255,0.35)";
       ctx.fillRect(s.shipX - 3, shipY + SHIP_R, 6, 14 + Math.sin(now / 90) * 5);
 
-      setScore(Math.floor(s.score));
+      // Live score goes straight to the DOM, same as the HUD telemetry — a
+      // setState here would re-render React sixty times a second.
+      if (scoreRef.current) scoreRef.current.textContent = String(Math.floor(s.score));
       raf = requestAnimationFrame(tick);
     };
 
@@ -180,7 +183,7 @@ export default function Arcade({ onClose }: { onClose: () => void }) {
       <header className="arcade__bar">
         <b>ASTEROID FIELD</b>
         <span>
-          SCORE {score}
+          SCORE <span ref={scoreRef}>{score}</span>
           {best !== null && ` · BEST ${Math.max(best, score)}`}
         </span>
         <button type="button" onClick={onClose} aria-label="Close mini-game">

@@ -68,18 +68,14 @@ export default function NotFound() {
               <li className="site-card" key={planet.id} style={{ ["--planet" as string]: planet.glowColor }}>
                 <span className="site-card__kicker">{planet.kicker}</span>
                 <h3>
-                  <Link className="text-link" href={`/flight?planet=${planet.id}`}>
+                  <Link className="text-link" href={`/?planet=${planet.id}`}>
                     {planet.title}
                   </Link>
                 </h3>
                 <p>{planet.blurb}</p>
                 <p className="site-card__meta">
-                  <Link className="text-link" href={`/flight?planet=${planet.id}`}>
+                  <Link className="text-link" href={`/?planet=${planet.id}`}>
                     Fly there →
-                  </Link>{" "}
-                  ·{" "}
-                  <Link className="text-link" href={`/${planet.id}`}>
-                    Read it
                   </Link>
                 </p>
               </li>

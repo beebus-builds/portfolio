@@ -310,15 +310,25 @@ export default function SpaceExperience() {
     [handleSelect, sim]
   );
 
-  // Tour mode: press T to auto-cycle planets
+  // Tour mode: press T to auto-cycle planets. Ignored while typing in a form
+  // field — the contact textarea in particular.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key.toLowerCase() === "t") {
-        setTour((v) => {
-          if (!v) report({ type: "tour" });
-          return !v;
-        });
+      if (e.key.toLowerCase() !== "t") return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
       }
+      setTour((v) => {
+        if (!v) report({ type: "tour" });
+        return !v;
+      });
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

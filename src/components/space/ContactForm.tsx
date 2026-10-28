@@ -12,10 +12,11 @@ export default function ContactForm() {
   const [messageLength, setMessageLength] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Reset the form and counter after a terminal status so the pilot can send
-  // another signal without stale values lingering.
+  // Reset the form and counter after a successful send so the pilot can send
+  // another signal without stale values lingering. A failed send keeps the
+  // message on screen — nobody should retype a lost transmission.
   useEffect(() => {
-    if (state.status === "sent" || state.status === "error") {
+    if (state.status === "sent") {
       formRef.current?.reset();
       setMessageLength(0);
     }

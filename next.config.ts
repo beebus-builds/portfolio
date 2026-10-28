@@ -31,6 +31,15 @@ const nextConfig: NextConfig = {
   async redirects() {
     return redirects;
   },
+  async rewrites() {
+    return [
+      // Post bodies written before uploads moved into Postgres reference
+      // /uploads/<name>. Files committed at build time still win (rewrites run
+      // after the filesystem); anything missing on disk now resolves to the
+      // database-backed image route.
+      { source: "/uploads/:name", destination: "/api/images/:name" },
+    ];
+  },
   async headers() {
     return [
       {
