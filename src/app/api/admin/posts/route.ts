@@ -1,16 +1,11 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { authorized } from "@/lib/adminAuth";
 import { listAllPosts, upsertPost } from "@/lib/postsStore";
 import { validatePostInput } from "@/lib/postValidation";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-function authorized(req: NextRequest): boolean {
-  const token = process.env.ADMIN_TOKEN;
-  if (!token) return false;
-  return (req.headers.get("authorization") ?? "") === `Bearer ${token}`;
-}
 
 export async function GET(req: NextRequest) {
   if (!authorized(req)) {

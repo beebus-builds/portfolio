@@ -42,6 +42,23 @@ export const skills: Skill[] = [
   { name: "Testing & reliability", detail: "Vitest · Playwright · CI gating · honest uptime bars", level: 79, group: "Systems" },
 ];
 
+/**
+ * Concrete technologies, for structured data (JSON-LD `knowsAbout`) and any
+ * place that needs a plain tech list. The capability entries above describe
+ * how the stack is grouped; this is the flat enumeration.
+ */
+export const techStack = [
+  "Next.js",
+  "TypeScript",
+  "React",
+  "Three.js",
+  "WebGL",
+  "Node.js",
+  "PostgreSQL",
+  "WordPress",
+  "PHP",
+];
+
 export type SectionId = "about" | "skills" | "projects" | "contact" | "resume";
 
 export interface PlanetDef {

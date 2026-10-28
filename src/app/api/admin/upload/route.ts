@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { authorized } from "@/lib/adminAuth";
 import { MAX_IMAGE_BYTES, saveImage } from "@/lib/images";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ALLOWED = new Set(["image/png", "image/jpeg", "image/webp", "image/avif"]);
-
-function authorized(req: NextRequest): boolean {
-  const token = process.env.ADMIN_TOKEN;
-  if (!token) return false;
-  const header = req.headers.get("authorization") ?? "";
-  return header === `Bearer ${token}`;
-}
 
 function safeName(original: string): string {
   const base = original.replace(/[^a-z0-9.-]/gi, "_").toLowerCase();

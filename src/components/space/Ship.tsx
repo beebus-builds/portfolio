@@ -5,8 +5,8 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { engineState } from "@/lib/engineState";
 import { flightInput } from "@/lib/flight";
-import { DOCK_RANGE, UNIVERSE_RADIUS, dockPoint, planetById, type Simulation } from "@/lib/simulation";
-import { planets, type SectionId } from "@/lib/profile";
+import { DOCK_RANGE, UNIVERSE_RADIUS, dockPoint, type Simulation } from "@/lib/simulation";
+import { getPlanet, planets, type SectionId } from "@/lib/profile";
 import EnginePlume from "./EnginePlume";
 import {
   buildAvionics,
@@ -267,7 +267,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
       roll = 0;
       boosting = false;
     } else if (sim.target) {
-      const def = planetById(sim.target);
+      const def = getPlanet(sim.target);
       const position = sim.positions.get(sim.target);
       if (position) {
         dockPoint(def, position, sim.shipPosition, scratch.dock);
@@ -341,7 +341,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
     sim.shipPosition.addScaledVector(velocity.current, delta);
 
     if (docked) {
-      const def = planetById(docked);
+      const def = getPlanet(docked);
       const position = sim.positions.get(docked);
       if (position) {
         dockPoint(def, position, sim.shipPosition, scratch.dock);

@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { authorized } from "@/lib/adminAuth";
 import { listRecentMessages } from "@/lib/contact";
 
 export const runtime = "nodejs";
-
-function authorized(req: NextRequest): boolean {
-  const token = process.env.ADMIN_TOKEN;
-  if (!token) return false;
-  const header = req.headers.get("authorization") ?? "";
-  return header === `Bearer ${token}`;
-}
 
 export async function GET(req: NextRequest) {
   if (!authorized(req)) {

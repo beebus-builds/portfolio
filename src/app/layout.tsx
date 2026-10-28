@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
-import { profile } from "@/lib/profile";
+import { profile, techStack } from "@/lib/profile";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -102,7 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               sameAs: profile.links
                 .filter((link) => link.href.startsWith("http"))
                 .map((link) => link.href),
-              knowsAbout: skillsLabel(),
+              knowsAbout: techStack,
             }),
           }}
         />
@@ -114,8 +114,4 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 /** The email entry from the profile, so structured data can never drift from the page. */
 function emailHref(): string {
   return profile.links.find((link) => link.label === "Email")?.href ?? "";
-}
-
-function skillsLabel() {
-  return ["Next.js", "TypeScript", "React", "Three.js", "WebGL", "Node.js", "PostgreSQL", "WordPress", "PHP"];
 }

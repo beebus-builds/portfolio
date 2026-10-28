@@ -1,27 +1,12 @@
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getProgress, saveProgress } from "@/lib/progress";
+import { VISITOR_COOKIE, VISITOR_COOKIE_OPTS, visitorId } from "@/lib/visitor";
 
 export const runtime = "nodejs";
 
-const COOKIE = "bp07_visitor";
-const COOKIE_OPTS = {
-  httpOnly: true,
-  sameSite: "lax" as const,
-  secure: process.env.NODE_ENV === "production",
-  maxAge: 60 * 60 * 24 * 365,
-  path: "/",
-};
-
 const MAX_ITEMS = 64;
 const ID_RE = /^[a-z0-9-]{1,64}$/;
-
-function visitorId(req: NextRequest): { id: string; fresh: boolean } {
-  const existing = req.cookies.get(COOKIE)?.value;
-  if (existing && /^[0-9a-f-]{36}$/.test(existing)) return { id: existing, fresh: false };
-  return { id: randomUUID(), fresh: true };
-}
 
 function cleanList(value: unknown): string[] | null {
   if (!Array.isArray(value) || value.length > MAX_ITEMS) return null;
@@ -34,12 +19,12 @@ export async function GET(req: NextRequest) {
   try {
     const progress = await getProgress(id);
     const res = NextResponse.json(progress);
-    if (fresh) res.cookies.set(COOKIE, id, COOKIE_OPTS);
+    if (fresh) res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
     return res;
   } catch (error) {
     console.error("GET /api/progress failed:", error);
     const res = NextResponse.json({ visited: [], achievements: [] });
-    if (fresh) res.cookies.set(COOKIE, id, COOKIE_OPTS);
+    if (fresh) res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
     return res;
   }
 }
@@ -61,7 +46,7 @@ export async function POST(req: NextRequest) {
   try {
     await saveProgress(id, { visited: cleanVisited, achievements: cleanAchievements });
     const res = NextResponse.json({ ok: true });
-    if (fresh) res.cookies.set(COOKIE, id, COOKIE_OPTS);
+    if (fresh) res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
     return res;
   } catch (error) {
     console.error("POST /api/progress failed:", error);

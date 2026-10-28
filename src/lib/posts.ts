@@ -261,7 +261,7 @@ export const posts: Post[] = [
           "httpOnly cookie for visitor identity — no fingerprinting, no third-party script.",
           "One pooled client, memoized schema creation, no connection storms on cold start.",
           "Database down means empty progress, never an error boundary.",
-          "15 Vitest tests covering validation, rate limiting, fallback, and simulation math.",
+          "Vitest tests covering validation, rate limiting, fallback, and simulation math.",
           "CI runs lint, typecheck, tests, and a production build on every push.",
         ],
       },

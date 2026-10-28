@@ -1,11 +1,10 @@
-import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { ensureSchema, query } from "@/lib/db";
+import { VISITOR_COOKIE, VISITOR_COOKIE_OPTS, visitorId } from "@/lib/visitor";
 
 export const runtime = "nodejs";
 
-const COOKIE = "bp07_visitor";
 const MAX_SCORE = 1000000;
 
 const SCHEMA = `CREATE TABLE IF NOT EXISTS arcade_scores (
@@ -14,23 +13,11 @@ const SCHEMA = `CREATE TABLE IF NOT EXISTS arcade_scores (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 )`;
 
-function visitorId(req: NextRequest): { id: string; fresh: boolean } {
-  const existing = req.cookies.get(COOKIE)?.value;
-  if (existing && /^[0-9a-f-]{36}$/.test(existing)) return { id: existing, fresh: false };
-  return { id: randomUUID(), fresh: true };
-}
-
 export async function GET(req: NextRequest) {
   const { id, fresh } = visitorId(req);
   const res = NextResponse.json({ best: 0, top: [] as Array<{ score: number }> });
   if (fresh) {
-    res.cookies.set(COOKIE, id, {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 60 * 60 * 24 * 365,
-      path: "/",
-    });
+    res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
   }
   try {
     await ensureSchema("arcade_scores", SCHEMA);
@@ -77,13 +64,7 @@ export async function POST(req: NextRequest) {
     if (fresh) {
       // First contact: hand back the identity so later reads (GET best score,
       // future POSTs) land on the same row instead of a new anonymous one.
-      res.cookies.set(COOKIE, id, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-        maxAge: 60 * 60 * 24 * 365,
-        path: "/",
-      });
+      res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
     }
     return res;
   } catch (error) {

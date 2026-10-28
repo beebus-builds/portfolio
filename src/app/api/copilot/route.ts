@@ -2,29 +2,14 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { profile, skills } from "@/lib/profile";
 import { projects } from "@/lib/projects";
+import { clientIp, isRateLimited } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
 
 const MAX_MESSAGES = 20;
 const MAX_CHARS = 2000;
-
-const hitsByIp = new Map<string, number[]>();
 const RATE_LIMIT = 15;
 const RATE_WINDOW_MS = 10 * 60 * 1000;
-
-function clientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim().slice(0, 64);
-  return "unknown";
-}
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now();
-  const recent = (hitsByIp.get(ip) ?? []).filter((at) => now - at < RATE_WINDOW_MS);
-  recent.push(now);
-  hitsByIp.set(ip, recent.slice(-RATE_LIMIT));
-  return recent.length > RATE_LIMIT;
-}
 
 function buildSystemPrompt(): string {
   const skillList = skills.map((s) => `- ${s.name} (${s.level}%): ${s.detail}`).join("\n");
@@ -43,7 +28,7 @@ ${projectList}`;
 }
 
 export async function POST(req: NextRequest) {
-  if (isRateLimited(clientIp(req))) {
+  if (isRateLimited("copilot", clientIp(req), RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ error: "Too many signals — try again in a few minutes." }, { status: 429 });
   }
   const apiKey = process.env.OPENROUTER_API_KEY;
@@ -71,13 +56,15 @@ export async function POST(req: NextRequest) {
     )
     .map((m) => ({ role: m.role, content: m.content.slice(0, MAX_CHARS) }));
 
+  // Fallback chain, tried in order. Free models rotate on OpenRouter, so a
+  // dead entry here only costs one failed round-trip before the next try.
   const models = (process.env.OPENROUTER_MODEL ?? "google/gemma-4-26b-a4b-it:free")
     .split(",")
     .map((m) => m.trim())
     .filter(Boolean)
     .concat([
       "google/gemma-4-31b-it:free",
-      "nvidia/nemotron-3-super-120b-a12b:free",
+      "nvidia/nemotron-3-ultra-550b-a55b:free",
       "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free",
     ])
     // de-dupe while preserving order

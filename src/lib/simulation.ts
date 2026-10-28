@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { planets, type PlanetDef, type SectionId } from "@/lib/profile";
+import { type PlanetDef, type SectionId } from "@/lib/profile";
 
 /** Live world positions, refreshed once per frame before the ship is simulated. */
 export type Simulation = {
@@ -67,9 +67,3 @@ export function dockPoint(
 
 export const DOCK_RANGE = 7;
 export const UNIVERSE_RADIUS = 780;
-
-export function planetById(id: SectionId): PlanetDef {
-  const found = planets.find((planet) => planet.id === id);
-  if (!found) throw new Error(`Unknown planet: ${id}`);
-  return found;
-}

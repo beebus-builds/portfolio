@@ -17,6 +17,21 @@ import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
  * preview shows the live URL plus title/excerpt character budgets.
  */
 
+/** A preview paragraph is either plain text or an image reference. */
+function renderPreviewParagraph(paragraph: string, key: string) {
+  const image = IMAGE_RE.exec(paragraph);
+  if (image) {
+    return (
+      <figure key={key} className="editor__preview-dialog__image">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
+        {image[1] && <figcaption>{image[1]}</figcaption>}
+      </figure>
+    );
+  }
+  return <p key={key}>{paragraph}</p>;
+}
+
 export type EditorPost = {
   slug: string;
   title: string;
@@ -689,19 +704,7 @@ export default function PostEditor({
             </p>
           </div>
           <div className="editor__preview-dialog__body">
-            {parsed.body.map((paragraph, index) => {
-              const image = IMAGE_RE.exec(paragraph);
-              if (image) {
-                return (
-                  <figure key={`preview-body-${index}`} className="editor__preview-dialog__image">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
-                    {image[1] && <figcaption>{image[1]}</figcaption>}
-                  </figure>
-                );
-              }
-              return <p key={`preview-body-${index}`}>{paragraph}</p>;
-            })}
+            {parsed.body.map((paragraph, index) => renderPreviewParagraph(paragraph, `preview-body-${index}`))}
             {parsed.quote && (
               <blockquote className="editor__preview-dialog__quote">
                 <p>{parsed.quote}</p>
@@ -710,18 +713,9 @@ export default function PostEditor({
             {parsed.sections.map((section, sIndex) => (
               <div key={section.heading || String(sIndex)} className="editor__preview-dialog__section">
                 <h3>{section.heading}</h3>
-                {section.paragraphs.map((paragraph, pIndex) => {
-                  const image = IMAGE_RE.exec(paragraph);
-                  if (image) {
-                    return (
-                      <figure key={`preview-section-${sIndex}-${pIndex}`} className="editor__preview-dialog__image">
-                        <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
-                        {image[1] && <figcaption>{image[1]}</figcaption>}
-                      </figure>
-                    );
-                  }
-                  return <p key={`preview-section-${sIndex}-${pIndex}`}>{paragraph}</p>;
-                })}
+                {section.paragraphs.map((paragraph, pIndex) =>
+                  renderPreviewParagraph(paragraph, `preview-section-${sIndex}-${pIndex}`)
+                )}
                 {section.bullets?.length && (
                   <ul>
                     {section.bullets.map((bullet, bIndex) => (

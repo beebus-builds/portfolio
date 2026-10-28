@@ -1,9 +1,9 @@
 import type { MetadataRoute } from "next";
-import { planets } from "@/lib/profile";
+import { planets, profile } from "@/lib/profile";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Bibash Poudel — Interactive Space Portfolio",
+    name: `${profile.name} — Interactive Space Portfolio`,
     short_name: "BP-07",
     description: "Fly a spaceship through five planets holding an about page, skills, projects, contact and resume.",
     start_url: "/",

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createSimulation, dockPoint, orbitPosition, planetById } from "@/lib/simulation";
-import { planets } from "@/lib/profile";
+import { createSimulation, dockPoint, orbitPosition } from "@/lib/simulation";
+import { getPlanet, planets } from "@/lib/profile";
 import * as THREE from "three";
 
 describe("simulation math", () => {
@@ -30,8 +30,8 @@ describe("simulation math", () => {
   });
 
   it("resolves every planet by id and rejects unknown ones", () => {
-    for (const def of planets) expect(planetById(def.id)).toBe(def);
-    expect(() => planetById("pluto" as never)).toThrow();
+    for (const def of planets) expect(getPlanet(def.id)).toBe(def);
+    expect(() => getPlanet("pluto" as never)).toThrow();
   });
 
   it("starts with sane defaults", () => {
