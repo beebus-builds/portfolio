@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import SitePage, { PageHero } from "@/components/site/SitePage";
 import PostBodyView from "@/components/blog/PostBodyView";
 import { getPost, listPosts } from "@/lib/postsStore";
+import { blogPostingJsonLd } from "@/lib/jsonld";
 import { profile } from "@/lib/profile";
+import { absoluteUrl } from "@/lib/site";
 
 type PostProps = {
   params: Promise<{ slug: string }>;
@@ -33,6 +35,9 @@ export async function generateMetadata({ params }: PostProps): Promise<Metadata>
       title: post.title,
       description: post.excerpt,
       images: [post.cover.src],
+    },
+    alternates: {
+      canonical: absoluteUrl(`/blog/${post.slug}`),
     },
   };
 }
@@ -75,6 +80,11 @@ export default async function PostPage({ params }: PostProps) {
           <PostBodyView body={post.body} sections={post.sections} quote={post.quote} />
         </div>
       </section>
+
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(blogPostingJsonLd(post)) }}
+      />
 
       <section className="site-section" aria-label="More posts">
         <div className="site-grid" style={{ listStyle: "none", padding: 0 }}>

@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
-import { profile, techStack } from "@/lib/profile";
+import { profile } from "@/lib/profile";
+import { personJsonLd } from "@/lib/jsonld";
 import { siteUrl } from "@/lib/site";
 import "./globals.css";
 
@@ -54,7 +55,10 @@ export const metadata: Metadata = {
     description,
     images: ["/opengraph-image"],
   },
-  alternates: { canonical: siteUrl },
+  alternates: {
+    canonical: siteUrl,
+    types: { "application/rss+xml": `${siteUrl}/feed.xml` },
+  },
   formatDetection: { email: false, address: false, telephone: false },
   robots: { index: true, follow: true },
   appleWebApp: {
@@ -86,32 +90,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify({
-              "@context": "https://schema.org",
-              "@type": "Person",
-              name: profile.name,
-              url: siteUrl,
-              jobTitle: profile.role,
-              email: emailHref(),
-              address: {
-                "@type": "PostalAddress",
-                addressLocality: "Sindhuli",
-                addressCountry: "NP",
-              },
-              sameAs: profile.links
-                .filter((link) => link.href.startsWith("http"))
-                .map((link) => link.href),
-              knowsAbout: techStack,
-            }),
-          }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd()) }}
         />
       </body>
     </html>
   );
-}
-
-/** The email entry from the profile, so structured data can never drift from the page. */
-function emailHref(): string {
-  return profile.links.find((link) => link.label === "Email")?.href ?? "";
 }
