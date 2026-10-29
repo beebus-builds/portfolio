@@ -14,6 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["portfolio", "development", "technology"],
     lang: "en",
     icons: [
+      { src: "/icon.png", sizes: "512x512", type: "image/png" },
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],

@@ -39,7 +39,6 @@ export const metadata: Metadata = {
     "WebGL portfolio",
     "Nepal",
   ],
-  icons: [{ rel: "icon", url: "/icons/icon.svg", type: "image/svg+xml" }],
   openGraph: {
     title,
     description,
