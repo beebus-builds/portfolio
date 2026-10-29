@@ -8,6 +8,20 @@ import PostEditor, { type EditorPost } from "@/components/admin/PostEditor";
 
 type Message = { id: number; name: string; email: string; message: string; created_at: string };
 
+type PostStatus = "live" | "scheduled" | "draft";
+
+const STATUS_LABELS: Record<PostStatus, string> = {
+  live: "Live",
+  scheduled: "Scheduled",
+  draft: "Draft",
+};
+
+/** Published with a past date is live, published with a future date is scheduled, otherwise a draft. */
+function postStatus(post: EditorPost, todayISO: string): PostStatus {
+  if (!post.published) return "draft";
+  return post.date > todayISO ? "scheduled" : "live";
+}
+
 export default function AdminPage() {
   const [token, setToken] = useState("");
   const [messages, setMessages] = useState<Message[] | null>(null);
@@ -17,6 +31,7 @@ export default function AdminPage() {
   const [posts, setPosts] = useState<EditorPost[] | null>(null);
   const [editing, setEditing] = useState<EditorPost | null>(null);
   const [tab, setTab] = useState<"inbox" | "write">("inbox");
+  const today = new Date().toISOString().slice(0, 10);
 
   const authHeaders = useCallback(
     () => ({ authorization: `Bearer ${token}` }),
@@ -140,38 +155,56 @@ export default function AdminPage() {
           {token && tab === "write" && (
             <>
               <section className="site-section" aria-label="Existing posts">
-                <div className="section-head" style={{ marginBottom: 0 }}>
-                  <p className="section-head__kicker">Library</p>
-                  <h2 className="section-head__title">
-                    {posts ? `${posts.length} posts` : "Loading posts…"}
-                  </h2>
+                <div className="admin__libhead">
+                  <div>
+                    <p className="section-head__kicker">Library</p>
+                    <h2 className="section-head__title">
+                      {posts ? `${posts.length} posts` : "Loading posts…"}
+                    </h2>
+                  </div>
+                  <button
+                    className="btn btn--ghost"
+                    type="button"
+                    onClick={() => {
+                      setEditing(null);
+                      document.getElementById("post-editor")?.scrollIntoView({ behavior: "smooth" });
+                    }}
+                  >
+                    + New post
+                  </button>
                 </div>
-                {posts && (
+                {posts && posts.length > 0 && (
                   <ul className="admin__list">
-                    {posts.map((post) => (
-                      <li key={post.slug}>
-                        <button
-                          className={editing?.slug === post.slug ? "btn" : "btn btn--ghost"}
-                          type="button"
-                          onClick={() => setEditing(post)}
-                        >
-                          {post.published && new Date(post.date) > new Date(new Date().toISOString().slice(0, 10))
-                            ? "scheduled · "
-                            : post.published
-                              ? ""
-                              : "draft · "}
-                          {post.title}
-                        </button>{" "}
-                        <Link className="admin__link" href={`/blog/${post.slug}`}>
-                          view
-                        </Link>
-                      </li>
-                    ))}
+                    {posts.map((post) => {
+                      const status = postStatus(post, today);
+                      const isEditing = editing?.slug === post.slug;
+                      return (
+                        <li key={post.slug} className={`admin__postrow${isEditing ? " is-editing" : ""}`}>
+                          <span className={`admin__chip admin__chip--${status}`}>
+                            {STATUS_LABELS[status]}
+                          </span>
+                          <span className="admin__postrow__title" title={post.title}>
+                            {post.title}
+                          </span>
+                          <button
+                            className={isEditing ? "btn" : "btn btn--ghost"}
+                            type="button"
+                            onClick={() => setEditing(post)}
+                          >
+                            {isEditing ? "Editing" : "Edit"}
+                          </button>
+                          <Link className="admin__link" href={`/blog/${post.slug}`}>
+                            View
+                          </Link>
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
+                {posts && posts.length === 0 && <p>No posts yet — start your first one.</p>}
               </section>
 
-              <section className="site-section" aria-label="Post editor">
+              <section className="site-section" id="post-editor" aria-label="Post editor">
                 <div className="section-head" style={{ marginBottom: 0 }}>
                   <p className="section-head__kicker">Editor</p>
                   <h2 className="section-head__title">
@@ -183,7 +216,12 @@ export default function AdminPage() {
                     <code>```lang</code> a code block.
                   </p>
                 </div>
-                <PostEditor token={token} editing={editing} onSaved={refreshAfterWrite} />
+                <PostEditor
+                  key={editing?.slug ?? "new"}
+                  token={token}
+                  editing={editing}
+                  onSaved={refreshAfterWrite}
+                />
               </section>
             </>
           )}

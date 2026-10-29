@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { parsePostContent, serializePostContent } from "@/lib/postBody";
 import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
+import PostPreview from "./PostPreview";
 import PreviewDialog from "./PreviewDialog";
 
 /**
@@ -13,10 +14,13 @@ import PreviewDialog from "./PreviewDialog";
  * harder, and writing is the part that should be easy. Everything else is a
  * normal field.
  *
- * A toolbar inserts the supported block syntax at the cursor, drafts autosave
- * to localStorage so a refresh never loses a half-written post, and an SEO
- * preview shows the live URL plus title/excerpt character budgets. The draft
- * preview dialog itself lives in PreviewDialog.
+ * The form runs as four numbered steps — basics, hook, story, cover — laid
+ * out beside a live preview pane that renders the draft exactly the way the
+ * public blog page will (PostPreview). A save bar holds Publish, the publish
+ * toggle and the live URL at the bottom edge while scrolling, and a Preview
+ * button opens the same rendering in a dialog (PreviewDialog) for narrow
+ * screens. Drafts autosave to localStorage so a refresh never loses a
+ * half-written post; a toolbar inserts the supported syntax at the cursor.
  */
 
 export type EditorPost = {
@@ -70,6 +74,13 @@ const TITLE_MIN = 8;
 const TITLE_MAX = 140;
 const EXCERPT_MIN = 40;
 const EXCERPT_MAX = 300;
+
+/** Shared ok/warn tint for the character counters under each field. */
+function hintTone(ok: boolean, warn: boolean): string {
+  if (ok) return " editor__hint--ok";
+  if (warn) return " editor__hint--warn";
+  return "";
+}
 
 function slugify(value: string): string {
   return value
@@ -149,8 +160,10 @@ export default function PostEditor({
   const today = new Date().toISOString().slice(0, 10);
   const scheduled = draft.date > today;
 
-  const titleWarn = draft.title.length > 0 && (draft.title.length < TITLE_MIN || draft.title.length > TITLE_MAX);
-  const excerptWarn = draft.excerpt.length > 0 && (draft.excerpt.length < EXCERPT_MIN || draft.excerpt.length > EXCERPT_MAX);
+  const titleOk = draft.title.length >= TITLE_MIN && draft.title.length <= TITLE_MAX;
+  const titleWarn = draft.title.length > 0 && !titleOk;
+  const excerptOk = draft.excerpt.length >= EXCERPT_MIN && draft.excerpt.length <= EXCERPT_MAX;
+  const excerptWarn = draft.excerpt.length > 0 && !excerptOk;
 
   // Load the selected post into the form. Keyed on the slug so picking the same
   // post again still refreshes the fields.
@@ -356,6 +369,9 @@ export default function PostEditor({
   }
 
   const slugPreview = draft.slug || "my-post-slug";
+  const tagCount = draft.tags.split(",").filter(Boolean).length;
+  const tagOk = tagCount >= 1 && tagCount <= 6;
+  const tagWarn = tagCount > 6;
 
   return (
     <div className="editor">
@@ -377,301 +393,306 @@ export default function PostEditor({
         </div>
       )}
 
-      <div className="editor__row editor__row--split">
-        <div className="editor__field">
-          <label htmlFor="post-title">Title</label>
-          <input
-            id="post-title"
-            value={draft.title}
-            onChange={(event) => updateTitle(event.target.value)}
-            placeholder="What shipped, and what it taught you"
-          />
-          <small className="editor__hint">
-            {draft.title.length} / {TITLE_MAX} characters ({TITLE_MIN} minimum)
-          </small>
+      <div className="editor__layout">
+        <div className="editor__pane editor__pane--form">
+          {/* step 1 — identity: what it is called, when it runs, how it is tagged */}
+          <fieldset className="editor__step">
+            <legend>
+              <span className="editor__stepnum">1</span> The basics
+            </legend>
+
+            <div className="editor__field">
+              <label htmlFor="post-title">Title</label>
+              <input
+                id="post-title"
+                value={draft.title}
+                onChange={(event) => updateTitle(event.target.value)}
+                placeholder="What shipped, and what it taught you"
+              />
+              <small className={`editor__hint${hintTone(titleOk, titleWarn)}`}>
+                {draft.title.length} / {TITLE_MAX} characters ({TITLE_MIN} minimum)
+              </small>
+            </div>
+
+            <div className="editor__field">
+              <label htmlFor="post-slug">URL slug</label>
+              <input
+                id="post-slug"
+                value={draft.slug}
+                onChange={(event) => {
+                  setSlugLocked(true);
+                  update("slug", slugify(event.target.value));
+                }}
+                readOnly={false}
+              />
+              <small className="editor__hint">
+                {draft.slug ? `/blog/${draft.slug}` : "Generated from the title as you type."}
+                {slugLocked ? " Locked — this is the live URL." : ""}
+              </small>
+            </div>
+
+            <div className="editor__row editor__row--split">
+              <div className="editor__field editor__field--narrow">
+                <label htmlFor="post-date">Date</label>
+                <input
+                  id="post-date"
+                  type="date"
+                  value={draft.date}
+                  onChange={(event) => update("date", event.target.value)}
+                />
+                {scheduled && (
+                  <span className="editor__scheduled">Schedules for {draft.date}</span>
+                )}
+              </div>
+              <div className="editor__field editor__field--narrow">
+                <label htmlFor="post-minutes">Read time (min)</label>
+                <input
+                  id="post-minutes"
+                  type="number"
+                  min={1}
+                  max={60}
+                  value={draft.minutes}
+                  onChange={(event) => update("minutes", event.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="editor__field">
+              <label htmlFor="post-tags">Tags</label>
+              <input
+                id="post-tags"
+                value={draft.tags}
+                onChange={(event) => update("tags", event.target.value)}
+                placeholder="Next.js, Performance"
+              />
+              <small className={`editor__hint${hintTone(tagOk, tagWarn)}`}>
+                {tagCount} / 6 · comma separated
+              </small>
+            </div>
+          </fieldset>
+
+          {/* step 2 — the share text */}
+          <fieldset className="editor__step">
+            <legend>
+              <span className="editor__stepnum">2</span> The hook
+            </legend>
+
+            <div className="editor__field">
+              <label htmlFor="post-excerpt">Excerpt</label>
+              <textarea
+                id="post-excerpt"
+                rows={2}
+                value={draft.excerpt}
+                onChange={(event) => update("excerpt", event.target.value)}
+                placeholder="One or two sentences. This is what people see when they share the link."
+              />
+              <small className={`editor__hint${hintTone(excerptOk, excerptWarn)}`}>
+                {draft.excerpt.length} / {EXCERPT_MAX} characters ({EXCERPT_MIN} minimum)
+              </small>
+            </div>
+          </fieldset>
+
+          {/* step 3 — the writing itself */}
+          <fieldset className="editor__step">
+            <legend>
+              <span className="editor__stepnum">3</span> The story
+            </legend>
+
+            <div className="editor__toolbar" aria-label="Writing shortcuts">
+              <button
+                type="button"
+                title="Section heading (## )"
+                aria-label="Insert a section heading"
+                onClick={() => block("\n\n## ", "\n\n")}
+              >
+                § Heading
+              </button>
+              <button
+                type="button"
+                title="Bullet list (- )"
+                aria-label="Insert a bullet"
+                onClick={() => block("\n- ", "\n")}
+              >
+                • Bullet
+              </button>
+              <button
+                type="button"
+                title="Code block (```ts)"
+                aria-label="Insert a fenced code block"
+                onClick={() => block("\n\n```ts\n", "\n```\n\n")}
+              >
+                {"<"}{" "}{">"} Code
+              </button>
+              <button
+                type="button"
+                title="Pull quote (> )"
+                aria-label="Insert a pull quote"
+                onClick={() => block("\n> ", "\n")}
+              >
+                “ Quote
+              </button>
+              <button
+                type="button"
+                title="Upload and insert an image"
+                aria-label="Upload an image"
+                onClick={uploadImage}
+                disabled={uploading}
+              >
+                {uploading ? "Uploading…" : "🖼 Image"}
+              </button>
+              <button
+                type="button"
+                title="Preview this draft in a focused window"
+                aria-label="Preview draft"
+                onClick={() => setPreviewOpen(true)}
+              >
+                Preview
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/png, image/jpeg, image/webp, image/avif"
+                onChange={handleImageSelect}
+                hidden
+              />
+            </div>
+
+            <div className="editor__field">
+              <label htmlFor="post-content">Post</label>
+              <textarea
+                ref={textareaRef}
+                id="post-content"
+                className="editor__body"
+                rows={22}
+                value={draft.content}
+                onChange={(event) => update("content", event.target.value)}
+                placeholder={
+                  "Opening paragraph. Blank line for a new one.\n\n> The line worth remembering.\n\n## A section heading\n\nWhat happened, and why.\n\n- a bullet\n- another bullet\n\n```ts\nconst example = true;\n```"
+                }
+              />
+              <small className="editor__hint">
+                Blank line = new paragraph · <code>## </code> = section · <code>- </code> = bullet ·{" "}
+                <code>&gt; </code> = pull quote · <code>```lang</code> = code block.
+              </small>
+            </div>
+
+            <p className="editor__counts">
+              {parsed.body.length} opening paragraphs · {parsed.sections.length} sections ·{" "}
+              {parsed.sections.reduce((total, section) => total + (section.bullets?.length ?? 0), 0)} bullets ·{" "}
+              {parsed.sections.filter((section) => section.code).length} code blocks
+              {parsed.quote ? " · 1 pull quote" : ""}
+            </p>
+          </fieldset>
+
+          {/* step 4 — the artwork */}
+          <fieldset className="editor__step">
+            <legend>
+              <span className="editor__stepnum">4</span> Cover art
+            </legend>
+
+            <div className="editor__row editor__row--split">
+              <div className="editor__field">
+                <label htmlFor="post-style">Style</label>
+                <select
+                  id="post-style"
+                  value={draft.cover_variant}
+                  onChange={(event) => update("cover_variant", Number(event.target.value))}
+                >
+                  {COVER_VARIANTS.map((name, index) => (
+                    <option key={name} value={index}>
+                      {name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="editor__field editor__field--narrow">
+                <label htmlFor="post-accent">Accent</label>
+                <div className="editor__accents">
+                  {COVER_ACCENTS.map((accent) => (
+                    <button
+                      key={accent}
+                      type="button"
+                      className={draft.cover_accent === accent ? "is-active" : undefined}
+                      style={{ background: accent }}
+                      aria-label={`Accent ${accent}`}
+                      aria-pressed={draft.cover_accent === accent}
+                      onClick={() => update("cover_accent", accent)}
+                    />
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="editor__field">
+              <label htmlFor="post-cover-alt">Cover description</label>
+              <input
+                id="post-cover-alt"
+                value={draft.cover_alt}
+                onChange={(event) => update("cover_alt", event.target.value)}
+                placeholder="What the artwork shows, for screen readers"
+              />
+            </div>
+          </fieldset>
         </div>
-        <div className="editor__field editor__field--narrow">
-          <label htmlFor="post-date">Date</label>
-          <input
-            id="post-date"
-            type="date"
-            value={draft.date}
-            onChange={(event) => update("date", event.target.value)}
+
+        <aside className="editor__pane editor__pane--preview" aria-label="Live preview">
+          <p className="editor__pane__cap">As readers will see it</p>
+          <PostPreview
+            title={draft.title}
+            date={draft.date}
+            minutes={draft.minutes}
+            excerpt={draft.excerpt}
+            tags={draft.tags}
+            accent={draft.cover_accent}
+            variant={draft.cover_variant}
+            parsed={parsed}
           />
-          {scheduled && (
-            <span className="editor__scheduled">Schedules for {draft.date}</span>
+        </aside>
+      </div>
+
+      <div className="editor__savebar">
+        <div className="editor__savebar__feedback">
+          {errors.length > 0 && (
+            <ul className="editor__errors" role="alert">
+              {errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          )}
+          {status && (
+            <p className="editor__status" role="status">
+              {status}
+            </p>
           )}
         </div>
-      </div>
-
-      <div className="editor__row editor__row--split">
-        <div className="editor__field">
-          <label htmlFor="post-slug">URL slug</label>
-          <input
-            id="post-slug"
-            value={draft.slug}
-            onChange={(event) => {
-              setSlugLocked(true);
-              update("slug", slugify(event.target.value));
-            }}
-            readOnly={false}
-          />
-          <small className="editor__hint">
-            {draft.slug ? `/blog/${draft.slug}` : "Generated from the title as you type."}
-            {slugLocked ? " Locked — this is the live URL." : ""}
-          </small>
-        </div>
-        <div className="editor__field editor__field--narrow">
-          <label htmlFor="post-minutes">Read time (min)</label>
-          <input
-            id="post-minutes"
-            type="number"
-            min={1}
-            max={60}
-            value={draft.minutes}
-            onChange={(event) => update("minutes", event.target.value)}
-          />
-        </div>
-      </div>
-
-      <div className="editor__field">
-        <label htmlFor="post-excerpt">Excerpt</label>
-        <textarea
-          id="post-excerpt"
-          rows={2}
-          value={draft.excerpt}
-          onChange={(event) => update("excerpt", event.target.value)}
-          placeholder="One or two sentences. This is what people see when they share the link."
-        />
-        <small className="editor__hint">
-          {draft.excerpt.length} / {EXCERPT_MAX} characters ({EXCERPT_MIN} minimum)
-        </small>
-      </div>
-
-      <div className="editor__field">
-        <label htmlFor="post-tags">Tags</label>
-        <input
-          id="post-tags"
-          value={draft.tags}
-          onChange={(event) => update("tags", event.target.value)}
-          placeholder="Next.js, Performance"
-        />
-        <small className="editor__hint">
-          {draft.tags.split(",").filter(Boolean).length} / 6 · comma separated
-        </small>
-      </div>
-
-      {/* ---------- writing toolbar ---------- */}
-      <div className="editor__toolbar" aria-label="Writing shortcuts">
-        <button
-          type="button"
-          title="Section heading (## )"
-          aria-label="Insert a section heading"
-          onClick={() => block("\n\n## ", "\n\n")}
-        >
-          § Heading
-        </button>
-        <button
-          type="button"
-          title="Bullet list (- )"
-          aria-label="Insert a bullet"
-          onClick={() => block("\n- ", "\n")}
-        >
-          • Bullet
-        </button>
-        <button
-          type="button"
-          title="Code block (```ts)"
-          aria-label="Insert a fenced code block"
-          onClick={() => block("\n\n```ts\n", "\n```\n\n")}
-        >
-          {"<"}{" "}{">"} Code
-        </button>
-        <button
-          type="button"
-          title="Pull quote (> )"
-          aria-label="Insert a pull quote"
-          onClick={() => block("\n> ", "\n")}
-        >
-          “ Quote
-        </button>
-        <button
-          type="button"
-          title="Upload and insert an image"
-          aria-label="Upload an image"
-          onClick={uploadImage}
-          disabled={uploading}
-        >
-          {uploading ? "Uploading…" : "🖼 Image"}
-        </button>
-        <button
-          type="button"
-          title="Preview this draft as a published post"
-          aria-label="Preview draft"
-          onClick={() => setPreviewOpen(true)}
-        >
-          Preview
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/png, image/jpeg, image/webp, image/avif"
-          onChange={handleImageSelect}
-          hidden
-        />
-      </div>
-
-      <div className="editor__field">
-        <label htmlFor="post-content">Post</label>
-        <textarea
-          ref={textareaRef}
-          id="post-content"
-          className="editor__body"
-          rows={22}
-          value={draft.content}
-          onChange={(event) => update("content", event.target.value)}
-          placeholder={
-            "Opening paragraph. Blank line for a new one.\n\n> The line worth remembering.\n\n## A section heading\n\nWhat happened, and why.\n\n- a bullet\n- another bullet\n\n```ts\nconst example = true;\n```"
-          }
-        />
-        <small className="editor__hint">
-          Blank line = new paragraph · <code>## </code> = section · <code>- </code> = bullet ·{" "}
-          <code>&gt; </code> = pull quote · <code>```lang</code> = code block.
-        </small>
-      </div>
-
-      {/* ---------- SEO preview ---------- */}
-      <div className="editor__seo" aria-label="SEO preview">
-        <div className="editor__seo__row">
-          <label>Live URL</label>
-          <span className="editor__seo__url">/blog/{slugPreview}</span>
-        </div>
-        <div className="editor__seo__row">
-          <label>Title</label>
-          <span className={`editor__seo__count ${titleWarn ? "warn" : ""}`}>
-            {draft.title.length} / {TITLE_MAX}
-          </span>
-        </div>
-        <div className="editor__seo__row">
-          <label>Excerpt</label>
-          <span className={`editor__seo__count ${excerptWarn ? "warn" : ""}`}>
-            {draft.excerpt.length} / {EXCERPT_MAX}
-          </span>
-        </div>
-        <div className="editor__seo__row">
-          <label>Tags</label>
-          <span className="editor__seo__count">
-            {draft.tags.split(",").filter(Boolean).length} / 6
-          </span>
-        </div>
-        <div className="editor__seo__row">
-          <label>Read time</label>
-          <span className="editor__seo__value">{draft.minutes} min</span>
-        </div>
-      </div>
-
-      <fieldset className="editor__cover">
-        <legend>Cover art</legend>
-
-        <div className="editor__row editor__row--split">
-          <div className="editor__field">
-            <label htmlFor="post-style">Style</label>
-            <select
-              id="post-style"
-              value={draft.cover_variant}
-              onChange={(event) => update("cover_variant", Number(event.target.value))}
-            >
-              {COVER_VARIANTS.map((name, index) => (
-                <option key={name} value={index}>
-                  {name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="editor__field editor__field--narrow">
-            <label htmlFor="post-accent">Accent</label>
-            <div className="editor__accents">
-              {COVER_ACCENTS.map((accent) => (
-                <button
-                  key={accent}
-                  type="button"
-                  className={draft.cover_accent === accent ? "is-active" : undefined}
-                  style={{ background: accent }}
-                  aria-label={`Accent ${accent}`}
-                  aria-pressed={draft.cover_accent === accent}
-                  onClick={() => update("cover_accent", accent)}
-                />
-              ))}
-            </div>
+        <div className="editor__savebar__controls">
+          <label className="editor__toggle">
+            <input
+              type="checkbox"
+              checked={draft.published}
+              onChange={(event) => update("published", event.target.checked)}
+            />
+            Published (uncheck to keep it as a draft)
+            {scheduled && draft.published && (
+              <span className="editor__scheduled"> · publishes {draft.date}</span>
+            )}
+          </label>
+          <span className="editor__savebar__url">/blog/{slugPreview}</span>
+          <div className="editor__actions">
+            <button className="btn" type="button" onClick={save} disabled={busy}>
+              {busy ? "Saving…" : draft.published ? "Publish" : "Save draft"}
+            </button>
+            <button className="btn btn--ghost" type="button" onClick={reset} disabled={busy}>
+              New post
+            </button>
+            {slugLocked && (
+              <button className="btn btn--ghost" type="button" onClick={remove} disabled={busy}>
+                Delete
+              </button>
+            )}
           </div>
         </div>
-
-        <div className="editor__field">
-          <label htmlFor="post-cover-alt">Cover description</label>
-          <input
-            id="post-cover-alt"
-            value={draft.cover_alt}
-            onChange={(event) => update("cover_alt", event.target.value)}
-            placeholder="What the artwork shows, for screen readers"
-          />
-        </div>
-
-        <div className="editor__preview">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={`/api/cover/preview?accent=${draft.cover_accent}&variant=${draft.cover_variant}`}
-            alt=""
-            width={1200}
-            height={630}
-          />
-        </div>
-      </fieldset>
-
-      <label className="editor__toggle">
-        <input
-          type="checkbox"
-          checked={draft.published}
-          onChange={(event) => update("published", event.target.checked)}
-        />
-        Published (uncheck to keep it as a draft)
-        {scheduled && draft.published && (
-          <span className="editor__scheduled"> · publishes {draft.date}</span>
-        )}
-      </label>
-
-      {errors.length > 0 && (
-        <ul className="editor__errors" role="alert">
-          {errors.map((error) => (
-            <li key={error}>{error}</li>
-          ))}
-        </ul>
-      )}
-      {status && (
-        <p className="editor__status" role="status">
-          {status}
-        </p>
-      )}
-
-      <div className="editor__actions">
-        <button className="btn" type="button" onClick={save} disabled={busy}>
-          {busy ? "Saving…" : draft.published ? "Publish" : "Save draft"}
-        </button>
-        <button className="btn btn--ghost" type="button" onClick={reset} disabled={busy}>
-          New post
-        </button>
-        {slugLocked && (
-          <button className="btn btn--ghost" type="button" onClick={remove} disabled={busy}>
-            Delete
-          </button>
-        )}
       </div>
-
-      <p className="editor__counts">
-        {parsed.body.length} opening paragraphs · {parsed.sections.length} sections ·{" "}
-        {parsed.sections.reduce((total, section) => total + (section.bullets?.length ?? 0), 0)} bullets ·{" "}
-        {parsed.sections.filter((section) => section.code).length} code blocks
-        {parsed.quote ? " · 1 pull quote" : ""}
-      </p>
 
       {/* ---------- draft preview dialog ---------- */}
       <PreviewDialog
@@ -679,7 +700,11 @@ export default function PostEditor({
         onClose={() => setPreviewOpen(false)}
         title={draft.title}
         date={draft.date}
+        minutes={draft.minutes}
         excerpt={draft.excerpt}
+        tags={draft.tags}
+        accent={draft.cover_accent}
+        variant={draft.cover_variant}
         parsed={parsed}
       />
     </div>
