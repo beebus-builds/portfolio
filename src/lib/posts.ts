@@ -853,4 +853,129 @@ export const posts: Post[] = [
       },
     ],
   },
+  {
+    slug: "extracting-the-flight-model",
+    title: "Extracting a flight model out of a React component",
+    date: "2026-10-29",
+    excerpt:
+      "The ship's physics lived inside a render hook for a year. Moving it into a pure function turned the component into a shell and the physics into something tests can actually fly.",
+    tags: ["React", "TypeScript", "Refactoring", "Testing"],
+    minutes: 7,
+    cover: {
+      src: "/blog/extracting-the-flight-model.svg",
+      alt: "Terminal-style composition with a flight path line and telemetry rows, in sky blue on deep blue",
+    },
+    body: [
+      "This portfolio is a flight simulator with a career section bolted to it. The ship has an autopilot, gravity responds to the planets, and docking slows you down with an approach-speed limiter so you cannot ram a station at full burn. For most of the site's life, all of that lived inside a single component's render loop.",
+      "That was fine right up until the first time I wanted to change the physics and could not answer the obvious question: what happens to the approach speed if the throttle curve changes? There was no way to know without flying it. The simulation was threaded through React state, three.js objects and a mutable input singleton, and only the whole thing together could tell you the truth.",
+      "So I extracted the model. Not the easy kind of extraction where you move code and hope — the kind where every behavior the ship has gets a test first, and the render loop becomes a shell that applies one step per frame and draws it.",
+    ],
+    quote:
+      "If the render loop is the only place your physics can run, your physics is untestable by construction.",
+    sections: [
+      {
+        heading: "What the frame actually did",
+        paragraphs: [
+          "Writing the inventory down was sobering. The component was not 'doing physics' in some vague sense — it was doing six distinct jobs per frame, interleaved with the code that moved meshes. Untangling them on paper was half the refactor.",
+        ],
+        bullets: [
+          "Autopilot steering toward the next dock, with takeover the instant a pilot touches the keys.",
+          "Gravity wells around each planet and drag near their surfaces, so flying is a conversation with the world instead of a slide show.",
+          "The dock approach: a lerp that eases the ship into the bay, and a speed limiter so you glide in instead of arriving as debris.",
+          "Universe bounds and a frame-time clamp, so a background tab returning to the foreground does not fling the ship through a planet.",
+          "Telemetry writes for the HUD: position, speed, nearest body, engine throttle.",
+        ],
+      },
+      {
+        heading: "The seam was already there",
+        paragraphs: [
+          "The render loop must not trigger React renders — that was a hard-won lesson from frame one. So the input state and the engine telemetry already lived in plain mutable module objects, read and written by everything except React. The physics had no side effects into the tree; it just mutated numbers those consumers happened to read.",
+          "That is why the extraction was a move rather than a redesign. The boundary existed for unrelated reasons, and good refactors are cheapest along boundaries that exist for other reasons.",
+        ],
+        code: {
+          lang: "ts",
+          snippet:
+            "// Pure in, pure out. No React, no three.js, no clocks — the caller owns time.\nconst next = stepShipFlight(state, {\n  input: flightInput,\n  planets: bodies,\n  dt: Math.min(delta, 0.05), // the clamp lives here, where tests can see it\n});\n\n// The component's whole job now: apply the step and let the frame draw it.\nship.position.copy(next.position);\nship.quaternion.copy(next.quaternion);",
+        },
+      },
+      {
+        heading: "Tests as the flight manual",
+        paragraphs: [
+          "Eleven tests now cover the model, and each one names a behavior a pilot would recognize. When I forget how takeover works, the test list answers faster than the code does.",
+        ],
+        bullets: [
+          "Docking completes and the ship comes to rest; takeover releases the autopilot mid-approach.",
+          "The approach-speed limiter bleeds velocity on final, so the dock lerp never has to fight a ram.",
+          "Gravity curves a ballistic pass; drag bleeds speed when flying low over a surface.",
+          "The universe bounds clamp returns, and a 50 ms frame never teleports the ship.",
+        ],
+        code: {
+          lang: "ts",
+          snippet:
+            'it("the approach-speed limiter bleeds velocity on final", () => {\n  const state = approachingDockAt(40); // units per second — far too hot\n  const next = stepShipFlight(state, dockApproachContext);\n  expect(next.speed).toBeLessThan(40);\n  expect(next.docking).toBe(true); // still on approach, just survivable\n});',
+        },
+      },
+      {
+        heading: "Takeaways",
+        paragraphs: [
+          "One honest note: the extraction found no physics bugs. That is the point. It converted 'I flew it and it felt right' into eleven named behaviors that hold on every commit, which is a different kind of confidence — the kind that survives a refactor you did not plan.",
+          "Strict mode helped more than expected. The indexed-access rule made the parameter tables stop lying: every lookup now says what happens when the entry is missing, through small explicit fallbacks instead of assertions that the impossible never happens.",
+        ],
+      },
+    ],
+  },
+  {
+    slug: "splitting-a-4300-line-stylesheet",
+    title: "Splitting a 4,300-line stylesheet with a byte-identical guarantee",
+    date: "2026-10-29",
+    excerpt:
+      "Eight domain partials, one import chain, and a content hash that had to match before the change could land. The oracle mattered more than the split.",
+    tags: ["CSS", "Refactoring", "Tooling"],
+    minutes: 6,
+    cover: {
+      src: "/blog/splitting-a-4300-line-stylesheet.svg",
+      alt: "Layered translucent panels receding into depth, in green on deep blue",
+    },
+    body: [
+      "One stylesheet had grown to 4,300 lines across every page this site has ever had. It worked. It also meant every edit happened at the bottom of one enormous file, every rename was a search-and-replace across thirty screenfuls, and every merge was a reminder that CSS has no compiler to catch a mistake.",
+      "The fix was not clever: cut the file along domain lines into eight partials and import them in the original order. The fix that mattered was the exit criterion. The split could land only when the built bundle was byte-identical to the monolith's — verified by a content hash, not by opening the site and squinting.",
+      "That guarantee turned a scary refactor into a mechanical one. It also caught something I would never have noticed otherwise.",
+    ],
+    quote:
+      "A refactor without an oracle is just a rewrite with better manners.",
+    sections: [
+      {
+        heading: "Order is load-bearing",
+        paragraphs: [
+          "The risk in splitting a stylesheet is not copying a rule wrong — it is copying a rule to the wrong place. The cascade resolves conflicts by order, so a rule that drifts one media query up or down can silently change what wins, and nothing errors.",
+          "Importing the partials in the original byte order removes that entire class of mistake. Each partial owns a domain; the import chain owns the order; nobody has to remember anything.",
+        ],
+        code: {
+          lang: "css",
+          snippet:
+            '/* globals.css — the whole file is the import chain now. */\n@import "tailwindcss";\n@import "./styles/tokens.css";\n@import "./styles/base.css";\n@import "./styles/hud.css";\n@import "./styles/site-pages.css";\n@import "./styles/blog.css";\n@import "./styles/admin.css";\n@import "./styles/dialogs.css";\n@import "./styles/effects.css";',
+        },
+      },
+      {
+        heading: "The oracle is a hash",
+        paragraphs: [
+          "Before touching anything: build, and save the emitted CSS as a reference file. After the split: build again, hash both, compare. Same hash, same bytes, zero behavior change — proven, not assumed. The first run after the split failed in a way that taught me more than the split did.",
+          "Thirty-six extra bytes. The diff was a single utility the bundle had never emitted before, generated because Tailwind scans every file in the project for class candidates — and a comment in one of the new test files happened to contain the name of a capitalization utility in ordinary prose. A test comment had shipped CSS to production.",
+        ],
+        code: {
+          lang: "css",
+          snippet:
+            '/* Tests never style the site — keep their strings out of the scan. */\n@source not "../**/*.test.ts";\n@source not "../**/*.test.tsx";',
+        },
+      },
+      {
+        heading: "Takeaways",
+        paragraphs: [
+          "Give every refactor an oracle before you start. Byte-identical was the only standard that let me split without a full visual regression pass, and the discipline cost about ten minutes across the whole job.",
+          "Minified output is honest. A hash beats squinting; a diff beats a hash when it fails, because it tells you exactly what changed. Thirty-six bytes of diff is a much better error message than 'the site looks fine I think'.",
+          "A monolith file is not a smell by size alone — it is a smell when the next change is harder than the last one. This one had crossed that line a long time ago; I just kept paying the tax one edit at a time.",
+        ],
+      },
+    ],
+  },
 ];

@@ -45,6 +45,8 @@ const COVERS = [
   { slug: "shipping-over-polishing", code: "BP-LOG 13", category: "PROCESS", accent: "#fb923c", variant: 7 },
   { slug: "sql-index-cheat-sheet", code: "BP-LOG 14", category: "POSTGRES", accent: "#34d399", variant: 1 },
   { slug: "from-wordpress-to-nextjs", code: "BP-LOG 15", category: "MIGRATION", accent: "#c084fc", variant: 5 },
+  { slug: "extracting-the-flight-model", code: "BP-LOG 16", category: "REFACTORING", accent: "#38bdf8", variant: 4 },
+  { slug: "splitting-a-4300-line-stylesheet", code: "BP-LOG 17", category: "CSS", accent: "#4ade80", variant: 6 },
 ];
 
 mkdirSync(OUT_DIR, { recursive: true });
