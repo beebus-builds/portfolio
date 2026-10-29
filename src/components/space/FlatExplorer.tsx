@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { planets, planetReadout, profile, type SectionId } from "@/lib/profile";
+import { getPlanet, planets, planetReadout, profile, type SectionId } from "@/lib/profile";
 import { siteUrl } from "@/lib/site";
 import SectionContent from "./SectionContent";
 
@@ -13,7 +13,7 @@ import SectionContent from "./SectionContent";
  */
 export default function FlatExplorer({ initial = "about" }: { initial?: SectionId }) {
   const [active, setActive] = useState<SectionId>(initial);
-  const planet = planets.find((item) => item.id === active) ?? planets[0];
+  const planet = getPlanet(active);
 
   return (
     <div className="flat">

@@ -43,7 +43,7 @@ export default function PostBodyView({ body, sections, quote }: PostBodyViewProp
     const image = IMAGE_RE.exec(paragraph);
     if (image) {
       return (
-        <figure className="post-image" key={key} style={{ cursor: "pointer" }} onClick={() => setLightbox({ src: image[2], alt: image[1] })}>
+        <figure className="post-image" key={key} style={{ cursor: "pointer" }} onClick={() => setLightbox({ src: image[2] ?? "", alt: image[1] ?? "" })}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={image[2]}

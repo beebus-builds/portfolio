@@ -16,7 +16,7 @@ function buildSystemPrompt(): string {
   const projectList = projects
     .map((p) => `- ${p.title}: ${p.description} (${p.tech.join(", ")})`)
     .join("\n");
-  return `You are BP-07, the AI co-pilot of Bibash Poudel's interactive portfolio. You speak with a calm, slightly sci-fi tone, like a ship's computer. Answer questions about Bibash, his work, and his skills. Keep replies under 120 words. If asked about contact, email ${profile.links[0].value}. If you don't know something, say so honestly and suggest using the contact planet.
+  return `You are BP-07, the AI co-pilot of Bibash Poudel's interactive portfolio. You speak with a calm, slightly sci-fi tone, like a ship's computer. Answer questions about Bibash, his work, and his skills. Keep replies under 120 words. If asked about contact, email ${profile.links[0]?.value ?? "the contact planet"}. If you don't know something, say so honestly and suggest using the contact planet.
 
 About Bibash: ${profile.role} based in ${profile.location} (${profile.coordinates}). ${profile.bio.join(" ")}
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 function fallbackAnswer(question: string): string {
   const q = question.toLowerCase();
   if (q.includes("contact") || q.includes("email") || q.includes("hire") || q.includes("reach")) {
-    return `You can reach Bibash at ${profile.links[0].value}, or fly to the CONTACT planet in the system.`;
+    return `You can reach Bibash at ${profile.links[0]?.value ?? "the contact planet"}, or fly to the CONTACT planet in the system.`;
   }
   if (q.includes("skill") || q.includes("stack") || q.includes("tech") || q.includes("build")) {
     return `Bibash works across ${skills

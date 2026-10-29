@@ -81,7 +81,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ slug
     slug,
     title,
     code,
-    category: category || COVER_VARIANTS[variant % COVER_VARIANTS.length].toUpperCase(),
+    category: category || (COVER_VARIANTS[variant % COVER_VARIANTS.length]?.toUpperCase() ?? "UNTITLED"),
     accent,
     variant,
   });

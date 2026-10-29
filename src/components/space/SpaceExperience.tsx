@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCameraDrag, useFlightInput } from "@/hooks/useFlightInput";
 import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
-import { planets, profile, type SectionId } from "@/lib/profile";
+import { getPlanet, planets, profile, type SectionId } from "@/lib/profile";
 import { achievements, useAchievements } from "@/lib/achievements";
 import { createSimulation } from "@/lib/simulation";
 import Arcade from "./Arcade";
@@ -243,7 +243,7 @@ export default function SpaceExperience() {
   }, []);
 
   const handleCycleCamera = useCallback(() => {
-    const next = CAMERA_MODES[(CAMERA_MODES.indexOf(flightInput.cameraMode) + 1) % CAMERA_MODES.length];
+    const next = CAMERA_MODES[(CAMERA_MODES.indexOf(flightInput.cameraMode) + 1) % CAMERA_MODES.length] ?? flightInput.cameraMode;
     flightInput.cameraMode = next;
     setCameraMode(next);
   }, []);
@@ -344,7 +344,7 @@ export default function SpaceExperience() {
       handleTourAdvance("contact");
       return;
     }
-    const next = planets.find((planet) => !visited.has(planet.id)) ?? planets[0];
+    const next = planets.find((planet) => !visited.has(planet.id)) ?? getPlanet("about");
     const timer = window.setTimeout(() => handleTourAdvance(next.id), 2500);
     return () => window.clearTimeout(timer);
   }, [tour, mode, world, entering, visited, sim, handleTourAdvance]);

@@ -170,9 +170,11 @@ export default function EnginePlume() {
       [outer.current, resources.outerMaterial, 1],
       [core.current, resources.coreMaterial, 1.25],
     ] as const) {
-      material.uniforms.uTime.value = time;
-      material.uniforms.uThrottle.value = throttle * strain * gain;
-      material.uniforms.uBoost.value = boost;
+      const uniforms = material.uniforms;
+      if (!uniforms.uTime || !uniforms.uThrottle || !uniforms.uBoost) continue;
+      uniforms.uTime.value = time;
+      uniforms.uThrottle.value = throttle * strain * gain;
+      uniforms.uBoost.value = boost;
       if (group) {
         // Bell pressure breathing: the plume stretches on a hard burn.
         const stretch = 0.55 + throttle * 0.75 + boost * 0.5;

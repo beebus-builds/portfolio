@@ -265,7 +265,9 @@ export async function upsertPost(input: PostInput): Promise<PostRow> {
       input.published,
     ],
   );
-  return rows[0];
+  const row = rows[0];
+  if (!row) throw new Error("upsertPost: INSERT RETURNING produced no row");
+  return row;
 }
 
 export async function deletePost(slug: string): Promise<boolean> {

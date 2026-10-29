@@ -219,6 +219,7 @@ function BrightStars() {
     if (group.current) group.current.position.copy(camera.position);
     materials.current.forEach((material, index) => {
       const star = items[index];
+      if (!star) return;
       const phase = clock.elapsedTime * star.pulse + index;
       material.opacity = 0.3 + 0.14 * Math.sin(phase);
     });

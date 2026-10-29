@@ -68,9 +68,9 @@ export default function WarpStreaks({ sim }: { sim: Simulation }) {
     const length = 1.5 + intensity * 16;
 
     for (let i = 0; i < COUNT; i += 1) {
-      const x = seeds[i * 3];
-      const y = seeds[i * 3 + 1];
-      let z = seeds[i * 3 + 2];
+      const x = seeds[i * 3] ?? 0;
+      const y = seeds[i * 3 + 1] ?? 0;
+      let z = seeds[i * 3 + 2] ?? 0;
       z -= sim.shipSpeed * delta * 1.9;
       if (z < -FAR) z += FAR + FAR;
       seeds[i * 3 + 2] = z;

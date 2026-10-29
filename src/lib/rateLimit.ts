@@ -18,7 +18,7 @@ const SWEEP_TARGET = 800;
 /** First forwarded IP, falling back to the direct peer. */
 export function clientIp(req: NextRequest): string {
   const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim().slice(0, 64);
+  if (forwarded) return forwarded.split(",")[0]?.trim().slice(0, 64) ?? "unknown";
   const realIp = req.headers.get("x-real-ip");
   if (realIp) return realIp.trim().slice(0, 64);
   return "unknown";

@@ -84,6 +84,15 @@ world that now carries their content — see `next.config.ts`.
 See [docs/CASE_STUDY.md](docs/CASE_STUDY.md) for the full architecture write-up.
 
 - Security headers in `next.config.ts` (nosniff, frame-deny, referrer & permissions policy).
-- Contact endpoint: per-IP in-memory rate limiting + strict input validation.
+- Contact endpoint: per-IP in-memory rate limiting + strict input validation. The
+  in-memory limiter is best-effort — each server instance keeps its own buckets,
+  which is enough to blunt casual spam on a single-region deployment. A guarantee
+  needs infrastructure-level limits (WAF rules or a shared store such as Upstash
+  Redis) once the site runs on more than one instance; that provisioning lives
+  outside this repo.
+- Server actions are protected by the framework: Next.js compares the request's
+  `Origin` against the `Host` (or `X-Forwarded-Host`) and rejects mismatches, so
+  CSRF needs no extra code on top — see the Server Actions guide bundled with
+  the installed `next` version.
 - Progress endpoint: httpOnly visitor cookie, deduplicated/validated payloads, DB outage fallback.
 - All DB access goes through the shared pool + schema helper in `src/lib/db.ts`.

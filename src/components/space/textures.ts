@@ -1,5 +1,23 @@
 import * as THREE from "three";
 
+/** Typed-array read with an explicit fallback, for pixel/field buffers whose
+ *  indices are in range by construction (wrapping and clamping above). */
+function f32(data: Float32Array, index: number): number {
+  return data[index] ?? 0;
+}
+
+/** Uint8ClampedArray read with an explicit fallback, same reasoning. */
+function byte(data: Uint8ClampedArray, index: number): number {
+  return data[index] ?? 0;
+}
+
+/** Indexed list read with a loud failure instead of a silent `undefined`. */
+function at<T>(list: readonly T[], index: number): T {
+  const value = list[index];
+  if (value === undefined) throw new RangeError(`Index ${index} out of range (${list.length} entries)`);
+  return value;
+}
+
 export function mulberry32(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -14,7 +32,7 @@ export function mulberry32(seed: number) {
 function smoothNoise(rand: () => number, size: number) {
   const grid = new Float32Array(size * size);
   for (let i = 0; i < grid.length; i += 1) grid[i] = rand();
-  const sample = (x: number, y: number) => grid[((y % size) + size) % size * size + (((x % size) + size) % size)];
+  const sample = (x: number, y: number) => f32(grid, ((y % size) + size) % size * size + (((x % size) + size) % size));
   return (x: number, y: number) => {
     const x0 = Math.floor(x);
     const y0 = Math.floor(y);
@@ -140,7 +158,7 @@ export function createBumpNormalMap(source: THREE.Texture, strength = 2.4): THRE
   for (let i = 0; i < luminance.length; i += 1) {
     const offset = i * 4;
     luminance[i] =
-      (0.2126 * pixels[offset] + 0.7152 * pixels[offset + 1] + 0.0722 * pixels[offset + 2]) / 255;
+      (0.2126 * byte(pixels, offset) + 0.7152 * byte(pixels, offset + 1) + 0.0722 * byte(pixels, offset + 2)) / 255;
   }
 
   const normalCanvas = heightToNormal(luminance, width, height, strength);
@@ -231,14 +249,14 @@ function dividePlates(rand: () => number, size: number, minimum: number): Plate[
     let target = -1;
     for (let attempt = 0; attempt < 14; attempt += 1) {
       const index = Math.floor(rand() * plates.length);
-      if (splittable(plates[index])) {
+      if (splittable(at(plates, index))) {
         target = index;
         break;
       }
     }
     if (target === -1) break;
 
-    const plate = plates[target];
+    const plate = at(plates, target);
     const head: Plate = { ...plate, tone: rand(), drift: rand() };
     const tail: Plate = { ...plate, tone: rand(), drift: rand() };
     // Bias the split toward the long axis so panels stay plausible shapes.
@@ -267,18 +285,18 @@ function heightToNormal(height: Float32Array, cols: number, rows: number, streng
   const image = ctx.createImageData(cols, rows);
   const wrapX = (value: number) => ((value % cols) + cols) % cols;
   const wrapY = (value: number) => ((value % rows) + rows) % rows;
-  const at = (x: number, y: number) => height[wrapY(y) * cols + wrapX(x)];
+  const sample = (x: number, y: number) => f32(height, wrapY(y) * cols + wrapX(x));
 
   for (let y = 0; y < rows; y += 1) {
     for (let x = 0; x < cols; x += 1) {
       const dx =
-        at(x - 1, y - 1) + 2 * at(x - 1, y) + at(x - 1, y + 1) -
-        (at(x + 1, y - 1) + 2 * at(x + 1, y) + at(x + 1, y + 1));
+        sample(x - 1, y - 1) + 2 * sample(x - 1, y) + sample(x - 1, y + 1) -
+        (sample(x + 1, y - 1) + 2 * sample(x + 1, y) + sample(x + 1, y + 1));
       // Canvas rows run downward while v runs upward, so the green channel is
       // the negated vertical slope.
       const dy =
-        at(x - 1, y - 1) + 2 * at(x, y - 1) + at(x + 1, y - 1) -
-        (at(x - 1, y + 1) + 2 * at(x, y + 1) + at(x + 1, y + 1));
+        sample(x - 1, y - 1) + 2 * sample(x, y - 1) + sample(x + 1, y - 1) -
+        (sample(x - 1, y + 1) + 2 * sample(x, y + 1) + sample(x + 1, y + 1));
       const nx = dx * strength;
       const ny = -dy * strength;
       const inv = 1 / Math.hypot(nx, ny, 1);
@@ -331,7 +349,7 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
   const plates = dividePlates(rand, size, 34);
   const colour = new THREE.Color();
   for (const plate of plates) {
-    colour.set(palette[Math.floor(rand() * palette.length)]);
+    colour.set(at(palette, Math.floor(rand() * palette.length)));
     colour.offsetHSL((plate.drift - 0.5) * 0.012, (plate.drift - 0.5) * 0.05, (plate.tone - 0.5) * 0.055);
     const red = colour.r * 255;
     const green = colour.g * 255;
@@ -340,12 +358,12 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
     for (let y = plate.y; y < plate.y + plate.h; y += 1) {
       for (let x = plate.x; x < plate.x + plate.w; x += 1) {
         const index = wrap(y) * size + wrap(x);
-        const shade = 1 + (grain[index] - 0.5) * 0.14;
+        const shade = 1 + (f32(grain, index) - 0.5) * 0.14;
         albedo.data[index * 4] = clamp(red * shade);
         albedo.data[index * 4 + 1] = clamp(green * shade);
         albedo.data[index * 4 + 2] = clamp(blue * shade);
         albedo.data[index * 4 + 3] = 255;
-        rough[index] = 0.34 + (grain[index] - 0.5) * 0.16;
+        rough[index] = 0.34 + (f32(grain, index) - 0.5) * 0.16;
       }
     }
   }
@@ -354,7 +372,7 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
   //    slightly polished from being proud of the paint.
   const markSeam = (x: number, y: number) => {
     const index = wrap(y) * size + wrap(x);
-    height[index] -= 1;
+    height[index] = f32(height, index) - 1;
     seamMask[index] = 1;
   };
   const markRivet = (x: number, y: number, radius: number) => {
@@ -363,8 +381,8 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
         const distance = Math.hypot(ox, oy);
         if (distance > radius) continue;
         const index = wrap(y + oy) * size + wrap(x + ox);
-        height[index] += 0.85 * (1 - distance / (radius + 0.4));
-        seamMask[index] = Math.max(seamMask[index], 0.35);
+        height[index] = f32(height, index) + 0.85 * (1 - distance / (radius + 0.4));
+        seamMask[index] = Math.max(f32(seamMask, index), 0.35);
       }
     }
   };
@@ -409,7 +427,7 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
         const spread = o / width;
         if (spread * spread > 1) continue;
         const index = wrap(Math.round(y)) * size + wrap(Math.round(x) + o);
-        grimeMask[index] = Math.max(grimeMask[index], strength * along * (1 - spread * spread));
+        grimeMask[index] = Math.max(f32(grimeMask, index), strength * along * (1 - spread * spread));
       }
     }
   }
@@ -425,37 +443,37 @@ export function createHullMaps(seed: number, palette: string[], grime = 1): Hull
         const falloff = 1 - Math.hypot(x - cx, y - cy) / radius;
         if (falloff <= 0) continue;
         const index = wrap(y) * size + wrap(x);
-        scorchMask[index] = Math.max(scorchMask[index], strength * falloff * falloff);
+        scorchMask[index] = Math.max(f32(scorchMask, index), strength * falloff * falloff);
       }
     }
   }
 
   // 5. Composite the masks into albedo, roughness and height.
   for (let index = 0; index < size * size; index += 1) {
-    const seam = seamMask[index];
-    const dirt = grimeMask[index];
-    const scorch = scorchMask[index];
-    const speckle = (grain[index] - 0.5) * 0.07;
+    const seam = f32(seamMask, index);
+    const dirt = f32(grimeMask, index);
+    const scorch = f32(scorchMask, index);
+    const speckle = (f32(grain, index) - 0.5) * 0.07;
 
     const shade = 1 - seam * 0.2 - dirt * 0.5 - scorch * 0.4 + speckle;
-    albedo.data[index * 4] = clamp(albedo.data[index * 4] * shade);
-    albedo.data[index * 4 + 1] = clamp(albedo.data[index * 4 + 1] * shade * (1 - scorch * 0.12));
-    albedo.data[index * 4 + 2] = clamp(albedo.data[index * 4 + 2] * shade);
+    albedo.data[index * 4] = clamp(byte(albedo.data, index * 4) * shade);
+    albedo.data[index * 4 + 1] = clamp(byte(albedo.data, index * 4 + 1) * shade * (1 - scorch * 0.12));
+    albedo.data[index * 4 + 2] = clamp(byte(albedo.data, index * 4 + 2) * shade);
 
     // Dirt and seams scatter; bare paint polishes where hands and covers go.
-    const wear = Math.max(0, grain[index] - 0.62) * 0.5;
+    const wear = Math.max(0, f32(grain, index) - 0.62) * 0.5;
     rough[index] = Math.max(
       0.08,
-      Math.min(1, rough[index] + seam * 0.34 + dirt * 0.24 + scorch * 0.18 + speckle * 1.4 - wear)
+      Math.min(1, f32(rough, index) + seam * 0.34 + dirt * 0.24 + scorch * 0.18 + speckle * 1.4 - wear)
     );
-    height[index] += (grain[index] - 0.5) * 0.22 - dirt * 0.35;
+    height[index] = f32(height, index) + (f32(grain, index) - 0.5) * 0.22 - dirt * 0.35;
   }
   ctx.putImageData(albedo, 0, 0);
 
   const { canvas: roughCanvas, ctx: roughCtx } = makeCanvas(size, size);
   const roughImage = roughCtx.createImageData(size, size);
   for (let index = 0; index < size * size; index += 1) {
-    const value = clamp(rough[index] * 255);
+    const value = clamp(f32(rough, index) * 255);
     roughImage.data[index * 4] = value;
     roughImage.data[index * 4 + 1] = value;
     roughImage.data[index * 4 + 2] = value;

@@ -38,20 +38,20 @@ describe("parsePostContent", () => {
 
   it("splits sections at ## headings", () => {
     expect(parsed.sections).toHaveLength(2);
-    expect(parsed.sections[0].heading).toBe("First section");
-    expect(parsed.sections[1].heading).toBe("Second section");
+    expect(parsed.sections[0]?.heading).toBe("First section");
+    expect(parsed.sections[1]?.heading).toBe("Second section");
   });
 
   it("collects bullets and code per section", () => {
-    expect(parsed.sections[0].bullets).toEqual(["one", "two"]);
-    expect(parsed.sections[0].code).toEqual({ lang: "ts", snippet: "const x: number = 1;" });
-    expect(parsed.sections[1].code).toBeUndefined();
+    expect(parsed.sections[0]?.bullets).toEqual(["one", "two"]);
+    expect(parsed.sections[0]?.code).toEqual({ lang: "ts", snippet: "const x: number = 1;" });
+    expect(parsed.sections[1]?.code).toBeUndefined();
   });
 
   it("handles CRLF input", () => {
     const crlf = parsePostContent(SAMPLE.replace(/\n/g, "\r\n"));
     expect(crlf.body[0]).toBe(parsed.body[0]);
-    expect(crlf.sections[0].heading).toBe("First section");
+    expect(crlf.sections[0]?.heading).toBe("First section");
   });
 
   it("returns empty structures for empty input", () => {
@@ -167,8 +167,8 @@ describe("validatePostInput", () => {
     });
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.input.sections[0].bullets).toBeUndefined();
-      expect(result.input.sections[0].code).toBeUndefined();
+      expect(result.input.sections[0]?.bullets).toBeUndefined();
+      expect(result.input.sections[0]?.code).toBeUndefined();
     }
   });
 

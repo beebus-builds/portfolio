@@ -98,7 +98,7 @@ export function parsePostContent(source: string): PostContent {
     const heading = HEADING_RE.exec(line.trim());
     if (heading) {
       flushParagraph();
-      current = { heading: heading[1].trim(), paragraphs: [] };
+      current = { heading: (heading[1] ?? "").trim(), paragraphs: [] };
       sections.push(current);
       continue;
     }
@@ -106,14 +106,14 @@ export function parsePostContent(source: string): PostContent {
     const quoted = QUOTE_RE.exec(line.trim());
     if (quoted) {
       flushParagraph();
-      quote = (quote ? `${quote} ` : "") + quoted[1].trim();
+      quote = (quote ? `${quote} ` : "") + (quoted[1] ?? "").trim();
       continue;
     }
 
     const bullet = BULLET_RE.exec(line.trim());
     if (bullet && current) {
       flushParagraph();
-      (current.bullets ??= []).push(bullet[1].trim());
+      (current.bullets ??= []).push((bullet[1] ?? "").trim());
       continue;
     }
 

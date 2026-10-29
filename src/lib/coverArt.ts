@@ -169,7 +169,7 @@ const VARIANTS: Variant[] = [
     ${radarArcs(COVER_WIDTH * 0.68, COVER_HEIGHT * 0.48, 210, a, rand)}
     ${dataBars(rand, 72, COVER_HEIGHT - 260, 300, 130, a, 0.5)}`,
   // 2 — stacked signal waves
-  (rand, a) => {
+  (_rand, a) => {
     let out = "";
     for (let i = 0; i < 5; i += 1) {
       const amp = 26 + i * 20;
@@ -293,7 +293,9 @@ export function renderCover(post: CoverSpec): string {
   const rand = seeded(post.slug);
   const accent = post.accent;
   const variantIndex = ((post.variant ?? 0) % VARIANTS.length + VARIANTS.length) % VARIANTS.length;
-  const art = (VARIANTS[variantIndex] ?? VARIANTS[0])(rand, accent);
+  const variantFn = VARIANTS[variantIndex] ?? VARIANTS[0];
+  if (!variantFn) throw new RangeError("No cover variants defined");
+  const art = variantFn(rand, accent);
   const label = post.title ?? post.slug.replace(/-/g, " ");
   const planetCx = COVER_WIDTH * 0.78;
   const planetCy = COVER_HEIGHT * 0.06;
@@ -338,7 +340,7 @@ export function coverCode(index: number): string {
 
 /** Picks an accent by index so a sequence of posts stays visually varied. */
 export function coverAccent(index: number): string {
-  return COVER_ACCENTS[index % COVER_ACCENTS.length];
+  return COVER_ACCENTS[index % COVER_ACCENTS.length] ?? "#38bdf8";
 }
 
 /** Picks a composition by index. */

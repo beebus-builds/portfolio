@@ -15,27 +15,28 @@ const SCHEMA = `CREATE TABLE IF NOT EXISTS arcade_scores (
 
 export async function GET(req: NextRequest) {
   const { id, fresh } = visitorId(req);
-  const res = NextResponse.json({ best: 0, top: [] as Array<{ score: number }> });
-  if (fresh) {
-    res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
-  }
+  let best = 0;
+  let top: Array<{ score: number }> = [];
   try {
     await ensureSchema("arcade_scores", SCHEMA);
     const mine = await query<{ score: number }>(
       `SELECT score FROM arcade_scores WHERE visitor_id = $1`,
       [id]
     );
-    const top = await query<{ score: number }>(
+    top = (await query<{ score: number }>(
       `SELECT score FROM arcade_scores ORDER BY score DESC LIMIT 5`
-    );
-    return NextResponse.json({
-      best: Number(mine[0]?.score ?? 0),
-      top: top.map((row) => ({ score: Number(row.score) })),
-    });
+    )).map((row) => ({ score: Number(row.score) }));
+    best = Number(mine[0]?.score ?? 0);
   } catch (error) {
     console.error("GET /api/highscore failed:", error);
-    return res;
   }
+  // One response for both paths: a fresh visitor must always be handed their
+  // identity, including on the happy path.
+  const res = NextResponse.json({ best, top });
+  if (fresh) {
+    res.cookies.set(VISITOR_COOKIE, id, VISITOR_COOKIE_OPTS);
+  }
+  return res;
 }
 
 export async function POST(req: NextRequest) {

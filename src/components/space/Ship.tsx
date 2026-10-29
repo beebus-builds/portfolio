@@ -5,8 +5,9 @@ import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { engineState } from "@/lib/engineState";
 import { flightInput } from "@/lib/flight";
-import { DOCK_RANGE, UNIVERSE_RADIUS, dockPoint, type Simulation } from "@/lib/simulation";
-import { getPlanet, planets, type SectionId } from "@/lib/profile";
+import { stepShipFlight } from "@/lib/flightPhysics";
+import type { Simulation } from "@/lib/simulation";
+import type { SectionId } from "@/lib/profile";
 import EnginePlume from "./EnginePlume";
 import {
   buildAvionics,
@@ -25,33 +26,10 @@ import {
 } from "./shipGeometry";
 import { createHullMaps, createHazardTexture, createNozzleTexture, createRadiatorTexture } from "./textures";
 
-const FORWARD = new THREE.Vector3(0, 0, 1);
 /* Capital-scale interceptor: the whole airframe runs ~3x, slow majestic turns,
    heavy burn. Scale lives on the outer group so the plume, glare and lights all
    grow with the hull. */
 const SHIP_SCALE = 2.8;
-const MAX_SPEED = 42;
-const BOOST_SPEED = 100;
-const ACCEL = 34;
-const BOOST_ACCEL = 70;
-const DRAG = 0.06;
-const BOOST_DRAG = 0.04;
-/** Where the autopilot stops boosting; the speed limiter below takes over. */
-const BOOST_CUTOFF = 90;
-/**
- * Closing-speed budget per unit of remaining distance. At 0.55 the ship is
- * doing ~37 u/s at 70 units out and ~6 u/s by the dock sphere, which it cannot
- * pass through in a single frame at any plausible frame rate.
- */
-const APPROACH_RATE = 0.55;
-/** Floor on approach speed so the final metres still make progress. */
-const MIN_DOCK_SPEED = 6;
-const TURN = 1.3;
-/* Real-world gravity wells: every planet tugs the hull with inverse-square
-   falloff. Capped low so the main drive and the autopilot always win. */
-const GRAVITY_G = 420;
-const GRAVITY_BODY_CAP = 3.5;
-const GRAVITY_TOTAL_CAP = 8;
 
 /* Radiator shoulders. Mounted high on the aft spine and canted outboard so the
    panels clear both the tailplanes and the vertical fin. */
@@ -84,9 +62,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
   const gearStarboard = useRef<THREE.Group>(null);
 
   const velocity = useRef(new THREE.Vector3());
-  const gearDeploy = useRef(0);
-
-  /* Airframe. Built once: geometry, PBR materials and the procedural maps that
+  const gearDeploy = useRef(0);  /* Airframe. Built once: geometry, PBR materials and the procedural maps that
      carry the panel lines, rivets and rivulet grime. */
   const rig = useMemo(() => {
     const hullMaps = createHullMaps(4711, HULL_PAINT);
@@ -205,175 +181,37 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
     [rig]
   );
 
-  const scratch = useMemo(
-    () => ({
-      euler: new THREE.Euler(0, 0, 0, "YXZ"),
-      delta: new THREE.Quaternion(),
-      inverse: new THREE.Quaternion(),
-      forward: new THREE.Vector3(),
-      local: new THREE.Vector3(),
-      desired: new THREE.Vector3(),
-      dock: new THREE.Vector3(),
-      gravity: new THREE.Vector3(),
-      pull: new THREE.Vector3(),
-    }),
-    []
-  );
-
   useFrame((state, rawDelta) => {
+    // Same ceiling the flight model uses, so a long hitch can't fling the
+    // visual easing (bank, gear, exhaust) either.
     const delta = Math.min(rawDelta, 0.05);
     const body = group.current;
     if (!body) return;
 
-    const manual =
-      flightInput.thrust !== 0 ||
-      flightInput.yaw !== 0 ||
-      flightInput.pitch !== 0 ||
-      flightInput.roll !== 0 ||
-      flightInput.brake;
-
-    if (manual && !sim.landing) {
-      if (sim.docked) {
-        sim.docked = null;
-        onRelease();
-      }
-      if (sim.target) {
-        sim.target = null;
-        onTakeover?.();
-      }
-    }
-
-    let thrust = flightInput.thrust;
-    let yaw = flightInput.yaw;
-    let pitch = flightInput.pitch;
-    let roll = flightInput.roll;
-    let boosting = flightInput.boost;
-
-    // During atmospheric descent the autopilot flies; ignore inputs.
-    if (sim.landing) {
-      thrust = 0;
-      yaw = 0;
-      pitch = 0;
-      roll = 0;
-      boosting = false;
-      velocity.current.multiplyScalar(0);
-    }
-    const docked = sim.landing ? null : sim.docked;
-
-    if (!sim.landing && docked) {
-      thrust = 0;
-      yaw = 0;
-      pitch = 0;
-      roll = 0;
-      boosting = false;
-    } else if (sim.target) {
-      const def = getPlanet(sim.target);
-      const position = sim.positions.get(sim.target);
-      if (position) {
-        dockPoint(def, position, sim.shipPosition, scratch.dock);
-        scratch.desired.copy(scratch.dock).sub(sim.shipPosition);
-        const distance = scratch.desired.length();
-        if (distance < DOCK_RANGE) {
-          sim.docked = sim.target;
-          sim.target = null;
-          if (sim.docked) onDock(sim.docked);
-        } else {
-          scratch.desired.normalize();
-          scratch.local.copy(scratch.desired).applyQuaternion(scratch.inverse.copy(sim.shipQuaternion).invert());
-          const yawError = Math.atan2(scratch.local.x, scratch.local.z);
-          const pitchError = Math.asin(THREE.MathUtils.clamp(scratch.local.y, -1, 1));
-          const aligned = Math.abs(yawError) < 0.22 && Math.abs(pitchError) < 0.22;
-          yaw = THREE.MathUtils.clamp(yawError * 2, -1, 1);
-          pitch = THREE.MathUtils.clamp(pitchError * 2, -1, 1);
-          roll = 0;
-          boosting = aligned && distance > BOOST_CUTOFF;
-          thrust = aligned ? 1 : 0.45;
-          // Approach speed limit. Drag has a ~25s time constant, so a 100 u/s
-          // run cannot be bled off by easing off the throttle: the ship would
-          // blow straight through the 7-unit dock sphere, turn around and
-          // oscillate. Cap the closing speed by the room that actually remains
-          // instead, so arrival is always slower than the dock radius can miss.
-          const closing = THREE.MathUtils.clamp(
-            (distance - DOCK_RANGE) * APPROACH_RATE,
-            MIN_DOCK_SPEED,
-            MAX_SPEED
-          );
-          if (velocity.current.length() > closing) velocity.current.setLength(closing);
-        }
-      }
-    }
-
-    scratch.euler.set(-pitch * TURN * delta, yaw * TURN * delta, roll * TURN * 1.3 * delta, "YXZ");
-    scratch.delta.setFromEuler(scratch.euler);
-    sim.shipQuaternion.multiply(scratch.delta).normalize();
-
-    scratch.forward.copy(FORWARD).applyQuaternion(sim.shipQuaternion);
-    const speedCap = boosting ? BOOST_SPEED : MAX_SPEED;
-
-    if (thrust !== 0) {
-      velocity.current.addScaledVector(scratch.forward, thrust * (boosting ? BOOST_ACCEL : ACCEL) * delta);
-    }
-    if (flightInput.brake) {
-      // Retro-thrusters: burn directly against the velocity vector.
-      velocity.current.addScaledVector(velocity.current, -4.5 * delta);
-    }
-
-    // Gravity wells: every planet pulls with inverse-square falloff.
-    scratch.gravity.set(0, 0, 0);
-    if (!docked) {
-      for (const def of planets) {
-        const planetPos = sim.positions.get(def.id);
-        if (!planetPos) continue;
-        scratch.pull.copy(planetPos).sub(sim.shipPosition);
-        const distSq = Math.max(scratch.pull.lengthSq(), (def.radius * 3) ** 2);
-        const strength = Math.min((GRAVITY_G * def.radius) / distSq, GRAVITY_BODY_CAP);
-        scratch.gravity.addScaledVector(scratch.pull.normalize(), strength);
-      }
-      if (scratch.gravity.length() > GRAVITY_TOTAL_CAP) scratch.gravity.setLength(GRAVITY_TOTAL_CAP);
-      velocity.current.addScaledVector(scratch.gravity, delta);
-    }
-
-    // Near-vacuum: the hull keeps gliding until something burns against it.
-    const drag = flightInput.brake ? 6 : boosting ? BOOST_DRAG : DRAG;
-    velocity.current.multiplyScalar(Math.exp(-drag * delta));
-    if (velocity.current.length() > speedCap) velocity.current.setLength(speedCap);
-
-    sim.shipPosition.addScaledVector(velocity.current, delta);
-
-    if (docked) {
-      const def = getPlanet(docked);
-      const position = sim.positions.get(docked);
-      if (position) {
-        dockPoint(def, position, sim.shipPosition, scratch.dock);
-        sim.shipPosition.lerp(scratch.dock, 1 - Math.exp(-2.4 * delta));
-        velocity.current.multiplyScalar(Math.exp(-6 * delta));
-      }
-    }
-
-    if (sim.shipPosition.length() > UNIVERSE_RADIUS) {
-      sim.shipPosition.setLength(UNIVERSE_RADIUS);
-      velocity.current.multiplyScalar(0.4);
-    }
+    // The whole flight model — autopilot, gravity, drag, docking — lives in
+    // lib/flightPhysics. Here we only apply what it reports to the meshes.
+    const step = stepShipFlight(sim, velocity.current, flightInput, delta, {
+      onDock,
+      onRelease,
+      onTakeover,
+    });
+    const { docked } = step;
 
     body.position.copy(sim.shipPosition);
     body.quaternion.copy(sim.shipQuaternion);
-    sim.shipSpeed = velocity.current.length();
-    sim.climb = velocity.current.y;
-    sim.boosting = boosting;
-    sim.heading = (Math.atan2(scratch.forward.x, scratch.forward.z) * 180) / Math.PI;
 
     if (hull.current) {
-      const bankTarget = THREE.MathUtils.clamp(-yaw * 0.55, -0.65, 0.65);
+      const bankTarget = THREE.MathUtils.clamp(-step.yaw * 0.55, -0.65, 0.65);
       hull.current.rotation.z += (bankTarget - hull.current.rotation.z) * Math.min(1, delta * 5);
-      const pitchTarget = THREE.MathUtils.clamp(-pitch * 0.2, -0.35, 0.35);
+      const pitchTarget = THREE.MathUtils.clamp(-step.pitch * 0.2, -0.35, 0.35);
       hull.current.rotation.x += (pitchTarget - hull.current.rotation.x) * Math.min(1, delta * 5);
     }
 
     // Publish the burn for the exhaust shaders: throttle from thrust command
     // and airspeed, so a coasting hull still shows a faint working plume.
-    const wanted = Math.min(1.4, Math.abs(thrust) + sim.shipSpeed / 40) * (docked || sim.landing ? 0 : 1);
+    const wanted = Math.min(1.4, Math.abs(step.thrust) + sim.shipSpeed / 40) * (docked || step.landing ? 0 : 1);
     engineState.throttle += (wanted - engineState.throttle) * Math.min(1, delta * (wanted > engineState.throttle ? 9 : 2.2));
-    engineState.boost += ((boosting ? 1 : 0) - engineState.boost) * Math.min(1, delta * 5);
+    engineState.boost += ((step.boosting ? 1 : 0) - engineState.boost) * Math.min(1, delta * 5);
 
     // Landing gear drops for atmospheric entry, then folds away on the way up.
     gearDeploy.current += ((sim.landing ? 1 : 0) - gearDeploy.current) * Math.min(1, delta * 2.4);

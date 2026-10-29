@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { parsePostContent, serializePostContent, IMAGE_RE } from "@/lib/postBody";
+import { parsePostContent, serializePostContent } from "@/lib/postBody";
 import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
+import PreviewDialog from "./PreviewDialog";
 
 /**
  * Post editor for /admin.
@@ -14,23 +15,9 @@ import { COVER_ACCENTS, COVER_VARIANTS } from "@/lib/coverArt";
  *
  * A toolbar inserts the supported block syntax at the cursor, drafts autosave
  * to localStorage so a refresh never loses a half-written post, and an SEO
- * preview shows the live URL plus title/excerpt character budgets.
+ * preview shows the live URL plus title/excerpt character budgets. The draft
+ * preview dialog itself lives in PreviewDialog.
  */
-
-/** A preview paragraph is either plain text or an image reference. */
-function renderPreviewParagraph(paragraph: string, key: string) {
-  const image = IMAGE_RE.exec(paragraph);
-  if (image) {
-    return (
-      <figure key={key} className="editor__preview-dialog__image">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={image[2]} alt={image[1]} loading="lazy" decoding="async" />
-        {image[1] && <figcaption>{image[1]}</figcaption>}
-      </figure>
-    );
-  }
-  return <p key={key}>{paragraph}</p>;
-}
 
 export type EditorPost = {
   slug: string;
@@ -687,53 +674,14 @@ export default function PostEditor({
       </p>
 
       {/* ---------- draft preview dialog ---------- */}
-      <dialog className="editor__preview-dialog" open={previewOpen} onClose={() => setPreviewOpen(false)}>
-        <div className="editor__preview-dialog__panel">
-          <button
-            type="button"
-            className="editor__preview-dialog__close"
-            aria-label="Close preview"
-            onClick={() => setPreviewOpen(false)}
-          >
-            Close
-          </button>
-          <div className="editor__preview-dialog__header">
-            <h2 style={{ margin: 0 }}>{draft.title || "Untitled"}</h2>
-            <p className="editor__preview-dialog__muted">
-              {draft.date} · {draft.excerpt ? draft.excerpt.length + " chars" : "no excerpt"}
-            </p>
-          </div>
-          <div className="editor__preview-dialog__body">
-            {parsed.body.map((paragraph, index) => renderPreviewParagraph(paragraph, `preview-body-${index}`))}
-            {parsed.quote && (
-              <blockquote className="editor__preview-dialog__quote">
-                <p>{parsed.quote}</p>
-              </blockquote>
-            )}
-            {parsed.sections.map((section, sIndex) => (
-              <div key={section.heading || String(sIndex)} className="editor__preview-dialog__section">
-                <h3>{section.heading}</h3>
-                {section.paragraphs.map((paragraph, pIndex) =>
-                  renderPreviewParagraph(paragraph, `preview-section-${sIndex}-${pIndex}`)
-                )}
-                {section.bullets?.length && (
-                  <ul>
-                    {section.bullets.map((bullet, bIndex) => (
-                      <li key={`preview-section-${sIndex}-bullet-${bIndex}`}>{bullet}</li>
-                    ))}
-                  </ul>
-                )}
-                {section.code && (
-                  <figure className="editor__preview-dialog__code">
-                    <figcaption>{section.code.lang}</figcaption>
-                    <pre><code>{section.code.snippet}</code></pre>
-                  </figure>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </dialog>
+      <PreviewDialog
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={draft.title}
+        date={draft.date}
+        excerpt={draft.excerpt}
+        parsed={parsed}
+      />
     </div>
   );
 }

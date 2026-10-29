@@ -1,0 +1,1088 @@
+/*
+ * The flight, written down. Without JS this document *is* the site; once the
+ * scene boots it is clipped away, and the skip-link brings it back with :target.
+ */
+.index {
+  position: relative;
+  z-index: 210;
+  max-width: 74ch;
+  margin: 0 auto;
+  padding: 12vh 24px 20vh;
+}
+
+.index h1 {
+  margin: 0 0 12px;
+  font: 600 clamp(28px, 5vw, 44px) / 1.05 var(--font-body);
+  letter-spacing: -0.02em;
+}
+
+.index h2 {
+  margin: 48px 0 14px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+  font: 600 12px / 1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--planet);
+}
+
+.index p,
+.index li {
+  font: 400 15px / 1.65 var(--font-body);
+  color: var(--muted);
+}
+
+.index p {
+  margin: 0 0 14px;
+}
+
+.index ul {
+  margin: 0 0 14px;
+  padding-left: 20px;
+}
+
+.index li {
+  margin-bottom: 10px;
+}
+
+.index a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.index b {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.index__close {
+  display: inline-block;
+  margin-bottom: 32px;
+  padding: 9px 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 600 11px / 1 var(--font-code);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.index__close:hover {
+  border-color: var(--planet);
+  color: var(--planet);
+}
+
+html:not([data-js]) .index__close {
+  display: none;
+}
+
+/* Scene is live: clip the mirror away until the skip-link targets it. */
+html[data-js] .index {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+html[data-js] .index:target {
+  position: relative;
+  width: auto;
+  height: auto;
+  padding: 12vh 24px 20vh;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+}
+
+/* Reading the document means the flight is not running: once the scene has
+   booted it is the thing that goes away. */
+html:not([data-js]) .space,
+html:has(.index:target) .space {
+  display: none;
+}
+
+/* Classic pages scroll like documents. The flight locks the body because it
+   owns the whole viewport (flight / flat modes). */
+body {
+  overflow: auto;
+}
+
+html[data-js] body:has(.space) {
+  overflow: hidden;
+}
+
+html:not([data-js]) body,
+body:has(.index:target) {
+  overflow: auto;
+}
+
+/* The flight is a space scene, so it owns its own palette and ignores the
+   document theme. Without this, a visitor who once toggled the light theme on
+   the classic site gets a white screen here: `body` inherits its background
+   down into `.space`, and none of the HUD's translucent blacks read against
+   it. The document pages (/blog, /admin) keep full theme support. */
+.space {
+  --void: #04050c;
+  --ink: #eaf2f8;
+  --muted: #9db2c4;
+  --line: rgb(255 255 255 / 12%);
+  --planet: #6fe6f4;
+  --glass: 255 255 255;
+  --btn: #eaf2f8;
+  --btn-ink: #04050c;
+  color-scheme: dark;
+
+  position: relative;
+  min-height: 100dvh;
+  isolation: isolate;
+  background: var(--void);
+  color: var(--ink);
+}
+
+.space__viewport {
+  position: fixed;
+  inset: 0;
+  background: var(--void);
+  will-change: transform;
+}
+.space__viewport--shake {
+  animation: shake 60ms infinite linear;
+}
+@keyframes shake{
+  0% { transform: translate(0,0); }
+  25% { transform: translate(0.5px,-0.5px); }
+  50% { transform: translate(-0.5px,0.5px); }
+  75% { transform: translate(0.5px,0.5px); }
+  100% { transform: translate(-0.5px,-0.5px); }
+}
+
+.space__viewport:active {
+  cursor: grabbing;
+}
+
+.space__viewport canvas {
+  display: block;
+}
+
+.space__vignette {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(130% 90% at 50% 45%, transparent 42%, rgb(2 3 8 / 62%) 100%),
+    linear-gradient(to bottom, rgb(2 3 8 / 55%) 0%, transparent 22%, transparent 74%, rgb(2 3 8 / 72%) 100%);
+}
+
+.boot {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 18px;
+  color: var(--muted);
+  font: 500 11px/1 var(--font-code);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.boot__ring {
+  width: 54px;
+  height: 54px;
+  border: 1px solid rgb(111 230 244 / 25%);
+  border-top-color: #6fe6f4;
+  border-radius: 50%;
+  animation: spin 1.1s linear infinite;
+}
+
+@keyframes spin{
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.muted-note {
+  color: var(--muted);
+}
+
+/* ---------- route loading screen ---------- */
+
+.loadscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 22px;
+  background:
+    radial-gradient(60% 45% at 50% 42%, rgb(111 230 244 / 8%), transparent 70%),
+    var(--void);
+  text-align: center;
+}
+
+.loadscreen__ring {
+  position: relative;
+  width: 78px;
+  height: 78px;
+}
+
+.loadscreen__ring::before,
+.loadscreen__ring::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Outer sweep. */
+.loadscreen__ring::before {
+  inset: 0;
+  border: 1px solid rgb(var(--glass) / 10%);
+  border-top-color: var(--planet);
+  animation: spin 1.15s cubic-bezier(0.55, 0.15, 0.45, 0.85) infinite;
+}
+
+/* Counter-rotating inner sweep, thinner and dimmer. */
+.loadscreen__ring::after {
+  inset: 15px;
+  border: 1px solid rgb(var(--glass) / 8%);
+  border-bottom-color: color-mix(in srgb, var(--planet) 55%, transparent);
+  animation: spin 1.7s linear infinite reverse;
+}
+
+.loadscreen__planet {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--planet);
+  box-shadow: 0 0 14px 2px color-mix(in srgb, var(--planet) 60%, transparent);
+  animation: loadscreenOrbit 2.6s linear infinite;
+}
+
+@keyframes loadscreenOrbit{
+  from {
+    transform: rotate(0deg) translateX(31px);
+  }
+  to {
+    transform: rotate(360deg) translateX(31px);
+  }
+}
+
+.loadscreen__callsign {
+  margin: 0;
+  color: var(--planet);
+  font: 600 11px/1 var(--font-code);
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+}
+
+.loadscreen__name {
+  margin: 0;
+  font-size: clamp(20px, 3.4vw, 30px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.loadscreen__status {
+  min-height: 1.2em;
+  margin: 0;
+  color: var(--muted);
+  font: 500 11px/1.2 var(--font-code);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.loadscreen__track {
+  width: min(260px, 62vw);
+  height: 1px;
+  background: rgb(var(--glass) / 12%);
+  overflow: hidden;
+}
+
+.loadscreen__bar {
+  display: block;
+  height: 100%;
+  background: var(--planet);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--planet) 70%, transparent);
+  transition: width 0.45s ease;
+}
+
+/* ---------- planet markers ---------- */
+
+.planet-tag {
+  display: grid;
+  gap: 2px;
+  padding: 6px 12px;
+  border: 1px solid rgb(var(--glass) / 14%);
+  border-radius: 3px;
+  background: rgb(4 6 14 / 62%);
+  backdrop-filter: blur(6px);
+  font-family: var(--font-code);
+  white-space: nowrap;
+  transition: border-color 200ms ease, background 200ms ease, transform 200ms ease;
+}
+
+.planet-tag:hover,
+.planet-tag[data-hovered] {
+  transform: translateY(-2px);
+  border-color: rgb(var(--glass) / 40%);
+  background: rgb(8 12 24 / 82%);
+}
+
+.planet-tag[data-active] {
+  border-color: currentColor;
+}
+
+.planet-tag__name {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+}
+
+.planet-tag__meta {
+  color: rgb(var(--glass) / 45%);
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* ---------- HUD ---------- */
+
+.hud {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: auto 1fr auto auto;
+  gap: 18px;
+  padding: 22px clamp(16px, 3vw, 34px);
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.hud__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.hud__mark {
+  position: relative;
+  display: grid;
+  place-content: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid rgb(111 230 244 / 45%);
+  border-radius: 50%;
+}
+
+.hud__mark i {
+  position: absolute;
+  inset: -4px 4px;
+  border: 1px solid rgb(111 230 244 / 3%);
+  border-top-color: rgb(111 230 244 / 55%);
+  border-radius: 50%;
+  transform: rotate(-24deg);
+  animation: spin 7s linear infinite;
+}
+
+.hud__mark i:last-child {
+  inset: 4px -4px;
+  border-top-color: rgb(167 139 250 / 45%);
+  animation-duration: 11s;
+  animation-direction: reverse;
+}
+
+.hud__name b {
+  display: block;
+  font-size: 13px;
+  letter-spacing: 0.2em;
+}
+
+.hud__name small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font: 400 9px/1.4 var(--font-code);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.hud__nav {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.hud__nav button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border: 1px solid rgb(var(--glass) / 12%);
+  border-radius: 999px;
+  font: 500 9px/1 var(--font-code);
+  letter-spacing: 0.2em;
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+}
+
+.hud__nav button:hover,
+.hud__nav button[data-active] {
+  border-color: var(--planet);
+  color: var(--planet);
+  background: rgb(var(--glass) / 4%);
+}
+
+.hud__nav button.hud__cta {
+  border-color: transparent;
+  background: var(--btn);
+  color: var(--btn-ink);
+}
+
+.hud__nav button.hud__cta:hover {
+  background: #6fe6f4;
+  color: #04050c;
+  box-shadow: 0 10px 28px -12px rgb(111 230 244 / 90%);
+}
+
+.hud__nav small {
+  color: rgb(var(--glass) / 32%);
+  font-size: 8px;
+}
+
+.hud__cam {
+  grid-column: 2;
+  grid-row: 2;
+  align-self: start;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border: 1px solid rgb(var(--glass) / 10%);
+  border-radius: 999px;
+  background: rgb(4 6 14 / 55%);
+  backdrop-filter: blur(8px);
+}
+
+.hud__cam-label {
+  padding-left: 8px;
+  color: var(--muted);
+  font: 600 8px/1 var(--font-code);
+  letter-spacing: 0.24em;
+}
+
+.hud__cam button {
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font: 500 8px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  transition: border-color 200ms ease, color 200ms ease, background 200ms ease;
+}
+
+.hud__cam button:hover {
+  color: var(--ink);
+  border-color: rgb(var(--glass) / 20%);
+}
+
+.hud__cam button[data-active] {
+  border-color: var(--planet);
+  color: var(--planet);
+  background: rgb(var(--glass) / 4%);
+}
+
+.hud__telemetry {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: end;
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  min-width: 172px;
+}
+
+.hud__speed {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-family: var(--font-code);
+}
+
+.hud__speed span {
+  font-size: 30px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+}
+
+.hud__speed small {
+  color: var(--muted);
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.hud__throttle {
+  --fill: 0%;
+  position: relative;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  background: rgb(var(--glass) / 12%);
+}
+
+.hud__throttle::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--fill);
+  background: linear-gradient(90deg, #6fe6f4, #a78bfa);
+  transition: width 120ms linear;
+}
+
+.hud__readout {
+  display: flex;
+  gap: 14px;
+  color: var(--muted);
+  font: 400 9px/1 var(--font-code);
+  letter-spacing: 0.18em;
+}
+
+.hud__readout b {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.hud__keys {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: end;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  gap: 4px 22px;
+  color: var(--muted);
+  font: 400 9px/1.6 var(--font-code);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.hud__keys span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.hud__hint {
+  grid-column: 1 / -1;
+  grid-row: 3;
+  align-self: end;
+  justify-self: center;
+  margin: 0;
+  color: rgb(var(--glass) / 40%);
+  font: 400 9px/1 var(--font-code);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+/* Attribution required by the CC BY 4.0 licence on the planetary imagery. */
+.hud__credits {
+  grid-column: 1 / -1;
+  grid-row: 4;
+  align-self: end;
+  justify-self: center;
+  margin: 0;
+  color: rgb(var(--glass) / 22%);
+  font: 400 9px/1 var(--font-code);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  pointer-events: auto;
+}
+
+.hud__credits a {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgb(var(--glass) / 25%);
+  text-underline-offset: 2px;
+}
+
+.hud__credits a:hover {
+  color: rgb(var(--glass) / 55%);
+}
+
+.achievement {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  z-index: 60;
+  transform: translateX(-50%);
+  min-width: 240px;
+  padding: 12px 16px;
+  border: 1px solid rgb(var(--glass) / 16%);
+  border-radius: 10px;
+  background: rgb(8 10 18 / 80%);
+  backdrop-filter: blur(8px);
+  text-align: center;
+  box-shadow: 0 8px 32px rgb(0 0 0 / 45%);
+}
+
+.achievement__tag {
+  display: block;
+  color: #ffd166;
+  font: 600 9px/1 var(--font-code);
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+
+.achievement b {
+  color: var(--ink);
+  font-size: 15px;
+  letter-spacing: 0.04em;
+}
+
+.achievement p {
+  margin: 4px 0 0;
+  color: rgb(var(--glass) / 55%);
+  font-size: 11px;
+}
+
+.copilot__fab {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid rgb(var(--glass) / 18%);
+  border-radius: 999px;
+  background: rgb(8 10 18 / 78%);
+  backdrop-filter: blur(8px);
+  color: var(--ink);
+  font: 600 11px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  cursor: pointer;
+}
+
+.copilot__fab span {
+  color: #8ad6ff;
+}
+
+.copilot {
+  position: fixed;
+  right: 20px;
+  bottom: 68px;
+  z-index: 56;
+  width: min(360px, calc(100vw - 40px));
+  max-height: min(480px, calc(100vh - 140px));
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgb(var(--glass) / 14%);
+  border-radius: 14px;
+  background: rgb(6 8 15 / 92%);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 55%);
+}
+
+.copilot__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgb(var(--glass) / 10%);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.24em;
+  color: #8ad6ff;
+}
+
+.copilot__head button {
+  background: none;
+  border: 0;
+  color: rgb(var(--glass) / 60%);
+  cursor: pointer;
+}
+
+.copilot__log {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.copilot__log p {
+  margin: 0;
+  padding: 8px 11px;
+  border-radius: 9px;
+  font-size: 12.5px;
+  line-height: 1.45;
+  max-width: 88%;
+}
+
+.copilot__log p[data-role="assistant"] {
+  align-self: flex-start;
+  background: rgb(var(--glass) / 7%);
+  color: var(--ink);
+}
+
+.copilot__log p[data-role="user"] {
+  align-self: flex-end;
+  background: rgb(138 214 255 / 18%);
+  color: var(--ink);
+}
+
+.copilot__typing {
+  color: rgb(var(--glass) / 45%);
+  letter-spacing: 0.2em;
+}
+
+.copilot__suggest {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 14px 10px;
+}
+
+.copilot__suggest button {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid rgb(var(--glass) / 14%);
+  background: transparent;
+  color: rgb(var(--glass) / 70%);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.copilot__form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 14px;
+  border-top: 1px solid rgb(var(--glass) / 10%);
+}
+
+.copilot__form input {
+  flex: 1;
+  padding: 8px 11px;
+  border-radius: 8px;
+  border: 1px solid rgb(var(--glass) / 14%);
+  background: rgb(var(--glass) / 6%);
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.copilot__form button {
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 8px;
+  background: #8ad6ff;
+  color: #04121c;
+  font-weight: 700;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.copilot__form button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.medals {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  background: rgb(2 4 10 / 72%);
+  backdrop-filter: blur(6px);
+}
+
+.medals__card {
+  width: min(420px, calc(100vw - 40px));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  background: rgb(6 8 15 / 96%);
+  box-shadow: 0 20px 60px rgb(0 0 0 / 60%);
+  overflow: hidden;
+}
+
+.medals__card header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.24em;
+  color: #ffd166;
+}
+
+.medals__card header button {
+  background: none;
+  border: 0;
+  color: rgb(255 255 255 / 60%);
+  cursor: pointer;
+}
+
+.medals__card ul {
+  list-style: none;
+  margin: 0;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medals__card li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 9px 10px;
+  border-radius: 9px;
+  opacity: 0.45;
+}
+
+.medals__card li[data-unlocked] {
+  opacity: 1;
+  background: rgb(255 209 102 / 8%);
+}
+
+.medals__card li span {
+  color: #ffd166;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.medals__card li b {
+  display: block;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.medals__card li small {
+  display: block;
+  margin-top: 2px;
+  color: rgb(255 255 255 / 55%);
+  font-size: 11.5px;
+}
+
+.arcade {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 72;
+  transform: translate(-50%, -50%);
+  width: min(520px, calc(100vw - 24px));
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 14px;
+  background: rgb(3 5 12 / 96%);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 65%);
+  overflow: hidden;
+}
+
+.arcade__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgb(255 255 255 / 10%);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.22em;
+  color: #8ad6ff;
+}
+
+.arcade__bar button {
+  background: none;
+  border: 0;
+  color: rgb(255 255 255 / 60%);
+  cursor: pointer;
+}
+
+.arcade canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  touch-action: none;
+  cursor: crosshair;
+}
+
+.arcade__hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid rgb(255 255 255 / 10%);
+  color: rgb(255 255 255 / 55%);
+  font: 400 10px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.arcade__hint button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgb(255 255 255 / 20%);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.hud__medals {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0;
+}
+
+.hud__tools {
+  display: flex;
+  gap: 6px;
+  align-self: end;
+  justify-self: end;
+}
+
+.hud__tools button {
+  padding: 6px 10px;
+  border: 1px solid rgb(255 255 255 / 16%);
+  border-radius: 6px;
+  background: rgb(8 10 18 / 60%);
+  color: rgb(255 255 255 / 70%);
+  font: 600 9px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  cursor: pointer;
+}
+
+.hud__tools button[data-active] {
+  color: #8ad6ff;
+  border-color: rgb(138 214 255 / 45%);
+}
+
+.touch {
+  position: fixed;
+  inset: auto 0 0 0;
+  z-index: 45;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
+  pointer-events: none;
+}
+
+.touch__stick {
+  width: 120px;
+  height: 120px;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 50%;
+  background: rgb(8 10 18 / 45%);
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.touch__throttle {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  pointer-events: auto;
+}
+
+.touch__col {
+  width: 64px;
+  height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border: 1px solid rgb(255 255 255 / 18%);
+  border-radius: 32px;
+  background: rgb(8 10 18 / 45%);
+  color: rgb(255 255 255 / 55%);
+  font-size: 14px;
+  touch-action: none;
+}
+
+.touch__boost {
+  height: 64px;
+  padding: 0 14px;
+  border-radius: 32px;
+  border: 1px solid rgb(138 214 255 / 45%);
+  background: rgb(138 214 255 / 16%);
+  color: var(--ink);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.2em;
+  touch-action: none;
+}
+
+kbd {
+  min-width: 22px;
+  padding: 3px 6px;
+  border: 1px solid rgb(var(--glass) / 16%);
+  border-radius: 3px;
+  color: var(--ink);
+  font: inherit;
+  text-align: center;
+}
+
+.space__approach {
+  position: fixed;
+  bottom: 26px;
+  left: 50%;
+  z-index: 25;
+  margin: 0;
+  padding: 9px 18px;
+  border: 1px solid rgb(var(--glass) / 14%);
+  border-radius: 999px;
+  background: rgb(4 6 14 / 70%);
+  backdrop-filter: blur(8px);
+  color: var(--muted);
+  font: 400 10px/1 var(--font-code);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+}
+
+.space__approach b {
+  color: var(--ink);
+}
+
+
+@keyframes drift{
+  to {
+    background-position: 420px 210px, -330px 165px, 255px -510px, -140px 280px, 190px -380px, 230px 460px, -300px -150px, 270px 270px;
+  }
+}
+
+
+
+
+
+
+
+
+
+

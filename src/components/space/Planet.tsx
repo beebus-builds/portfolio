@@ -332,7 +332,7 @@ function AsteroidBelt({ radius, width, count, size, opacity, spin, tilt = [0.08,
       positions[i * 3] = Math.cos(angle) * r;
       positions[i * 3 + 1] = (Math.random() * 2 - 1) * width * 0.16;
       positions[i * 3 + 2] = Math.sin(angle) * r;
-      color.set(BELT_ROCKS[Math.floor(Math.random() * BELT_ROCKS.length)]);
+      color.set(BELT_ROCKS[Math.floor(Math.random() * BELT_ROCKS.length)] ?? "#5b6b86");
       const shade = 0.45 + Math.random() * 0.55;
       colors[i * 3] = color.r * shade;
       colors[i * 3 + 1] = color.g * shade;

@@ -1,0 +1,175 @@
+/* ---------- flight overlay + floating home link ---------- */
+
+.flight-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  isolation: isolate;
+}
+
+.flight-overlay .space {
+  min-height: 100dvh;
+}
+
+
+
+
+
+
+
+.flat__home {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: var(--muted);
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.flat__home:hover {
+  color: var(--planet);
+}
+
+/* ================= responsive hardening (all screens + small) ========== */
+
+/* The radar is display-only: never let it swallow clicks meant for the HUD. */
+.radar {
+  pointer-events: none;
+}
+
+/* Long coordinates line must ellipsis instead of pushing the HUD wider. */
+.hud__brand {
+  min-width: 0;
+}
+
+.hud__name {
+  display: block;
+  min-width: 0;
+}
+
+.hud__name small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hud__readout {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.project-card__footer {
+  flex-wrap: wrap;
+}
+
+.project-card__actions {
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
+.space__approach {
+  max-width: calc(100vw - 32px);
+  text-align: center;
+}
+
+.site-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 270px), 1fr));
+}
+
+/*
+ * Radar vs. HUD nav share the top-right corner on every screen.
+ * Wide screens: shrink the radar and clear space beside it.
+ * Tablets: no free corner, so the radar steps aside (NEAR readout covers it).
+ * Phones: single-column HUD leaves row 1's right side empty — mini radar fits.
+ */
+@media (min-width: 1100px){
+  .radar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .hud__nav {
+    padding-right: 136px;
+  }
+
+  .hud__cam {
+    margin-right: 136px;
+  }
+}
+
+@media (max-width: 1099px) and (min-width: 721px){
+  .radar {
+    display: none;
+  }
+}
+
+@media (max-width: 720px){
+  .radar {
+    top: 18px;
+    right: 16px;
+    width: 84px;
+    height: 84px;
+  }
+
+  .radar__tag {
+    display: none;
+  }
+
+  /* Bottom row is telemetry on phones: lift the banner clear of it. */
+  .space__approach {
+    bottom: 148px;
+  }
+
+  .world__meta {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: start;
+    gap: 14px;
+    padding: 18px 20px;
+  }
+
+  .world__jump > div {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 600px){
+  .pager {
+    flex-direction: column;
+  }
+
+  .pager a {
+    max-width: none;
+  }
+
+  .pager a:last-child {
+    text-align: left;
+    justify-items: start;
+  }
+}
+
+@media (max-width: 520px){
+  .panel-links a {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .panel-links em {
+    grid-column: 1 / -1;
+    text-align: left;
+  }
+}
+
+@media (max-width: 480px){
+  .panel-grid,
+  .resume-facts {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* Inputs and animated flash copy must never force the page wider. */
+.flash__copy {
+  max-width: 100%;
+}
+
+.world__back {
+  flex: none;
+}

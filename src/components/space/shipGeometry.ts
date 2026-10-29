@@ -13,6 +13,20 @@ import { mulberry32 } from "./textures";
 /** One cross-section of the centre hull. `power` drives the superellipse. */
 type Station = { z: number; hw: number; hh: number; power: number; dorsal: number };
 
+/** Indexed list read with a loud failure instead of a silent `undefined` — the
+ *  station tables below are hand-authored and non-empty by construction. */
+function at<T>(list: readonly T[], index: number): T {
+  const value = list[index];
+  if (value === undefined) throw new RangeError(`Index ${index} out of range (${list.length} entries)`);
+  return value;
+}
+
+/** Typed-array read with an explicit fallback, for loft/pixel buffers whose
+ *  indices are in range by construction. */
+function f32(data: Float32Array, index: number): number {
+  return data[index] ?? 0;
+}
+
 /* Tail to nose, monotonic in z so the loft winds outward. `dorsal` raises a
    spine above the tube: nothing in front of the cockpit, a tall fairing aft. */
 const HULL_STATIONS: Station[] = [
@@ -42,13 +56,13 @@ function superellipse(t: number, hw: number, hh: number, power: number): [number
 }
 
 function hullProfileAt(z: number): Station {
-  const first = HULL_STATIONS[0];
-  const last = HULL_STATIONS[HULL_STATIONS.length - 1];
+  const first = at(HULL_STATIONS, 0);
+  const last = at(HULL_STATIONS, HULL_STATIONS.length - 1);
   if (z <= first.z) return first;
   if (z >= last.z) return last;
   for (let i = 0; i < HULL_STATIONS.length - 1; i += 1) {
-    const a = HULL_STATIONS[i];
-    const b = HULL_STATIONS[i + 1];
+    const a = at(HULL_STATIONS, i);
+    const b = at(HULL_STATIONS, i + 1);
     if (z < a.z || z > b.z) continue;
     const t = (z - a.z) / (b.z - a.z);
     // Smoothstep between stations keeps the taper free of facet creases.
@@ -119,32 +133,32 @@ type LoftOptions = {
 function loftRings(rings: Float32Array[], options: LoftOptions = {}): THREE.BufferGeometry {
   const { flipRing = false, capStart = false, capEnd = false, uScale = 1, vScale = 1 } = options;
   const ringCount = rings.length;
-  const points = rings[0].length / 3;
+  const points = (rings[0]?.length ?? 0) / 3;
 
   // Arc length between rings keeps texel density even across a hard taper.
   const lengths = [0];
   const mid = (points >> 1) * 3;
   for (let r = 1; r < ringCount; r += 1) {
     lengths[r] =
-      lengths[r - 1] +
+      (lengths[r - 1] ?? 0) +
       Math.hypot(
-        rings[r][mid] - rings[r - 1][mid],
-        rings[r][mid + 1] - rings[r - 1][mid + 1],
-        rings[r][mid + 2] - rings[r - 1][mid + 2]
+        f32(at(rings, r), mid) - f32(at(rings, r - 1), mid),
+        f32(at(rings, r), mid + 1) - f32(at(rings, r - 1), mid + 1),
+        f32(at(rings, r), mid + 2) - f32(at(rings, r - 1), mid + 2)
       );
   }
 
   const positions: number[] = [];
   const uvs: number[] = [];
   const indices: number[] = [];
-  const at = (p: number) => (flipRing ? points - 1 - p : p);
+  const pointAt = (p: number) => (flipRing ? points - 1 - p : p);
 
   for (let r = 0; r < ringCount; r += 1) {
-    const ring = rings[r];
+    const ring = at(rings, r);
     for (let p = 0; p < points; p += 1) {
-      const k = at(p) * 3;
-      positions.push(ring[k], ring[k + 1], ring[k + 2]);
-      uvs.push((p / points) * uScale, lengths[r] / vScale);
+      const k = pointAt(p) * 3;
+      positions.push(f32(ring, k), f32(ring, k + 1), f32(ring, k + 2));
+      uvs.push((p / points) * uScale, (lengths[r] ?? 0) / vScale);
     }
   }
   for (let r = 0; r < ringCount - 1; r += 1) {
@@ -160,23 +174,23 @@ function loftRings(rings: Float32Array[], options: LoftOptions = {}): THREE.Buff
   }
 
   const addCap = (ringIndex: number, forward: boolean) => {
-    const ring = rings[ringIndex];
+    const ring = at(rings, ringIndex);
     let cx = 0;
     let cy = 0;
     let cz = 0;
     for (let p = 0; p < points; p += 1) {
-      cx += ring[p * 3];
-      cy += ring[p * 3 + 1];
-      cz += ring[p * 3 + 2];
+      cx += f32(ring, p * 3);
+      cy += f32(ring, p * 3 + 1);
+      cz += f32(ring, p * 3 + 2);
     }
     const centre = positions.length / 3;
     positions.push(cx / points, cy / points, cz / points);
     uvs.push(0.5, 0.5);
     const base = positions.length / 3;
     for (let p = 0; p < points; p += 1) {
-      const k = at(p) * 3;
-      positions.push(ring[k], ring[k + 1], ring[k + 2]);
-      uvs.push((p / points) * uScale, forward ? 0 : lengths[ringIndex] / vScale);
+      const k = pointAt(p) * 3;
+      positions.push(f32(ring, k), f32(ring, k + 1), f32(ring, k + 2));
+      uvs.push((p / points) * uScale, forward ? 0 : (lengths[ringIndex] ?? 0) / vScale);
     }
     for (let p = 0; p < points; p += 1) {
       const q = (p + 1) % points;
@@ -283,11 +297,11 @@ function mirrorX(geometry: THREE.BufferGeometry): THREE.BufferGeometry {
     for (let k = 0; k < 3; k += 1) {
       const from = i + (2 - k);
       const to = i + k;
-      outPositions[to * 3] = -src[from * 3];
-      outPositions[to * 3 + 1] = src[from * 3 + 1];
-      outPositions[to * 3 + 2] = src[from * 3 + 2];
-      outUvs[to * 2] = srcUvs[from * 2];
-      outUvs[to * 2 + 1] = srcUvs[from * 2 + 1];
+      outPositions[to * 3] = -f32(src, from * 3);
+      outPositions[to * 3 + 1] = f32(src, from * 3 + 1);
+      outPositions[to * 3 + 2] = f32(src, from * 3 + 2);
+      outUvs[to * 2] = f32(srcUvs, from * 2);
+      outUvs[to * 2 + 1] = f32(srcUvs, from * 2 + 1);
     }
   }
   temporary?.dispose();
@@ -767,7 +781,7 @@ export function buildIntakes(): THREE.BufferGeometry {
     parts.push(loftRings(rings, { flipRing: side > 0, capStart: true, uScale: 2, vScale: 1 }));
 
     // Dark inlet face, set back inside the mouth.
-    const mouth = stations[stations.length - 1];
+    const mouth = at(stations, stations.length - 1);
     const faceX = side * hullProfileAt(mouth.z).hw * mouth.reach;
     parts.push(
       new THREE.BoxGeometry(mouth.hx * 1.9, mouth.hy * 1.9, 0.18).translate(faceX, 0.24, mouth.z - 0.26)

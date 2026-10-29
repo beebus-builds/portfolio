@@ -6,6 +6,7 @@ import * as THREE from "three";
 describe("simulation math", () => {
   it("moves planets along their orbit over time", () => {
     const def = planets[0];
+    if (!def) throw new Error("no planets defined");
     const a = orbitPosition(def, 0);
     const b = orbitPosition(def, 10);
     expect(a.distanceTo(b)).toBeGreaterThan(0.01);
@@ -22,6 +23,7 @@ describe("simulation math", () => {
 
   it("docks at a comfortable distance from the planet", () => {
     const def = planets[0];
+    if (!def) throw new Error("no planets defined");
     const planet = new THREE.Vector3(0, 0, 0);
     const ship = new THREE.Vector3(1, 0, 0);
     const point = dockPoint(def, planet, ship);
