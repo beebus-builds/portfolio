@@ -35,8 +35,9 @@ export const MOON_MAP = "/textures/real/2k_moon.jpg";
 export const SUN_MAP = "/textures/real/2k_sun.jpg";
 export const SKY_MAP = "/textures/real/2k_stars_milky_way.jpg";
 
-/** How strongly the real sky lights the scene as an environment probe. */
-export const SKY_ENVIRONMENT_INTENSITY = 0.55;
+/** How strongly the real sky lights the scene as an environment probe. High
+ *  enough that the ship's aft metals reflect a sky instead of a void. */
+export const SKY_ENVIRONMENT_INTENSITY = 0.85;
 
 type Loader = THREE.TextureLoader;
 

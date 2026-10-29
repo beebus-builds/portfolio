@@ -67,7 +67,7 @@ function ShipFillLight({ sim }: { sim: Simulation }) {
   return (
     <>
       <primitive object={target} />
-      <directionalLight ref={light} target={target} intensity={5} color="#e6efff" />
+      <directionalLight ref={light} target={target} intensity={9} color="#e6efff" />
     </>
   );
 }

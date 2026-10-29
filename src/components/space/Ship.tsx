@@ -102,17 +102,19 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
         // visitor's first question is "is that thing even there?". This keeps
         // the paint readable without washing out the key light's shading.
         emissive: new THREE.Color("#5f7590"),
-        emissiveIntensity: 0.9,
+        emissiveIntensity: 1.4,
       }),
-      /* Bare structure: chines, pylons, avionics, gear. */
+      /* Bare structure: chines, pylons, avionics, gear. Metals reflect the
+         sky panorama, which is mostly black — so the metalness stays mid and
+         the structure carries its own faint glow to stay readable aft. */
       structure: new THREE.MeshStandardMaterial({
         color: "#aab4c4",
-        metalness: 0.72,
+        metalness: 0.5,
         roughness: 0.44,
         normalMap: hullMaps.normalMap,
         envMapIntensity: 1.8,
         emissive: new THREE.Color("#39455a"),
-        emissiveIntensity: 0.5,
+        emissiveIntensity: 0.85,
       }),
       /* Primer-grey hardware and plumbing. */
       greeble: new THREE.MeshStandardMaterial({
@@ -121,26 +123,33 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
         roughness: 0.56,
         envMapIntensity: 1.4,
         emissive: new THREE.Color("#242c36"),
-        emissiveIntensity: 0.45,
+        emissiveIntensity: 0.75,
       }),
       /* Intakes and ducts read almost black in real life; the contrast is what
          makes the flanks look like they have depth. */
       intake: new THREE.MeshStandardMaterial({ color: "#14171d", metalness: 0.45, roughness: 0.62 }),
+      /* Engine metal. Full metalness turned the aft — the face the chase camera
+         actually sees — into a black silhouette against the dark sky probe, so
+         the nozzles run mid-metal with a faint heat glow baked in. */
       nozzle: new THREE.MeshStandardMaterial({
         map: nozzleMap,
-        metalness: 0.88,
+        metalness: 0.6,
         roughness: 0.5,
         color: "#ffffff",
         envMapIntensity: 2,
+        emissive: new THREE.Color("#54381f"),
+        emissiveIntensity: 0.55,
       }),
-      /* Radiators read as dark honeycomb panels. No warm emissive: these face
-         deep space and stay cold. */
+      /* Radiators read as dark honeycomb panels. A faint cold sheen keeps them
+         from vanishing into space while staying visually "cold". */
       radiator: new THREE.MeshStandardMaterial({
         map: radiatorMap,
-        metalness: 0.7,
+        metalness: 0.45,
         roughness: 0.42,
         color: "#cdd6e2",
         envMapIntensity: 1.5,
+        emissive: new THREE.Color("#26344a"),
+        emissiveIntensity: 0.5,
       }),
       glass: new THREE.MeshStandardMaterial({
         color: "#0b1a26",
@@ -310,7 +319,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
       {/* Form light: a low kicker from below-aft so the belly and the chines still
           catch something when the camera is high. The main fill is
           ShipFillLight, which is anchored to the camera instead of the hull. */}
-      <directionalLight position={[-14, -18, -30]} intensity={0.7} color="#7f9dc4" />
+      <directionalLight position={[-14, -18, -30]} intensity={1.1} color="#7f9dc4" />
 
       <EnginePlume />
     </group>
