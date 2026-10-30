@@ -2,9 +2,9 @@
  * Client-side store for the live fleet: other visitors' ships on the flight
  * deck plus the Cheer Park comms channel.
  *
- * One singleton polls `/api/fleet` every few seconds with the local ship's
- * telemetry and receives every other live pilot plus any chat lines past the
- * local cursor. Snapshots are exposed through `useSyncExternalStore`-shaped
+ * One singleton polls `/api/fleet` — every ~1s while flying, ~2.5s parked —
+ * uploading the local ship's telemetry and receiving every other live pilot
+ * plus any chat lines past the local cursor. Snapshots are exposed through `useSyncExternalStore`-shaped
  * getters, so render loops (three.js drones) and DOM panels can both subscribe
  * without re-rendering each other.
  */
@@ -63,7 +63,8 @@ type FleetResponse = {
   messages: RawChatMessage[];
 };
 
-const POLL_MS = 3000;
+const ACTIVE_POLL_MS = 1000;
+const IDLE_POLL_MS = 2500;
 const BACKOFF_MS = 6000;
 /** Rendering cap; the server already caps its response at 24. */
 const MAX_DRONES = 12;
@@ -237,9 +238,14 @@ class FleetStore {
 
   setPanelOpen(open: boolean): void {
     this.panelOpen = open;
-    if (open && this.unread !== 0) {
-      this.unread = 0;
-      this.emit();
+    if (open) {
+      if (this.unread !== 0) {
+        this.unread = 0;
+        this.emit();
+      }
+      // Opening the panel is a chat moment: sync immediately so the log is
+      // fresh rather than up to 2.5s stale.
+      this.flush();
     }
   }
 
@@ -294,6 +300,29 @@ class FleetStore {
     this.emit();
   }
 
+  /**
+   * Delay until the next heartbeat. Flying means the sky is moving — everyone
+   * benefits from fresher snapshots (1s); parked ships relax (2.5s) to spare
+   * the database. Hidden tabs skip syncing entirely but keep the loop alive.
+   */
+  private nextDelay(): number {
+    if (this.statusValue !== "live") return BACKOFF_MS;
+    const telemetry = this.getState?.();
+    if (document.hidden || !telemetry) return IDLE_POLL_MS;
+    const moving = telemetry.speed > 0.5 || telemetry.boosting || telemetry.mode !== "docked";
+    return moving ? ACTIVE_POLL_MS : IDLE_POLL_MS;
+  }
+
+  /** Drop any pending timer and heartbeat right now — used at chat moments. */
+  flush(): void {
+    if (!this.running) return;
+    if (this.timer !== null) {
+      window.clearTimeout(this.timer);
+      this.timer = null;
+    }
+    void this.tick();
+  }
+
   async sendChat(body: string): Promise<"ok" | "limited" | "error"> {
     const text = body.trim().slice(0, 280);
     if (!text) return "ok";
@@ -310,6 +339,8 @@ class FleetStore {
       this.messages = [...this.messages, message].slice(-MAX_MESSAGES);
       this.lastChatId = Math.max(this.lastChatId, message.id);
       this.emit();
+      // Immediate heartbeat: everyone sees this line within one round trip.
+      this.flush();
       return "ok";
     } catch {
       return "error";
@@ -318,7 +349,6 @@ class FleetStore {
 
   private async tick(): Promise<void> {
     if (!this.running) return;
-    let delay = POLL_MS;
     const previous = this.statusValue;
 
     if (!document.hidden && !this.syncing && this.getState) {
@@ -338,18 +368,18 @@ class FleetStore {
           this.absorb((await res.json()) as FleetResponse);
           this.statusValue = "live";
         } else {
+          // nextDelay sees the status and applies the backoff.
           this.statusValue = "backoff";
-          delay = BACKOFF_MS;
         }
       } catch {
         this.statusValue = "backoff";
-        delay = BACKOFF_MS;
       } finally {
         this.syncing = false;
       }
     }
 
     if (!this.running) return;
+    const delay = this.nextDelay();
     this.timer = window.setTimeout(() => void this.tick(), delay);
     if (this.statusValue !== previous) this.emit();
   }

@@ -11,9 +11,10 @@ import type { Simulation } from "@/lib/simulation";
  *
  * `FleetLink` samples the local simulation a few times a second and drives the
  * fleet store's polling loop; `Drone` renders each remote pilot as a light
- * interceptor hull in their chosen accent colour, gliding between polled
- * snapshots with exponential smoothing so a 3-second update rate still reads
- * as continuous flight. Callsigns float above the hulls as canvas sprites.
+ * interceptor hull in their chosen accent colour. Polls arrive every ~1s
+ * while flying, but no one sees the seams: each drone dead-reckons forward
+ * along its snapshot's heading between updates, with exponential smoothing
+ * eating the residual error. Callsigns float above the hulls as canvas sprites.
  */
 
 /** Cheer Park sits on the origin — the shared spawn of every flight. */
@@ -21,10 +22,12 @@ const PARK_CENTER = new THREE.Vector3(0, 0, 0);
 /** Within this radius a pilot counts as inside the park. */
 const PARK_RADIUS = 46;
 const MAX_DRONES = 12;
-/** How quickly drones close the gap to their latest snapshot (per second). */
-const FOLLOW_RATE = 3.2;
+/** How quickly drones close the gap to their predicted position (per second). */
+const FOLLOW_RATE = 4.5;
 /** Past this separation a drone snaps instead of gliding (respawn, long drop). */
 const SNAP_SQUARED = 900 * 900;
+/** Dead reckoning never projects more than this far past a heartbeat. */
+const MAX_EXTRAPOLATION_S = 1.2;
 
 const bodyGeometry = new THREE.CapsuleGeometry(1.1, 5.2, 3, 10);
 bodyGeometry.rotateX(Math.PI / 2);
@@ -103,21 +106,40 @@ function CallsignTag({ text }: { text: string }) {
 function Drone({ pilot }: { pilot: PilotBrief }) {
   const group = useRef<THREE.Group>(null);
   const glow = useRef<THREE.Mesh>(null);
-  const scratch = useMemo(() => ({ pos: new THREE.Vector3(), quat: new THREE.Quaternion() }), []);
+  const scratch = useMemo(
+    () => ({ pos: new THREE.Vector3(), quat: new THREE.Quaternion(), ahead: new THREE.Vector3() }),
+    []
+  );
 
   useFrame((state, delta) => {
     const g = group.current;
     const snap = fleet.getPilot(pilot.id);
     if (!g || !snap) return;
 
-    scratch.pos.set(snap.p[0] ?? 0, snap.p[1] ?? 0, snap.p[2] ?? 0);
     scratch.quat.set(snap.q[0] ?? 0, snap.q[1] ?? 0, snap.q[2] ?? 0, snap.q[3] ?? 1);
-    if (g.position.distanceToSquared(scratch.pos) > SNAP_SQUARED) {
-      g.position.copy(scratch.pos);
+    scratch.pos.set(snap.p[0] ?? 0, snap.p[1] ?? 0, snap.p[2] ?? 0);
+
+    // Dead reckoning: between heartbeats, project the ship forward along its
+    // nose at its reported speed, clamped so a stale snapshot can't fling a
+    // drone into the void. This is what makes a 1s poll read as flight.
+    let target = scratch.pos;
+    if (snap.mode === "cruise" && snap.speed > 0.5) {
+      const ahead = Math.min(MAX_EXTRAPOLATION_S, (performance.now() - snap.at) / 1000) * snap.speed;
+      if (ahead > 0.01) {
+        target = scratch.ahead
+          .set(0, 0, 1)
+          .applyQuaternion(scratch.quat)
+          .multiplyScalar(ahead)
+          .add(scratch.pos);
+      }
+    }
+
+    if (g.position.distanceToSquared(target) > SNAP_SQUARED) {
+      g.position.copy(target);
       g.quaternion.copy(scratch.quat);
     } else {
       const t = 1 - Math.exp(-delta * FOLLOW_RATE);
-      g.position.lerp(scratch.pos, t);
+      g.position.lerp(target, t);
       g.quaternion.slerp(scratch.quat, t);
     }
 

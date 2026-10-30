@@ -14,8 +14,11 @@ export const dynamic = "force-dynamic";
  * identity, so no client-side id is trusted.
  */
 
-/** Heartbeats arrive every ~3s; 40/minute leaves comfortable headroom. */
-const FLEET_LIMIT = 40;
+/**
+ * Heartbeats arrive every ~1s while flying (2.5s parked, instant flushes at
+ * chat moments); 90/minute leaves headroom above the ~60/min nominal rate.
+ */
+const FLEET_LIMIT = 90;
 const FLEET_WINDOW_MS = 60_000;
 const MAX_COORD = 5000;
 const MODES = new Set(["cruise", "docked", "landing"]);
