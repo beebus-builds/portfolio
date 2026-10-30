@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { flightHelp, planets, profile, type SectionId } from "@/lib/profile";
+import { fleet } from "@/lib/fleetStore";
 import type { Simulation } from "@/lib/simulation";
 
 type HudProps = {
@@ -21,13 +22,16 @@ type HudProps = {
   onPlayArcade: () => void;
   /** Drops to the flat explorer: the same content, no WebGL required. */
   onTextMode: () => void;
+  /** Cheer Park comms panel. */
+  commsOpen?: boolean;
+  onToggleComms: () => void;
 };
 
 /**
  * Readout frame around the viewport. Speed and heading are written straight to
  * the DOM from a rAF loop so flying never re-renders React.
  */
-export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals, onShowAchievements, onPlayArcade, onTextMode }: HudProps) {
+export default function Hud({ sim, docked, target, visited, onSelect, cameraMode, onCamera, tour, onToggleTour, onContact, medals, onShowAchievements, onPlayArcade, onTextMode, commsOpen, onToggleComms }: HudProps) {
   const [muted, setMuted] = useState(false);
   const speedRef = useRef<HTMLSpanElement>(null);
   const throttleRef = useRef<HTMLElement>(null);
@@ -35,6 +39,8 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
   const climbRef = useRef<HTMLSpanElement>(null);
   const altRef = useRef<HTMLSpanElement>(null);
   const nearestRef = useRef<HTMLElement>(null);
+  const online = useSyncExternalStore(fleet.subscribe, fleet.getOnline);
+  const unread = useSyncExternalStore(fleet.subscribe, fleet.getUnread);
 
   useEffect(() => {
     let frame = 0;
@@ -163,6 +169,9 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
           <span>
             SYS <b>{profile.status.toUpperCase()}</b>
           </span>
+          <span>
+            FLEET <b>{online}</b>
+          </span>
           {medals && (
             <button
               type="button"
@@ -211,6 +220,17 @@ export default function Hud({ sim, docked, target, visited, onSelect, cameraMode
             title="Play the asteroid field mini-game"
           >
             ARCADE
+          </button>
+          <button
+            type="button"
+            onClick={(event) => {
+              event.currentTarget.blur();
+              onToggleComms();
+            }}
+            data-active={commsOpen || undefined}
+            title="Pilot comms — the Cheer Park channel (X)"
+          >
+            {unread > 0 ? `COMMS ${unread > 9 ? "9+" : unread}` : "COMMS"}
           </button>
         </div>
       </div>

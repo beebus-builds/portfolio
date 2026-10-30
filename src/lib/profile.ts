@@ -223,6 +223,7 @@ export const flightHelp = [
   { keys: "Space", action: "Full stop" },
   { keys: "Mouse", action: "Look around · drag to swing" },
   { keys: "C", action: "Camera angle" },
+  { keys: "X", action: "Pilot comms" },
   { keys: "Click", action: "Fly to a planet" },
   { keys: "1 – 5", action: "Jump to a planet" },
   { keys: "Esc", action: "Undock" },

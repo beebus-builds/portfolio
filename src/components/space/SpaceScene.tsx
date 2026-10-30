@@ -7,7 +7,9 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 import type { SectionId } from "@/lib/profile";
 import type { Simulation } from "@/lib/simulation";import ChaseCamera from "./ChaseCamera";
+import CheerPark from "./CheerPark";
 import DescentCamera from "./DescentCamera";
+import Fleet from "./Fleet";
 import Nebula from "./Nebula";
 import { PlanetSystem } from "./Planet";
 import RealSky from "./RealSky";
@@ -123,6 +125,8 @@ export default function SpaceScene({
           onRelease={onRelease}
           onTakeover={onTakeover}
         />
+        <Fleet sim={sim} />
+        <CheerPark />
         <WarpStreaks sim={sim} />
         {dive ? <DescentCamera sim={sim} id={dive} /> : <ChaseCamera sim={sim} />}
         <AdaptiveDpr pixelated={false} />

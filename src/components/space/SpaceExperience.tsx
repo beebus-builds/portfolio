@@ -8,10 +8,12 @@ import { CAMERA_MODES, flightInput, type CameraMode } from "@/lib/flight";
 import { getPlanet, planets, profile, type SectionId } from "@/lib/profile";
 import { achievements, useAchievements } from "@/lib/achievements";
 import { createSimulation } from "@/lib/simulation";
+import { fleet } from "@/lib/fleetStore";
 import Arcade from "./Arcade";
 import AchievementsPanel from "./AchievementsPanel";
 import AchievementToast from "./AchievementToast";
 import CopilotChat from "./CopilotChat";
+import Comms from "./Comms";
 import TouchControls from "./TouchControls";
 import FlatExplorer from "./FlatExplorer";
 import Hud from "./Hud";
@@ -334,6 +336,32 @@ export default function SpaceExperience() {
     return () => window.removeEventListener("keydown", onKey);
   }, [report]);
 
+  // Comms: press X (or the HUD button) for the Cheer Park chat channel.
+  const [commsOpen, setCommsOpen] = useState(false);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() !== "x") return;
+      const target = e.target;
+      if (
+        target instanceof HTMLElement &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      setCommsOpen((v) => !v);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  // The fleet store tracks panel visibility to count unread transmissions.
+  useEffect(() => {
+    fleet.setPanelOpen(commsOpen);
+  }, [commsOpen]);
+
   // Guided tour: while idle, fly to the next uncharted world. Docking opens
   // each world for reading; closing it resumes the tour. Ends at contact.
   useEffect(() => {
@@ -403,7 +431,10 @@ export default function SpaceExperience() {
             onShowAchievements={() => setMedalsOpen(true)}
             onPlayArcade={() => setArcadeOpen(true)}
             onTextMode={enterTextMode}
+            commsOpen={commsOpen}
+            onToggleComms={() => setCommsOpen((v) => !v)}
           />
+          <Comms open={commsOpen} onClose={() => setCommsOpen(false)} />
           <AchievementToast toast={toast} />
           <TouchControls />
           <AnimatePresence>
