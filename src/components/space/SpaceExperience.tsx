@@ -177,6 +177,15 @@ export default function SpaceExperience() {
 
   const handleSelect = useCallback(
     (id: SectionId) => {
+      /* A new course cancels any descent already in progress. Without this,
+         picking a planet during the 1650 ms entry flash kept `sim.landing`
+         pointing at the OLD planet: the descent camera flew the ship to that
+         surface and its world opened, even though the HUD said we were
+         heading somewhere else entirely. */
+      if (sim.landing) {
+        sim.landing = null;
+        setEntering(null);
+      }
       sim.docked = null;
       sim.target = id;
       setTarget(id);
@@ -192,9 +201,14 @@ export default function SpaceExperience() {
     setTour(false);
   }, []);
 
-  /** Tour advance: same flight, but the tour keeps running. */
+  /** Tour advance: same flight, but the tour keeps running. Cancels a descent
+   *  in progress too — same stale-entry race as handleSelect. */
   const handleTourAdvance = useCallback(
     (id: SectionId) => {
+      if (sim.landing) {
+        sim.landing = null;
+        setEntering(null);
+      }
       sim.docked = null;
       sim.target = id;
       setTarget(id);

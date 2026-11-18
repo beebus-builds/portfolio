@@ -41,8 +41,9 @@ const GEAR_MAIN: [number, number, number] = [1.12, -0.6, -1.95];
 const GEAR_LENGTH = 0.62;
 const GEAR_STOW = 1.35;
 
-/** Paint batches. Real hulls are sprayed panel by panel, never one colour. */
-const HULL_PAINT = ["#cbd3de", "#b8c1ce", "#d9dee5", "#a9b3c1"];
+/** One colour, high-visibility International Orange — chosen specifically so
+ *  the hull reads against vacuum, where a real metal finish would go black. */
+const HULL_PAINT = ["#FF4D00"];
 
 type ShipProps = {
   sim: Simulation;
@@ -101,33 +102,32 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
         // most attitudes, which is authentic and useless as a hero asset — the
         // visitor's first question is "is that thing even there?". This keeps
         // the paint readable without washing out the key light's shading.
-        emissive: new THREE.Color("#5f7590"),
+        emissive: new THREE.Color("#FF4D00"),
         emissiveIntensity: 1.4,
       }),
-      /* Bare structure: chines, pylons, avionics, gear. Metals reflect the
-         sky panorama, which is mostly black — so the metalness stays mid and
-         the structure carries its own faint glow to stay readable aft. */
+      /* Bare structure: chines, pylons, avionics, gear. Same International Orange
+         as the skin so the whole craft is one unmissable colour in the dark. */
       structure: new THREE.MeshStandardMaterial({
-        color: "#aab4c4",
+        color: "#FF4D00",
         metalness: 0.5,
         roughness: 0.44,
         normalMap: hullMaps.normalMap,
         envMapIntensity: 1.8,
-        emissive: new THREE.Color("#39455a"),
+        emissive: new THREE.Color("#FF4D00"),
         emissiveIntensity: 0.85,
       }),
-      /* Primer-grey hardware and plumbing. */
+      /* Primer-grey hardware and plumbing — kept orange too for full visibility. */
       greeble: new THREE.MeshStandardMaterial({
-        color: "#5d6572",
+        color: "#FF4D00",
         metalness: 0.55,
         roughness: 0.56,
         envMapIntensity: 1.4,
-        emissive: new THREE.Color("#242c36"),
+        emissive: new THREE.Color("#FF4D00"),
         emissiveIntensity: 0.75,
       }),
       /* Intakes and ducts read almost black in real life; the contrast is what
          makes the flanks look like they have depth. */
-      intake: new THREE.MeshStandardMaterial({ color: "#14171d", metalness: 0.45, roughness: 0.62 }),
+      intake: new THREE.MeshStandardMaterial({ color: "#FF4D00", metalness: 0.45, roughness: 0.62 }),
       /* Engine metal. Full metalness turned the aft — the face the chase camera
          actually sees — into a black silhouette against the dark sky probe, so
          the nozzles run mid-metal with a faint heat glow baked in. */
@@ -137,7 +137,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
         roughness: 0.5,
         color: "#ffffff",
         envMapIntensity: 2,
-        emissive: new THREE.Color("#54381f"),
+        emissive: new THREE.Color("#FF4D00"),
         emissiveIntensity: 0.55,
       }),
       /* Radiators read as dark honeycomb panels. A faint cold sheen keeps them
@@ -146,7 +146,7 @@ export default function Ship({ sim, onDock, onRelease, onTakeover }: ShipProps) 
         map: radiatorMap,
         metalness: 0.45,
         roughness: 0.42,
-        color: "#cdd6e2",
+        color: "#FF4D00",
         envMapIntensity: 1.5,
         emissive: new THREE.Color("#26344a"),
         emissiveIntensity: 0.5,

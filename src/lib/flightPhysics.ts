@@ -129,7 +129,11 @@ export function stepShipFlight(
     pitch = 0;
     roll = 0;
     boosting = false;
-  } else if (sim.target) {
+  } else if (!sim.landing && sim.target) {
+    /* The `!sim.landing` matters: a course set during atmospheric entry used
+       to be steered AND could dock while the descent camera was still dragging
+       the ship into the previous planet's surface. New courses cancel the
+       descent (SpaceExperience), so this only trips on direct sim edits above. */
     const target = sim.target;
     const def = getPlanet(target);
     const position = sim.positions.get(target);

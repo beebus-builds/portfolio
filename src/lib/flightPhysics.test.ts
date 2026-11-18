@@ -163,6 +163,26 @@ describe("stepShipFlight", () => {
     expect(velocity.length()).toBeLessThan(1);
   });
 
+  it("does not steer or dock toward a target set mid-landing", () => {
+    // Regression: a course selected during atmospheric entry used to be
+    // steered AND docked while the descent camera still owned the hull, so
+    // the ship landed on the OLD planet while the HUD showed the new one.
+    const { sim, velocity } = setup(3);
+    sim.landing = ID;
+    sim.target = ID;
+    const onDock = vi.fn();
+
+    const step = stepShipFlight(sim, velocity, IDLE, DT, { onDock });
+
+    // Descent state wins: no steering output, no dock fired, target kept so
+    // the (already-cancelled) UI course survives to a later step.
+    expect(step.landing).toBe(true);
+    expect(step.thrust).toBe(0);
+    expect(step.yaw).toBe(0);
+    expect(sim.docked).toBeNull();
+    expect(onDock).not.toHaveBeenCalled();
+  });
+
   it("clamps the ship inside the universe and damps the overshoot", () => {
     const { sim, velocity } = setup();
     sim.shipPosition.set(790, 0, 0);
