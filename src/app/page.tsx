@@ -1,21 +1,29 @@
 import type { Metadata } from "next";
-import SpaceExperience from "@/components/space/SpaceExperience";
+import CitySim from "@/components/city/CitySim";
+import SitePage, { PageHero } from "@/components/site/SitePage";
 import { profile } from "@/lib/profile";
 
 export const metadata: Metadata = {
   title: `${profile.name} — ${profile.role} in ${profile.location}`,
   description:
-    "An interactive WebGL portfolio you fly. Steer the ship, dock with five worlds, " +
-    "and read each section as a planet: about, skills, projects, contact and resume.",
+    "Build a small city to explore the portfolio of Bibash Poudel, a creative developer working across Next.js, TypeScript, WordPress and the systems behind them.",
 };
 
-/**
- * The site is the flight. There is no landing page to scroll past — the canvas
- * is the interface, and every section lives on a planet you dock with.
- *
- * Deep links such as `/?planet=projects` fly straight to that world, which is
- * what the footer, nav and manifest shortcuts all point at.
- */
 export default function Home() {
-  return <SpaceExperience />;
+  return (
+    <SitePage
+      hero={
+        <PageHero
+          kicker="WELCOME, MAYOR"
+          title="Bibashville"
+          lede="This portfolio is a city you build. Lay down cottages, open workshops, grow a skyline — and unlock the districts that tell the story behind the work."
+          meta={["A playable portfolio", "Progress saved in your browser", "Eight districts to explore"]}
+        />
+      }
+    >
+      <div className="doc">
+        <CitySim />
+      </div>
+    </SitePage>
+  );
 }

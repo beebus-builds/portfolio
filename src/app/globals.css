@@ -12,11 +12,10 @@
  * keep the list below in document order when adding a domain.
  */
 @import "./styles/tokens.css";
-@import "./styles/flight.css";
-@import "./styles/world.css";
 @import "./styles/document.css";
 @import "./styles/pages.css";
+@import "./styles/city.css";
 @import "./styles/blog.css";
 @import "./styles/admin.css";
 @import "./styles/footer.css";
-@import "./styles/flight-overlay.css";
+@import "./styles/legacy-shared.css";

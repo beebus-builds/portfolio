@@ -116,7 +116,7 @@ export default async function PostPage({ params }: PostProps) {
             <Link className="btn" href="/blog">
               ← All posts
             </Link>
-            <Link className="btn btn--ghost" href="/?planet=projects">
+            <Link className="btn btn--ghost" href="/projects">
               The archive
             </Link>
           </div>

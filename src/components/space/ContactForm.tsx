@@ -12,7 +12,7 @@ export default function ContactForm() {
   const [messageLength, setMessageLength] = useState(0);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Reset the form and counter after a successful send so the pilot can send
+  // Reset the form and counter after a successful send so the visitor can send
   // another signal without stale values lingering. A failed send keeps the
   // message on screen — nobody should retype a lost transmission.
   useEffect(() => {
@@ -58,12 +58,12 @@ export default function ContactForm() {
         </small>
       </div>
       <button type="submit" disabled={sending}>
-        {sending ? "Transmitting…" : "Transmit signal"}
+        {sending ? "Sending…" : "Send message"}
         <span aria-hidden="true">↗</span>
       </button>
       {state.status === "sent" && (
         <p className="signal-form__status" data-tone="success" role="status">
-          Signal received. I&apos;ll reply to {profile.responseWindow.toLowerCase()}.
+          Message received. I&apos;ll reply to {profile.responseWindow.toLowerCase()}.
         </p>
       )}
       {state.status === "error" && (

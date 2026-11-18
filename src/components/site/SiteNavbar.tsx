@@ -6,9 +6,9 @@ import { usePathname, useSearchParams } from "next/navigation";
 import { profile } from "@/lib/profile";
 import ThemeToggle from "./ThemeToggle";
 
-/** Flight plus the classic pages, the logbook and the printed record. */
+/** The city plus the classic pages, the logbook and the printed record. */
 const LINKS = [
-  { href: "/", label: "Flight" },
+  { href: "/", label: "City" },
   { href: "/about", label: "About" },
   { href: "/skills", label: "Skills" },
   { href: "/projects", label: "Projects" },
@@ -19,7 +19,7 @@ const LINKS = [
   { href: "/blog", label: "Blog" },
 ];
 
-/** Sticky site navbar: the flight is the site, so the nav is the world index. */
+/** Sticky site navbar: the city is the site, so the nav is the district index. */
 export default function SiteNavbar() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -48,7 +48,7 @@ export default function SiteNavbar() {
           <span className="site-nav__mark" aria-hidden="true">
             BP
           </span>
-          {profile.callSign}
+          Bibashville
         </Link>
         <button
           type="button"
@@ -79,7 +79,7 @@ export default function SiteNavbar() {
           </nav>
           <ThemeToggle />
           <Link className="site-nav__cta" href="/contact">
-            Open a channel ↗
+            Get in touch ↗
           </Link>
         </div>
       </div>

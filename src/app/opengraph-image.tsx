@@ -1,9 +1,17 @@
 import { ImageResponse } from "next/og";
-import { planets, profile } from "@/lib/profile";
+import { profile } from "@/lib/profile";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 export const alt = `${profile.name} — ${profile.role}`;
+
+const DISTRICTS = [
+  { label: "ABOUT", color: "#4fb8ff" },
+  { label: "SKILLS", color: "#a78bfa" },
+  { label: "PROJECTS", color: "#ff9f45" },
+  { label: "CONTACT", color: "#34e5a1" },
+  { label: "RESUME", color: "#ff6b9d" },
+];
 
 export default function OpenGraphImage() {
   return new ImageResponse(
@@ -40,7 +48,7 @@ export default function OpenGraphImage() {
             BP
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <div style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "5px" }}>{profile.callSign}</div>
+            <div style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "5px" }}>Bibashville</div>
             <div style={{ fontSize: "17px", color: "#8ea2b4", fontFamily: "monospace" }}>
               {profile.role.toUpperCase()}
             </div>
@@ -52,12 +60,12 @@ export default function OpenGraphImage() {
             {profile.name}
           </div>
           <div style={{ maxWidth: "880px", fontSize: "26px", color: "#b9c9d6", lineHeight: 1.4 }}>
-            You are the ship. Five planets hold the about page, skills, projects, contact and resume.
+            A city-builder portfolio. Five districts hold the about page, skills, projects, contact and resume.
           </div>
           <div style={{ display: "flex", gap: "14px", marginTop: "10px" }}>
-            {planets.map((planet) => (
+            {DISTRICTS.map((district) => (
               <div
-                key={planet.id}
+                key={district.label}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -70,8 +78,8 @@ export default function OpenGraphImage() {
                   letterSpacing: "3px",
                 }}
               >
-                <div style={{ width: "10px", height: "10px", borderRadius: "5px", background: planet.glowColor }} />
-                {planet.label}
+                <div style={{ width: "10px", height: "10px", borderRadius: "5px", background: district.color }} />
+                {district.label}
               </div>
             ))}
           </div>

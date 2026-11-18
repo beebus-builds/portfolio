@@ -1,18 +1,18 @@
 # Devverse — Bibash Poudel's portfolio
 
-A space-age portfolio site. **The site *is* the flight**: landing on `/` puts you
-straight in the cockpit of an interactive 3D space flight where every section is a
-planet you dock with. There is no landing page and no briefing screen in front of
-it. The logbook at `/blog` and the admin inbox at `/admin` are the only other
-routes.
+An interactive city-builder portfolio. Landing on `/` drops you into a growing
+city — **Bibashville** — where each district holds a part of the story. It is a
+real landing page you can explore, backed by eight classic, text-first pages
+(`/about`, `/skills`, `/projects`, `/contact`, `/services`, `/experience`,
+`/resume` and `/stats`) plus the blog at `/blog` and an admin inbox at `/admin`.
 
-Built with Next.js 16 (App Router), React 19, three.js / react-three-fiber, Tailwind CSS 4,
-and a Neon Postgres database for the contact inbox and per-visitor flight progress.
+Built with Next.js 16 (App Router), React 19, Tailwind CSS 4, and a Neon Postgres
+database for the contact inbox and blog posts.
 
 ## Stack
 
 - **Framework:** Next.js 16, TypeScript, App Router
-- **3D:** three.js, @react-three/fiber, @react-three/drei
+- **Landing page:** an interactive city sim built with React and the DOM
 - **Styling:** Tailwind CSS 4
 - **DB:** Neon serverless Postgres (`@neondatabase/serverless`)
 - **Tests:** Vitest
@@ -51,37 +51,34 @@ Tables are created on first request — no manual migrations needed for local de
 ```
 src/
   app/
-    page.tsx           # the flight experience — this is the site
+    page.tsx           # the city-builder landing page
+    about/ skills/ projects/ contact/       # classic pages
+    services/ experience/ resume/ stats/    # classic pages
     loading.tsx        # route-transition loading screen
-    blog/              # logbook (DB-backed with a static fallback)
+    blog/              # the blog (DB-backed with a static fallback)
     admin/             # token-gated message inbox + post editor
-    api/               # contact, progress, stats, highscore, copilot, cover
-  components/site/     # shared chrome for /blog and /admin
-  components/space/    # the 3D experience (scene, ship, HUD, worlds, audio)
+    api/               # contact, stats, cover and other helpers
+  components/site/     # shared chrome and page blocks for the classic pages
+  components/city/     # the city simulation and its controls
   hooks/               # shared hooks
-  lib/                 # data + domain logic (profile, projects, simulation, db helpers)
+  lib/                 # data + domain logic (profile, projects, city sim, db helpers)
 ```
 
 ## Routes
 
 | Route         | What it is                                                    |
 | ------------- | ------------------------------------------------------------- |
-| `/`           | The flight, from the first frame. Deep links: `/?planet=about\|skills\|projects\|contact\|resume` |
-| `/about` `/skills` `/projects` | Classic pages with the same content, no WebGL required |
-| `/contact` `/services` `/experience` | Classic pages: signal form, offer, and work history |
-| `/resume` `/stats` | Printable record and live flight telemetry |
-| `/blog`       | The logbook — posts from Neon, static fallback                |
+| `/`           | The city-builder landing page — explore the districts from here |
+| `/about` `/skills` `/projects` `/contact` | Classic pages with the same content, no heavy 3D runtime required |
+| `/services` `/experience` `/resume` `/stats` | Offer, work history, printable record and live city telemetry |
+| `/blog`       | The blog — posts from Neon, static fallback                    |
 | `/blog/[slug]`| A single post                                                 |
 | `/admin`      | Bearer-token message inbox and post editor                    |
 
-`/` boots into flight immediately. The only branch is capability: without WebGL,
-or with `prefers-reduced-motion`, it falls back to the flat explorer carrying the
-same content. The **TEXT** button in the HUD switches to it at any time.
-
-Every classic page has ten sections and uses the same dark theme as the flight.
-Their content is defined once in `src/lib/sitePages.ts` and rendered through
-`StandardPage`; the navbar and footer link straight to them. The flight's deep
-links still work — they are an alternative way into the same material.
+The landing page is the front door; the classic pages are the quiet, text-first
+route into the same material. Every classic page has ten sections and shares the
+same dark theme. Their content is defined once in `src/lib/sitePages.ts` and
+rendered through `StandardPage`; the navbar and footer link straight to them.
 
 ## Notable bits
 
@@ -98,5 +95,7 @@ See [docs/CASE_STUDY.md](docs/CASE_STUDY.md) for the full architecture write-up.
   `Origin` against the `Host` (or `X-Forwarded-Host`) and rejects mismatches, so
   CSRF needs no extra code on top — see the Server Actions guide bundled with
   the installed `next` version.
-- Progress endpoint: httpOnly visitor cookie, deduplicated/validated payloads, DB outage fallback.
+- Stats counters are aggregated in Postgres, briefly cached at the API boundary,
+  and fall back to zeroes if the database is unavailable. They are anonymous by
+  design and describe activity, not identity.
 - All DB access goes through the shared pool + schema helper in `src/lib/db.ts`.

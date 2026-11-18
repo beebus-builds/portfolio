@@ -19,7 +19,7 @@ const mono = IBM_Plex_Mono({
 });
 
 const title = `${profile.name} — ${profile.role} in ${profile.location}`;
-const description = `Fly the ${profile.callSign} and dock with five planets: about, skills, projects, contact and resume. An interactive WebGL portfolio by ${profile.name}, a ${profile.role} based in ${profile.location}.`;
+const description = `Explore Bibashville, an interactive city-builder portfolio by ${profile.name}, a ${profile.role} based in ${profile.location}. Wander through districts for the about page, skills, projects, contact and resume.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -35,8 +35,8 @@ export const metadata: Metadata = {
     "full-stack developer",
     "Next.js",
     "TypeScript",
-    "Three.js",
-    "WebGL portfolio",
+    "city builder",
+    "interactive portfolio",
     "Nepal",
   ],
   openGraph: {

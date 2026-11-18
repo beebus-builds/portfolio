@@ -72,13 +72,13 @@ export const sitePages: Record<PageSlug, PageContent> = {
   about: {
     kicker: "01 / ORIGIN",
     title: "About",
-    lede: "A short, honest account of who is behind the callsign and what goes into the work.",
+    lede: "A short, honest account of who is behind the city and what goes into the work.",
     meta: [profile.name, profile.role, profile.location],
     sections: [
       {
         id: "origin",
         kicker: "Origin",
-        title: "Who is flying this ship",
+        title: "Who built this city",
         blocks: [{ kind: "prose", paragraphs: profile.bio }],
       },
       {
@@ -100,14 +100,14 @@ export const sitePages: Record<PageSlug, PageContent> = {
       },
       {
         id: "flight",
-        kicker: "The flight",
-        title: "Why the site is a spaceship",
+        kicker: "The city",
+        title: "Why the site is a city",
         blocks: [
           {
             kind: "prose",
             paragraphs: [
-              "The homepage is not a brochure — it is the interface. You start in the cockpit and fly to a planet for each section. It is a slightly ridiculous idea, but it makes the portfolio memorable and it forces every piece of content to earn its place.",
-              "These classic pages are the quiet alternative. Same person, same work, no WebGL required. Pick whichever suits the mood you are in.",
+              "The homepage is not a brochure — it is a place. You arrive in a growing city and wander between districts for each section. It is a slightly ridiculous idea, but it makes the portfolio memorable and it forces every piece of content to earn its place.",
+              "These classic pages are the quiet alternative. Same person, same work, no heavy 3D runtime required. Pick whichever suits the mood you are in.",
             ],
           },
         ],
@@ -192,7 +192,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
               { q: "Are you available for work?", a: `Yes — ${profile.status.toLowerCase()}. Send a note and I will get back to you ${profile.responseWindow.toLowerCase()}.` },
               { q: "Do you only work with React?", a: "No. React and Next.js are where I spend most time, but the same care applies to PHP, WordPress, plain TypeScript and the database underneath." },
               { q: "Can you work with our timezone?", a: `I am based at ${profile.timezone}. Overlap is handled by writing things down and keeping the handoffs clear.` },
-              { q: "Is the spaceship really necessary?", a: "No, and that is the point. There is a whole text-based site behind it for anyone who would rather just read." },
+              { q: "Is the city really necessary?", a: "No, and that is the point. There is a whole text-based site behind it for anyone who would rather just read." },
             ],
           },
         ],
@@ -204,15 +204,15 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["If any of this sounds useful, the channel is open. Tell me what you are trying to build and what is in the way."],
+            paragraphs: ["If any of this sounds useful, the inbox is open. Tell me what you are trying to build and what is in the way."],
           },
         ],
       },
     ],
     end: {
       title: "Take the next step",
-      body: "Read about how I work, or go straight to the signal form.",
-      primary: { href: "/contact", label: "Open a channel" },
+      body: "Read about how I work, or go straight to the contact form.",
+      primary: { href: "/contact", label: "Get in touch" },
       secondary: { href: "/skills", label: "See the skills" },
     },
   },
@@ -405,7 +405,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "prose",
             paragraphs: [
-              "The portfolio itself is a useful stress test: a WebGL scene, a database, and a chat channel all have to stay responsive on an ordinary laptop. That pressure produced the deferred scene loading, the pooled materials and the polling rhythm that keeps the fleet smooth without hammering the database.",
+              "The portfolio itself is a useful stress test: a responsive city sim, a database, and a chat layer all have to stay smooth on an ordinary laptop. That pressure produced the deferred scene loading, the pooled materials and the update rhythm that keeps the city responsive without hammering the database.",
             ],
           },
         ],
@@ -458,14 +458,14 @@ export const sitePages: Record<PageSlug, PageContent> = {
   },
 
   contact: {
-    kicker: "04 / SIGNAL",
+    kicker: "04 / CONTACT",
     title: "Contact",
-    lede: "The channel is open. Tell me what you are building and what is getting in the way.",
+    lede: "The inbox is open. Tell me what you are building and what is getting in the way.",
     meta: [profile.responseWindow, "No forms to mailing lists", profile.status],
     sections: [
       {
         id: "open-channel",
-        kicker: "Open channel",
+        kicker: "Open inbox",
         title: "Say hello",
         blocks: [
           {
@@ -478,8 +478,8 @@ export const sitePages: Record<PageSlug, PageContent> = {
       },
       {
         id: "signal-form",
-        kicker: "Signal form",
-        title: "Send a signal",
+        kicker: "Contact form",
+        title: "Send a message",
         blocks: [{ kind: "form" }],
       },
       {
@@ -592,7 +592,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
       },
     ],
     end: {
-      title: "The channel is open",
+      title: "The inbox is open",
       body: "No ceremony needed — a plain message is the best kind.",
       primary: { href: "mailto:poudelbibash044@gmail.com", label: "Email directly" },
       secondary: { href: "/resume", label: "Read the resume" },
@@ -699,11 +699,11 @@ export const sitePages: Record<PageSlug, PageContent> = {
       {
         id: "medals",
         kicker: "Extras",
-        title: "Flight achievements",
+        title: "City milestones",
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["Even the portfolio has a scoreboard. These medals are earned by exploring the flight — a small reminder that the site is meant to be played with."],
+            paragraphs: ["Even the portfolio has a scoreboard. These milestones are earned by exploring the city — a small reminder that the site is meant to be played with."],
           },
           { kind: "chips", items: achievements.map((achievement) => achievement.title) },
         ],
@@ -737,7 +737,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
   experience: {
     kicker: "06 / HISTORY",
     title: "Experience",
-    lede: "The path from a custom WordPress theme to full-stack systems and a portfolio you can fly.",
+    lede: "The path from a custom WordPress theme to full-stack systems and a city you can explore.",
     meta: ["2020 — Present", `${experience.length} chapters`, "Remote-friendly"],
     sections: [
       {
@@ -883,7 +883,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
   stats: {
     kicker: "07 / TELEMETRY",
     title: "Stats",
-    lede: "A live readout from the flight deck — visitors, worlds explored, medals and signals.",
+    lede: "Live city telemetry — visitors, districts explored, milestones and messages.",
     meta: ["Live from the database", "Refreshed on load", "Anonymous by design"],
     sections: [
       {
@@ -894,7 +894,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "prose",
             paragraphs: [
-              "These numbers come from the same database that powers the flight. They describe what visitors do on the site — launching, docking, exploring and opening a channel — not anything about who they are.",
+              "These numbers come from the same database that powers the city. They describe what visitors do on the site — arriving, exploring districts and sending a message — not anything about who they are.",
             ],
           },
         ],
@@ -902,7 +902,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
       {
         id: "visitors",
         kicker: "Visitors",
-        title: "People who launched",
+        title: "People who visited",
         blocks: [
           {
             kind: "prose",
@@ -912,12 +912,12 @@ export const sitePages: Record<PageSlug, PageContent> = {
       },
       {
         id: "worlds",
-        kicker: "Worlds",
-        title: "Planets visited",
+        kicker: "Districts",
+        title: "Districts explored",
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["Five worlds carry the main sections of the portfolio. Each docking event is counted once per visitor, so repeat visits do not inflate the total."],
+            paragraphs: ["Five districts carry the main sections of the portfolio. Each visit is counted once per visitor, so repeat visits do not inflate the total."],
           },
         ],
       },
@@ -929,7 +929,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           { kind: "chips", items: achievements.map((achievement) => achievement.title) },
           {
             kind: "prose",
-            paragraphs: ["The medals are small milestones baked into the flight: launch, first dock, visit every world, run the tour, hold boost, and open the contact channel."],
+            paragraphs: ["The medals are small milestones baked into the city: first arrival, explore a district, visit every district, run the tour, and open the contact form."],
           },
         ],
       },
@@ -940,18 +940,18 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["The live ordering appears in the flight HUD. It is a curiosity, not a competition — there is nothing to win except a slightly warmer feeling about exploration."],
+            paragraphs: ["The live ordering appears in the city dashboard. It is a curiosity, not a competition — there is nothing to win except a slightly warmer feeling about exploration."],
           },
         ],
       },
       {
         id: "signals",
-        kicker: "Signals",
+        kicker: "Messages",
         title: "Messages received",
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["Messages sent through the contact form are stored in the admin inbox. The count here is the total number of signals received, not their contents."],
+            paragraphs: ["Messages sent through the contact form are stored in the admin inbox. The count here is the total number of messages received, not their contents."],
           },
         ],
       },
@@ -964,7 +964,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
             kind: "bullets",
             items: [
               "One anonymous identifier per browser, stored in a first-party cookie.",
-              "Docking awards a visit once; the same world visited again is not double counted.",
+              "Exploring a district awards a visit once; the same district visited again is not double counted.",
               "Counters are aggregated in Postgres and cached briefly at the API boundary.",
               "If the database is unavailable, the page falls back to zeroes rather than inventing numbers.",
             ],
@@ -978,7 +978,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["The asteroid mini-game keeps its own score list. It is deliberately separate from the progress counters — flying badly in an arcade game should not change your portfolio statistics."],
+            paragraphs: ["The arcade mini-game keeps its own score list. It is deliberately separate from the progress counters — playing badly in an arcade game should not change your city statistics."],
           },
         ],
       },
@@ -990,9 +990,9 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "bullets",
             items: [
-              "No account, email or name is attached to flight progress.",
+              "No account, email or name is attached to city progress.",
               "No third-party analytics script runs on these pages.",
-              "Chat lines in Cheer Park are stored only to deliver the channel and are pruned as the log grows.",
+              "Chat lines in Cheer Park are stored only to deliver the chat and are pruned as the log grows.",
             ],
           },
         ],
@@ -1004,16 +1004,16 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["The numbers at the top of this page are fetched when it loads. Launch the flight, dock with a world or open a channel, then come back — the readout will have moved."],
+            paragraphs: ["The numbers at the top of this page are fetched when it loads. Explore a district or send a message, then come back — the readout will have moved."],
           },
         ],
       },
     ],
     end: {
       title: "Add to the numbers",
-      body: "Launch the flight and explore a few worlds. The counters update on the next page load.",
-      primary: { href: "/", label: "Launch the flight" },
-      secondary: { href: "/contact", label: "Open a channel" },
+      body: "Explore a few districts of the city. The counters update on the next page load.",
+      primary: { href: "/", label: "Explore the city" },
+      secondary: { href: "/contact", label: "Get in touch" },
     },
   },
 
@@ -1089,12 +1089,12 @@ export const sitePages: Record<PageSlug, PageContent> = {
       {
         id: "interactive",
         kicker: "Creative",
-        title: "3D and interactive work",
+        title: "Interactive systems",
         blocks: [
           {
             kind: "prose",
             paragraphs: [
-              "Three.js and React Three Fiber for experiences that need presence rather than another scrolling page. This portfolio is the largest example: a flight system with procedural planets, a ship, a chase camera and a live multiplayer sky.",
+              "Interactive systems for experiences that need presence rather than another scrolling page. This portfolio is the largest example: a responsive city sim with procedurally laid-out districts, an interactive camera and a live social layer — all built to stay smooth on an ordinary laptop.",
             ],
           },
         ],

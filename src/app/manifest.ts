@@ -1,11 +1,11 @@
 import type { MetadataRoute } from "next";
-import { planets, profile } from "@/lib/profile";
+import { profile } from "@/lib/profile";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${profile.name} — Interactive Space Portfolio`,
-    short_name: "BP-07",
-    description: "Fly a spaceship through five planets holding an about page, skills, projects, contact and resume.",
+    name: `${profile.name} — City Builder Portfolio`,
+    short_name: "Bibashville",
+    description: "Explore a growing city built by Bibash Poudel — a creative developer. Browse the about, skills, projects, contact and resume districts.",
     start_url: "/",
     display: "standalone",
     background_color: "#04050c",
@@ -18,10 +18,10 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml" },
       { src: "/icons/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "maskable" },
     ],
-    shortcuts: planets.map((planet) => ({
-      name: planet.label,
-      url: `/?planet=${planet.id}`,
-      description: planet.blurb,
-    })),
+    shortcuts: [
+      { name: "About", url: "/about", description: "Who builds here and why" },
+      { name: "Projects", url: "/projects", description: "The work, from first sketch to shipped" },
+      { name: "Contact", url: "/contact", description: "An open line — say hello" },
+    ],
   };
 }

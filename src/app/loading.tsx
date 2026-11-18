@@ -4,10 +4,10 @@ import { useEffect, useState } from "react";
 import { profile } from "@/lib/profile";
 
 const STEPS = [
-  "Linking navigation bus",
-  "Resolving route telemetry",
-  "Warming the render pipeline",
-  "Charting the local system",
+  "Surveying the plot",
+  "Laying the foundations",
+  "Raising the skyline",
+  "Wiring the utilities",
 ];
 
 /**
@@ -49,7 +49,7 @@ export default function Loading() {
       <div className="loadscreen__ring" aria-hidden="true">
         <span className="loadscreen__planet" />
       </div>
-      <p className="loadscreen__callsign">{profile.callSign} · loading</p>
+      <p className="loadscreen__callsign">Bibashville · loading</p>
       <p className="loadscreen__name">{profile.name}</p>
       <p className="loadscreen__status">
         <span className="sr-only">Loading: </span>

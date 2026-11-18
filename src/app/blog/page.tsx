@@ -6,7 +6,7 @@ import { profile } from "@/lib/profile";
 
 export const metadata: Metadata = {
   title: `Blog — ${profile.name}`,
-  description: `Notes from the cockpit: ${profile.name} writing about shipping real software, lessons from real launches.`,
+  description: `Notes from the workshop: ${profile.name} writing about shipping real software, lessons from real launches.`,
 };
 
 // Posts come from Neon now, so this page reads at request time. `revalidate`
@@ -72,10 +72,10 @@ export default async function BlogPage() {
             <p className="section-head__lede">Every post starts from a real repo in the archive.</p>
           </div>
           <div className="site-hero__actions" style={{ marginBottom: 0 }}>
-            <Link className="btn" href="/?planet=projects">
+            <Link className="btn" href="/projects">
               Open the archive →
             </Link>
-            <Link className="btn btn--ghost" href="/?planet=contact">
+            <Link className="btn btn--ghost" href="/contact">
               Ask about a post
             </Link>
           </div>

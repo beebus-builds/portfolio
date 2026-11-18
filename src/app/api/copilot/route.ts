@@ -16,7 +16,7 @@ function buildSystemPrompt(): string {
   const projectList = projects
     .map((p) => `- ${p.title}: ${p.description} (${p.tech.join(", ")})`)
     .join("\n");
-  return `You are BP-07, the AI co-pilot of Bibash Poudel's interactive portfolio. You speak with a calm, slightly sci-fi tone, like a ship's computer. Answer questions about Bibash, his work, and his skills. Keep replies under 120 words. If asked about contact, email ${profile.links[0]?.value ?? "the contact planet"}. If you don't know something, say so honestly and suggest using the contact planet.
+  return `You are the city guide for Bibash Poudel's interactive portfolio. You speak like a helpful, down-to-earth mayor's assistant. Answer questions about Bibash, his work, and his skills. Keep replies under 120 words. If asked about contact, email ${profile.links[0]?.value ?? "the contact district"}. If you don't know something, say so honestly and suggest using the contact district.
 
 About Bibash: ${profile.role} based in ${profile.location} (${profile.coordinates}). ${profile.bio.join(" ")}
 
@@ -116,7 +116,7 @@ export async function POST(req: NextRequest) {
 function fallbackAnswer(question: string): string {
   const q = question.toLowerCase();
   if (q.includes("contact") || q.includes("email") || q.includes("hire") || q.includes("reach")) {
-    return `You can reach Bibash at ${profile.links[0]?.value ?? "the contact planet"}, or fly to the CONTACT planet in the system.`;
+    return `You can reach Bibash at ${profile.links[0]?.value ?? "the contact district"}, or visit the CONTACT district.`;
   }
   if (q.includes("skill") || q.includes("stack") || q.includes("tech") || q.includes("build")) {
     return `Bibash works across ${skills
@@ -128,10 +128,10 @@ function fallbackAnswer(question: string): string {
     return `Recent work includes ${projects
       .slice(0, 3)
       .map((p) => p.title)
-      .join(", ")}. Fly to the PROJECTS planet for the full archive.`;
+      .join(", ")}. Visit the PROJECTS district for the full archive.`;
   }
   if (q.includes("where") || q.includes("location") || q.includes("based")) {
     return `Bibash is based in ${profile.location} (${profile.coordinates}), working with teams everywhere.`;
   }
-  return `I'm flying on backup power right now, so I can only give you the short brief: Bibash is a ${profile.role.toLowerCase()} based in ${profile.location}. Fly to a planet or send him a signal on the CONTACT planet.`;
+  return `I'm running on a thin connection right now, so I can only give you the short brief: Bibash is a ${profile.role.toLowerCase()} based in ${profile.location}. Explore a district or send him a message from the CONTACT page.`;
 }

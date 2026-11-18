@@ -30,8 +30,8 @@ export default async function StatsPage() {
   const live: Block = {
     kind: "metrics",
     items: [
-      { value: String(counters.visitors), label: "Visitors", note: "Anonymous flight logs" },
-      { value: String(counters.planetsVisited), label: "Worlds visited", note: "Unique docks per pilot" },
+      { value: String(counters.visitors), label: "Visitors", note: "Anonymous progress logs" },
+      { value: String(counters.planetsVisited), label: "Districts explored", note: "Pages visited per visitor" },
       { value: String(counters.achievementsUnlocked), label: "Medals unlocked", note: "Across all visitors" },
       { value: String(messages), label: "Signals received", note: "Messages in the inbox" },
     ],
@@ -45,7 +45,7 @@ export default async function StatsPage() {
             const medal = achievements.find((achievement) => achievement.id === entry.id);
             return `${medal?.title ?? entry.id} — ${entry.unlocks} unlocks`;
           })
-        : ["No medals have been unlocked yet. The flight is waiting."],
+        : ["No medals have been unlocked yet. The city is waiting."],
   };
 
   const sections: PageSection[] = sitePages.stats.sections.map((section, index) => {

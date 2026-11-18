@@ -13,9 +13,9 @@ export default function SiteFooter() {
             {profile.responseWindow.toLowerCase()}.
           </p>
           <p>
-            The flight is still the front door.{" "}
+            The city is always open.{" "}
             <Link className="text-link" href="/">
-              Fly the ship ↗
+              Explore Bibashville ↗
             </Link>
           </p>
         </div>
@@ -44,8 +44,7 @@ export default function SiteFooter() {
         </nav>
       </div>
       <p className="site-footer__base">
-        © 2026 {profile.name} · {profile.callSign} · {profile.coordinates} · Built with Next.js
-        and Three.js
+        © 2026 {profile.name} · {profile.coordinates} · Built with Next.js
       </p>
     </footer>
   );
