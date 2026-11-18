@@ -15,14 +15,24 @@ export const metadata: Metadata = {
 export const revalidate = 60;
 
 export default async function StatsPage() {
-  const [stats, messages] = await Promise.all([getProgressStats(), countMessages()]);
+  // CI (and a fresh clone) builds without a database. Show the honest zero
+  // state instead of failing the whole build — the API route does the same.
+  let counters = { visitors: 0, planetsVisited: 0, achievementsUnlocked: 0, topAchievements: [] as { id: string; unlocks: number }[] };
+  let messages = 0;
+  try {
+    const [stats, received] = await Promise.all([getProgressStats(), countMessages()]);
+    counters = stats;
+    messages = received;
+  } catch (error) {
+    console.warn("Stats page built without live counters:", error);
+  }
 
   const live: Block = {
     kind: "metrics",
     items: [
-      { value: String(stats.visitors), label: "Visitors", note: "Anonymous flight logs" },
-      { value: String(stats.planetsVisited), label: "Worlds visited", note: "Unique docks per pilot" },
-      { value: String(stats.achievementsUnlocked), label: "Medals unlocked", note: "Across all visitors" },
+      { value: String(counters.visitors), label: "Visitors", note: "Anonymous flight logs" },
+      { value: String(counters.planetsVisited), label: "Worlds visited", note: "Unique docks per pilot" },
+      { value: String(counters.achievementsUnlocked), label: "Medals unlocked", note: "Across all visitors" },
       { value: String(messages), label: "Signals received", note: "Messages in the inbox" },
     ],
   };
@@ -30,8 +40,8 @@ export default async function StatsPage() {
   const topAchievements: Block = {
     kind: "bullets",
     items:
-      stats.topAchievements.length > 0
-        ? stats.topAchievements.map((entry) => {
+      counters.topAchievements.length > 0
+        ? counters.topAchievements.map((entry) => {
             const medal = achievements.find((achievement) => achievement.id === entry.id);
             return `${medal?.title ?? entry.id} — ${entry.unlocks} unlocks`;
           })
