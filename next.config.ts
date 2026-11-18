@@ -1,28 +1,18 @@
 import type { NextConfig } from "next";
 
 /**
- * The flight experience is the site, so `/` is the entry point. The classic
- * section pages are gone; these permanent redirects keep old links, bookmarks
- * and search results working by sending each path to the flight world that now
- * carries its content.
+ * `/` remains the flight. Every section also has a classic page of its own, so
+ * only genuinely old addresses need a permanent redirect now.
  */
 const redirects = [
   // The flight used to live at its own address.
   { source: "/flight", destination: "/" },
-  // Section pages → the world that holds the same content.
-  { source: "/about", destination: "/?planet=about" },
-  { source: "/skills", destination: "/?planet=skills" },
-  { source: "/projects", destination: "/?planet=projects" },
-  { source: "/projects/:slug", destination: "/?planet=projects" },
-  { source: "/contact", destination: "/?planet=contact" },
-  { source: "/resume", destination: "/?planet=resume" },
-  { source: "/experience", destination: "/?planet=resume" },
-  { source: "/stats", destination: "/" },
-  // Legacy paths from before the current structure.
+  // Legacy paths that never got their own page.
+  { source: "/projects/:slug", destination: "/projects" },
+  { source: "/education", destination: "/experience" },
   { source: "/chess", destination: "/" },
   { source: "/commands", destination: "/" },
-  { source: "/education", destination: "/" },
-  { source: "/rss.xml", destination: "/" },
+  { source: "/rss.xml", destination: "/feed.xml" },
 ].map((rule) => ({ ...rule, permanent: true }));
 
 const nextConfig: NextConfig = {

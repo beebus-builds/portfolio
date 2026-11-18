@@ -67,6 +67,9 @@ src/
 | Route         | What it is                                                    |
 | ------------- | ------------------------------------------------------------- |
 | `/`           | The flight, from the first frame. Deep links: `/?planet=about\|skills\|projects\|contact\|resume` |
+| `/about` `/skills` `/projects` | Classic pages with the same content, no WebGL required |
+| `/contact` `/services` `/experience` | Classic pages: signal form, offer, and work history |
+| `/resume` `/stats` | Printable record and live flight telemetry |
 | `/blog`       | The logbook — posts from Neon, static fallback                |
 | `/blog/[slug]`| A single post                                                 |
 | `/admin`      | Bearer-token message inbox and post editor                    |
@@ -75,9 +78,10 @@ src/
 or with `prefers-reduced-motion`, it falls back to the flat explorer carrying the
 same content. The **TEXT** button in the HUD switches to it at any time.
 
-Old section URLs (`/about`, `/skills`, `/projects/...`, `/contact`, `/resume`,
-`/experience`, `/stats`, `/flight`) permanently redirect (308) to the flight
-world that now carries their content — see `next.config.ts`.
+Every classic page has ten sections and uses the same dark theme as the flight.
+Their content is defined once in `src/lib/sitePages.ts` and rendered through
+`StandardPage`; the navbar and footer link straight to them. The flight's deep
+links still work — they are an alternative way into the same material.
 
 ## Notable bits
 

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { planets, profile } from "@/lib/profile";
+import { profile } from "@/lib/profile";
 
-/** Shared footer: identity, section index, and off-site channels. */
+/** Shared footer: identity, the page index, and off-site channels. */
 export default function SiteFooter() {
   return (
     <footer className="site-footer">
@@ -13,7 +13,7 @@ export default function SiteFooter() {
             {profile.responseWindow.toLowerCase()}.
           </p>
           <p>
-            The whole portfolio is one flight.{" "}
+            The flight is still the front door.{" "}
             <Link className="text-link" href="/">
               Fly the ship ↗
             </Link>
@@ -21,11 +21,11 @@ export default function SiteFooter() {
         </div>
         <nav aria-label="Sections">
           <span className="site-footer__label">Index</span>
-          {planets.map((planet) => (
-            <Link key={planet.id} href={`/?planet=${planet.id}`}>
-              {planet.label} · {planet.title}
-            </Link>
-          ))}
+          <Link href="/about">About</Link>
+          <Link href="/skills">Skills</Link>
+          <Link href="/projects">Projects</Link>
+          <Link href="/services">Services</Link>
+          <Link href="/contact">Contact</Link>
         </nav>
         <nav aria-label="Elsewhere">
           <span className="site-footer__label">Elsewhere</span>
@@ -35,13 +35,12 @@ export default function SiteFooter() {
             </a>
           ))}
           <span className="site-footer__label" style={{ marginTop: "14px" }}>
-            Worlds
+            More
           </span>
-          {planets.map((planet) => (
-            <Link key={planet.id} href={`/?planet=${planet.id}`}>
-              {planet.label} · {planet.title}
-            </Link>
-          ))}
+          <Link href="/experience">Experience</Link>
+          <Link href="/resume">Resume</Link>
+          <Link href="/stats">Stats</Link>
+          <Link href="/blog">Logbook</Link>
         </nav>
       </div>
       <p className="site-footer__base">

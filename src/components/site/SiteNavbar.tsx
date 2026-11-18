@@ -3,14 +3,20 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { planets, profile } from "@/lib/profile";
+import { profile } from "@/lib/profile";
 import ThemeToggle from "./ThemeToggle";
 
-/** The flight is the site, so the nav is the world index plus the logbook. */
+/** Flight plus the classic pages, the logbook and the printed record. */
 const LINKS = [
-  ...planets.map((planet) => ({ href: `/?planet=${planet.id}`, label: planet.label })),
+  { href: "/", label: "Flight" },
+  { href: "/about", label: "About" },
+  { href: "/skills", label: "Skills" },
+  { href: "/projects", label: "Projects" },
+  { href: "/services", label: "Services" },
+  { href: "/experience", label: "Experience" },
+  { href: "/resume", label: "Resume" },
+  { href: "/stats", label: "Stats" },
   { href: "/blog", label: "Blog" },
-  { href: "/resume.pdf", label: "Resume" },
 ];
 
 /** Sticky site navbar: the flight is the site, so the nav is the world index. */
@@ -72,7 +78,7 @@ export default function SiteNavbar() {
             </ul>
           </nav>
           <ThemeToggle />
-          <Link className="site-nav__cta" href={`/?planet=contact`}>
+          <Link className="site-nav__cta" href="/contact">
             Open a channel ↗
           </Link>
         </div>
