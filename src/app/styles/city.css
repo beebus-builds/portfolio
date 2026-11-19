@@ -359,3 +359,103 @@
     transform: none;
   }
 }
+
+/* ---------- 3D viewport and narrative ---------- */
+
+.city__toolbar-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.city__scene {
+  position: relative;
+  width: 100%;
+  height: clamp(420px, 62vh, 720px);
+  border: 1px solid rgb(var(--glass) / 16%);
+  border-radius: 16px;
+  overflow: hidden;
+  background: #050810;
+}
+
+.city__scene canvas {
+  display: block;
+}
+
+.city__tag {
+  display: inline-block;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: rgb(5 8 16 / 85%);
+  color: #c4b5fd;
+  font: 600 10px/1 var(--font-code);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+.city__tag[data-visited] {
+  color: #8ff0c4;
+}
+
+.city__story {
+  padding: 14px 16px;
+  border: 1px solid rgb(var(--glass) / 14%);
+  border-radius: 12px;
+  background: rgb(127 227 255 / 5%);
+}
+
+.city__story-kicker {
+  margin: 0 0 6px;
+  color: #7fe3ff;
+  font: 500 9px/1 var(--font-code);
+  letter-spacing: 0.2em;
+}
+
+.city__story h3 {
+  margin: 0 0 9px;
+  font-size: 17px;
+}
+
+.city__story p {
+  margin: 0 0 9px;
+  color: rgb(var(--ink) / 80%);
+  font-size: 13px;
+  line-height: 1.72;
+}
+
+.city__story-nav {
+  display: flex;
+  gap: 5px;
+  margin: 12px 0 9px;
+}
+
+.city__story-nav button {
+  width: 26px;
+  height: 26px;
+  border: 1px solid rgb(var(--glass) / 18%);
+  border-radius: 7px;
+  background: rgb(var(--glass) / 4%);
+  color: rgb(var(--glass) / 55%);
+  font: 600 10px/1 var(--font-code);
+  cursor: pointer;
+}
+
+.city__story-nav button[data-unlocked] {
+  border-color: #7fe3ff;
+  color: #7fe3ff;
+}
+
+.city__story-nav button[aria-current="step"] {
+  background: #7fe3ff;
+  color: #04121c;
+}
+
+.city__story-nav button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.city__story > small {
+  color: rgb(var(--glass) / 48%);
+  font: 500 9px/1.2 var(--font-code);
+  letter-spacing: 0.08em;
+}

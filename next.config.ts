@@ -12,8 +12,11 @@ const redirects = [
 ].map((rule) => ({ ...rule, permanent: true }));
 
 const nextConfig: NextConfig = {
+  // three ships untranspiled ES modules; Next needs to process them for the
+  // 3D city scene the same way it did for the old flight.
+  transpilePackages: ["three"],
   // Dev-only convenience: set DEV_ORIGINS in .env (e.g. your LAN IP) to reach
-  // the dev server from other devices, like a phone running the touch controls.
+  // the dev server from other devices.
   allowedDevOrigins: process.env.DEV_ORIGINS ? process.env.DEV_ORIGINS.split(",").map((o) => o.trim()).filter(Boolean) : [],
   async redirects() {
     return redirects;

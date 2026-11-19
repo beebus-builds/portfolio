@@ -1,10 +1,11 @@
 # Devverse — Bibash Poudel's portfolio
 
-An interactive city-builder portfolio. Landing on `/` drops you into a growing
-city — **Bibashville** — where each district holds a part of the story. It is a
-real landing page you can explore, backed by eight classic, text-first pages
-(`/about`, `/skills`, `/projects`, `/contact`, `/services`, `/experience`,
-`/resume` and `/stats`) plus the blog at `/blog` and an admin inbox at `/admin`.
+An interactive 3D city-builder portfolio. Landing on `/` drops you into a
+growing city — **Bibashville** — rendered in WebGL, where each district holds a
+chapter of the story behind the work. A text view is available for devices
+without WebGL. The eight text-first pages (`/about`, `/skills`, `/projects`,
+`/contact`, `/services`, `/experience`, `/resume` and `/stats`) plus the blog at
+`/blog` and an admin inbox at `/admin` stay available without the 3D runtime.
 
 Built with Next.js 16 (App Router), React 19, Tailwind CSS 4, and a Neon Postgres
 database for the contact inbox and blog posts.
@@ -12,7 +13,7 @@ database for the contact inbox and blog posts.
 ## Stack
 
 - **Framework:** Next.js 16, TypeScript, App Router
-- **Landing page:** an interactive city sim built with React and the DOM
+- **Landing page:** a 3D city sim (Three.js + React Three Fiber) with a DOM text fallback
 - **Styling:** Tailwind CSS 4
 - **DB:** Neon serverless Postgres (`@neondatabase/serverless`)
 - **Tests:** Vitest

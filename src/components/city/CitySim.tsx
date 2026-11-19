@@ -1,7 +1,10 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { currentChapter, storyProgress, STORY } from "@/lib/cityStory";
 import {
   BUILDINGS,
   BUILDING_ORDER,
@@ -22,6 +25,8 @@ import {
   type DistrictId,
 } from "@/lib/citySim";
 
+const CityScene = dynamic(() => import("./CityScene"), { ssr: false });
+
 const SAVE_KEY = "bp07_city_v1";
 const TICK_MS = 1400;
 
@@ -41,6 +46,20 @@ export default function CitySim() {
   const [city, setCity] = useState<CityState>(loadCity);
   const [selected, setSelected] = useState<BuildingKey>("home");
   const [notice, setNotice] = useState<Notice | null>(null);
+  const [view, setView] = useState<"3d" | "flat">("3d");
+  const [chapterIndex, setChapterIndex] = useState<number | null>(null);
+
+  // WebGL is optional: visitors without it (or with a stale GPU) get the same
+  // city as an ordinary interactive map instead of a blank canvas.
+  useEffect(() => {
+    try {
+      const canvas = document.createElement("canvas");
+      const supported = !!(canvas.getContext("webgl2") || canvas.getContext("webgl"));
+      if (!supported) setView("flat");
+    } catch {
+      setView("flat");
+    }
+  }, []);
 
   // A lazy clock keeps the economy moving without draining a background tab.
   useEffect(() => {
@@ -61,6 +80,24 @@ export default function CitySim() {
 
   const level = levelFor(city.xp);
   const goals = useMemo(() => goalsFor(city), [city]);
+  const story = storyProgress(city);
+  const activeChapter = chapterIndex !== null && story.unlocked.includes(chapterIndex)
+    ? STORY[chapterIndex]!
+    : currentChapter(city);
+
+  const router = useRouter();
+  const visit = useCallback((id: DistrictId) => {
+    setCity((current) => markVisited(current, id));
+  }, []);
+
+  /** A 3D marker has no anchor element, so navigate explicitly. */
+  const openDistrict = useCallback(
+    (id: DistrictId) => {
+      visit(id);
+      router.push(`/${id}`);
+    },
+    [router, visit]
+  );
 
   const build = useCallback(
     (x: number, y: number) => {
@@ -82,10 +119,6 @@ export default function CitySim() {
     },
     [city, selected]
   );
-
-  const visit = (id: DistrictId) => {
-    setCity((current) => markVisited(current, id));
-  };
 
   const reset = () => {
     setCity(createInitialState());
@@ -117,9 +150,19 @@ export default function CitySim() {
             <b>{city.cycle}</b>
           </div>
         </div>
-        <button type="button" className="city__reset" onClick={reset}>
-          New city
-        </button>
+        <div className="city__toolbar-actions">
+          <button
+            type="button"
+            className="city__reset"
+            aria-label={`Switch to ${view === "3d" ? "text" : "3D"} view`}
+            onClick={() => setView((current) => (current === "3d" ? "flat" : "3d"))}
+          >
+            {view === "3d" ? "Text view" : "3D view"}
+          </button>
+          <button type="button" className="city__reset" onClick={reset}>
+            New city
+          </button>
+        </div>
       </div>
 
       {notice && (
@@ -130,10 +173,16 @@ export default function CitySim() {
 
       <div className="city__layout">
         <section className="city__mapwrap" aria-label="City map">
-          <div
-            className="city__map"
-            style={{ gridTemplateColumns: `repeat(${GRID_W}, 1fr)`, gridTemplateRows: `repeat(${GRID_H}, 1fr)` }}
-          >
+          {view === "3d" && (
+            <div className="city__scene">
+              <CityScene city={city} selected={selected} onPlot={build} onDistrict={openDistrict} />
+            </div>
+          )}
+          {view === "flat" && (
+            <div
+              className="city__map"
+              style={{ gridTemplateColumns: `repeat(${GRID_W}, 1fr)`, gridTemplateRows: `repeat(${GRID_H}, 1fr)` }}
+            >
             {city.tiles.map((tile, index) => {
               const x = index % GRID_W;
               const y = Math.floor(index / GRID_W);
@@ -192,10 +241,11 @@ export default function CitySim() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          )}
           <p className="city__hint">
             Pick a building, then click an empty plot. Each cycle collects revenue. Click a district marker to
-            leave the map and read that part of the portfolio.
+            leave the map and read that part of the portfolio. Drag to orbit the 3D city; scroll to zoom.
           </p>
         </section>
 
@@ -230,6 +280,31 @@ export default function CitySim() {
                 );
               })}
             </div>
+          </section>
+
+          <section className="city__story" aria-label="The story so far">
+            <h2>The story so far</h2>
+            <p className="city__story-kicker">{activeChapter.kicker}</p>
+            <h3>{activeChapter.title}</h3>
+            {activeChapter.paragraphs.map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
+            <div className="city__story-nav">
+              {STORY.map((chapter, index) => (
+                <button
+                  key={chapter.id}
+                  type="button"
+                  aria-label={`Read chapter ${index + 1}: ${chapter.title}`}
+                  aria-current={index === chapterIndex || (chapterIndex === null && index === story.active) ? "step" : undefined}
+                  data-unlocked={story.unlocked.includes(index) || undefined}
+                  disabled={!story.unlocked.includes(index)}
+                  onClick={() => setChapterIndex(index)}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+            <small>Unlocked by: {activeChapter.unlockedBy}</small>
           </section>
 
           <section aria-label="Goals">
