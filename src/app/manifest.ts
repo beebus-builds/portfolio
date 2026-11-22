@@ -3,9 +3,9 @@ import { profile } from "@/lib/profile";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: `${profile.name} — City Builder Portfolio`,
-    short_name: "Bibashville",
-    description: "Explore a growing city built by Bibash Poudel — a creative developer. Browse the about, skills, projects, contact and resume districts.",
+    name: `${profile.name} — 3D Studio Portfolio`,
+    short_name: "Bibash Poudel",
+    description: "Step into the 3D studio of Bibash Poudel — a creative developer. Browse the about, skills, projects, contact and resume pages.",
     start_url: "/",
     display: "standalone",
     background_color: "#04050c",

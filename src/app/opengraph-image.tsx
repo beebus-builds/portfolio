@@ -48,7 +48,7 @@ export default function OpenGraphImage() {
             BP
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-            <div style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "5px" }}>Bibashville</div>
+            <div style={{ fontSize: "26px", fontWeight: 700, letterSpacing: "5px" }}>THE STUDIO</div>
             <div style={{ fontSize: "17px", color: "#8ea2b4", fontFamily: "monospace" }}>
               {profile.role.toUpperCase()}
             </div>
@@ -60,7 +60,7 @@ export default function OpenGraphImage() {
             {profile.name}
           </div>
           <div style={{ maxWidth: "880px", fontSize: "26px", color: "#b9c9d6", lineHeight: 1.4 }}>
-            A city-builder portfolio. Five districts hold the about page, skills, projects, contact and resume.
+            A 3D studio portfolio. Type a command or let me show you the about page, skills, projects, contact and resume.
           </div>
           <div style={{ display: "flex", gap: "14px", marginTop: "10px" }}>
             {DISTRICTS.map((district) => (

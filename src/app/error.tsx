@@ -2,14 +2,13 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import SiteNavbar from "@/components/site/SiteNavbar";
-import SiteFooter from "@/components/site/SiteFooter";
+import SitePage, { PageHero } from "@/components/site/SitePage";
 import { profile } from "@/lib/profile";
 
 /**
- * React error boundary for the city sim. If the simulation or any of its
+ * React error boundary for the site. If the studio scene or any of its
  * panels throw during client render, the visitor lands here instead of a blank
- * or crashed screen. "Rebuild the city" re-mounts the scene; the link walks
+ * or crashed screen. "Try again" re-mounts the scene; the link walks
  * back to the document view.
  */
 export default function Error({
@@ -22,28 +21,21 @@ export default function Error({
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    setMessage(error.message ?? "The city sim encountered an error.");
+    setMessage(error.message ?? "The studio hit an unexpected error.");
   }, [error.message]);
 
   return (
-    <div className="site" role="region" aria-label="Error recovery">
-      <SiteNavbar />
-      <main className="site__main" id="document">
-        <header className="page-hero">
-          <p className="section-head__kicker">City systems · {profile.name}</p>
-          <h1>Grid failure</h1>
-          <p className="page-hero__lede">{message}</p>
-        </header>
-        <section className="site-section">
+    <SitePage hero={<PageHero kicker={`Studio systems · ${profile.name}`} title="Something broke" lede={message} />}>
+        <section className="page-end">
+          <div className="site-hero__actions">
           <button type="button" className="btn" onClick={() => reset()}>
-            Rebuild the city
+            Try again
           </button>
-          <Link className="text-link" href="/">
-            Return to the city ↗
-          </Link>
+            <Link className="btn btn--ghost" href="/">
+              ← Back to the desk
+            </Link>
+          </div>
         </section>
-      </main>
-      <SiteFooter />
-    </div>
+    </SitePage>
   );
 }

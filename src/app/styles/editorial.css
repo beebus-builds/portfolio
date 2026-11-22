@@ -1,0 +1,449 @@
+/*
+ * Editorial page layout (concept B): a reading column on the left and the
+ * room as a framed, sticky 3D window on the right. Tokens only.
+ */
+
+/* ---------- page frame ---------- */
+
+.page {
+  min-height: 100dvh;
+  background:
+    radial-gradient(70% 50% at 85% 0%, var(--accent-soft), transparent 60%),
+    radial-gradient(60% 40% at 0% 10%, rgb(67 56 202 / 10%), transparent 60%),
+    var(--bg);
+}
+
+.page__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-7);
+  width: min(var(--page-max), 100%);
+  margin: 0 auto;
+  padding: 0 var(--gutter) var(--space-9);
+}
+
+.page__main {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .page[data-stage] .page__grid {
+    grid-template-columns: minmax(0, 1.25fr) minmax(22rem, 1fr);
+    gap: var(--space-8);
+  }
+}
+
+/* ---------- top bar ---------- */
+
+.page-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--space-5);
+  height: var(--bar-height);
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.page-bar__home {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.page-bar__home:hover {
+  color: var(--accent);
+}
+
+.page-bar__home span {
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.page-bar__home:hover span {
+  transform: translateX(-3px);
+}
+
+.page-bar nav {
+  min-width: 0;
+  margin-left: auto;
+}
+
+.page-bar__rooms {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.page-bar__rooms a {
+  display: block;
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background var(--duration-fast) var(--ease-out);
+}
+
+.page-bar__rooms a:hover {
+  color: var(--text);
+}
+
+.page-bar__rooms a[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* ---------- hero ---------- */
+
+.page-hero {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-8) 0 var(--space-7);
+  border-bottom: 1px solid var(--border);
+}
+
+.page-hero h1 {
+  font-family: var(--font-serif);
+  font-size: var(--text-3xl);
+  font-weight: var(--weight-regular);
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+.page-hero__lede {
+  max-width: 36ch;
+  color: var(--text-muted);
+  font-size: var(--text-lg);
+  line-height: var(--leading-snug);
+}
+
+.page-hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-5);
+  margin-top: var(--space-2);
+  color: var(--text-faint);
+  font: var(--weight-medium) var(--text-xs) / 1.2 var(--font-mono);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  list-style: none;
+}
+
+.page-hero__meta li + li::before {
+  content: "·";
+  margin-right: var(--space-5);
+  color: var(--accent);
+}
+
+/* ---------- sections ---------- */
+
+.doc {
+  display: grid;
+}
+
+.doc-section {
+  padding: var(--space-8) 0;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: calc(var(--bar-height) + var(--space-4));
+}
+
+.doc-section__body {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Sections rise into place once; JS sets data-reveal so no-JS pages show all. */
+html[data-reveal] .doc-section {
+  transition:
+    opacity var(--duration-slow) var(--ease-out),
+    transform var(--duration-slow) var(--ease-out);
+}
+
+html[data-reveal] .doc-section:not(.is-in) {
+  opacity: 0;
+  transform: translateY(var(--space-5));
+}
+
+.is-pinged {
+  animation: ping 1.4s var(--ease-out);
+}
+
+@keyframes ping {
+  0%,
+  50% {
+    box-shadow: inset 3px 0 0 var(--accent);
+    background: linear-gradient(90deg, var(--accent-soft), transparent 60%);
+  }
+}
+
+/* ---------- page end + next room ---------- */
+
+.page-end {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-8) 0;
+}
+
+.page-end h2 {
+  font-family: var(--font-serif);
+  font-size: var(--text-2xl);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-tight);
+}
+
+.page-end p {
+  max-width: var(--measure);
+  color: var(--text-muted);
+}
+
+.site-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}
+
+.next-room {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+  gap: var(--space-4);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--border-strong);
+}
+
+.next-room a {
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  color: var(--text-muted);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    transform var(--duration-base) var(--ease-out);
+}
+
+.next-room a:hover {
+  border-color: var(--accent-line);
+  transform: translateY(-3px);
+}
+
+.next-room__title {
+  color: var(--text);
+  font: var(--weight-regular) var(--text-2xl) / 1 var(--font-serif);
+  letter-spacing: var(--tracking-tight);
+}
+
+.next-room__blurb {
+  font-size: var(--text-sm);
+}
+
+@media (max-width: 640px) {
+  .next-room {
+    grid-template-columns: 1fr;
+  }
+
+  .next-room__prev {
+    order: 1;
+  }
+}
+
+/* ---------- the 3D window ---------- */
+
+.page__stage {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+.stage {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(80% 70% at 50% 35%, var(--accent-soft), transparent 70%),
+    var(--surface-sunken);
+  box-shadow: var(--shadow-3), inset 0 0 0 1px rgb(255 255 255 / 3%);
+}
+
+.stage__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.stage__caption {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-6) var(--space-5) var(--space-4);
+  background: linear-gradient(transparent, color-mix(in srgb, var(--surface-sunken) 92%, transparent));
+  pointer-events: none;
+}
+
+.stage__now {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  color: var(--text);
+  font: var(--weight-regular) var(--text-lg) / 1.15 var(--font-serif);
+}
+
+.stage__index {
+  color: var(--accent);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono);
+}
+
+.stage__hint {
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+}
+
+.toc ol {
+  display: grid;
+  margin-top: var(--space-3);
+  list-style: none;
+}
+
+.toc a {
+  display: flex;
+  gap: var(--space-3);
+  padding: var(--space-2) 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.toc a:hover {
+  color: var(--text);
+}
+
+.toc a[aria-current] {
+  color: var(--accent);
+}
+
+.toc__index {
+  flex: none;
+  width: 2ch;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.9;
+}
+
+.toc a[aria-current] .toc__index {
+  color: var(--accent);
+}
+
+/* Small screens: the window becomes the page's cover image. */
+@media (max-width: 1023px) {
+  .page__stage {
+    order: -1;
+    margin-top: var(--space-5);
+  }
+
+  .stage {
+    height: min(56vh, 30rem);
+  }
+
+  .toc {
+    display: none;
+  }
+}
+
+/* Large screens: the window and contents stay pinned while you read. */
+@media (min-width: 1024px) {
+  .page__stage {
+    position: sticky;
+    top: calc(var(--bar-height) + var(--space-5));
+    grid-template-rows: minmax(0, 1.6fr) minmax(0, 1fr);
+    height: calc(100dvh - var(--bar-height) - var(--space-5) * 2);
+    margin-top: var(--space-5);
+  }
+
+  .stage {
+    min-height: 0;
+  }
+
+  .toc {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+  }
+}
+
+/* ---------- page-to-page motion (concept A) ---------- */
+
+/* The homepage room and each page's window share one name, so the browser
+   morphs the full-screen room into the framed window and back. */
+::view-transition-group(.stage-morph) {
+  animation-duration: 700ms;
+  animation-timing-function: var(--ease-in-out);
+}
+
+::view-transition-old(.stage-morph),
+::view-transition-new(.stage-morph) {
+  height: 100%;
+  object-fit: cover;
+}
+
+::view-transition-old(root) {
+  animation: 220ms var(--ease-out) both page-out;
+}
+
+::view-transition-new(root) {
+  animation: 420ms var(--ease-out) 120ms both page-in;
+}
+
+@keyframes page-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes page-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-reveal] .doc-section:not(.is-in) {
+    opacity: 1;
+    transform: none;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* The recruiter fast path stands slightly apart from the rooms. */
+.page-bar__rooms .page-bar__summary {
+  margin-right: var(--space-2);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+}

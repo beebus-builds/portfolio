@@ -6,7 +6,7 @@ export const profile = {
   timezone: "UTC+05:45",
   status: "Open to work",
   intro:
-    "This portfolio is a small city you build. Lay down cottages, open workshops and grow a skyline — each district unlocks a part of the story: who I am, what I can build, the work I shipped and how to reach me.",
+    "This portfolio is my desk. Pull up a chair while I code, sip coffee and change the music — then type a command or let me show you around: who I am, what I can build, the work I shipped and how to reach me.",
   bio: [
     "I build digital systems that feel a little more human — interfaces with intent, backends that hold their weight, and the unglamorous plumbing that keeps both honest.",
     "I started in WordPress and PHP, learned to love the browser while chasing a single 300ms interaction, and never stopped caring about the last 10% of craft. Today I work across Next.js, TypeScript, and design systems.",

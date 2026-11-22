@@ -1,7 +1,10 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
+import { NextRoom } from "./PageBar";
 import SitePage, { PageHero } from "./SitePage";
 import { Block, Section } from "./PageBlocks";
+import PageWorld from "@/components/world/PageWorld";
+import { worldFor } from "@/lib/pageWorlds";
 import { sitePages, type PageContent, type PageSlug } from "@/lib/sitePages";
 
 /** Internal addresses use the router; external ones and email links do not. */
@@ -24,11 +27,15 @@ export default function StandardPage({
   slug: PageSlug;
   content?: PageContent;
 }) {
+  const world = worldFor(slug);
   return (
     <SitePage
+      current={slug}
+      accent={world?.accent}
       hero={
         <PageHero kicker={content.kicker} title={content.title} lede={content.lede} meta={content.meta} />
       }
+      aside={world && <PageWorld world={world} sections={content.sections.map((s) => ({ id: s.id, title: s.title }))} />}
     >
       <div className="doc">
         {content.sections.map((section, index) => (
@@ -58,6 +65,7 @@ export default function StandardPage({
           </div>
         </div>
       </div>
+      <NextRoom current={slug} />
     </SitePage>
   );
 }

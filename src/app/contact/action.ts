@@ -2,6 +2,7 @@
 
 import { saveMessage } from "@/lib/contact";
 import { validateContact } from "@/lib/contactValidation";
+import { notifyNewMessage } from "@/lib/notify";
 
 export type ContactFormState = {
   status: "idle" | "sending" | "sent" | "error";
@@ -34,6 +35,8 @@ export async function sendMessage(
   try {
     const { name, email, message } = result.value;
     await saveMessage(name, email, message);
+    // Best-effort heads-up email; the message is already safely stored.
+    await notifyNewMessage({ name, email, message });
     return { status: "sent", error: null };
   } catch {
     return { status: "error", error: "The channel could not receive that message." };

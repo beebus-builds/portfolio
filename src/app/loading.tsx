@@ -49,7 +49,7 @@ export default function Loading() {
       <div className="loadscreen__ring" aria-hidden="true">
         <span className="loadscreen__planet" />
       </div>
-      <p className="loadscreen__callsign">Bibashville · loading</p>
+      <p className="loadscreen__callsign">Studio · loading</p>
       <p className="loadscreen__name">{profile.name}</p>
       <p className="loadscreen__status">
         <span className="sr-only">Loading: </span>

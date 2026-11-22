@@ -6,16 +6,15 @@
 @source not "../**/*.test.tsx";
 
 /*
- * Global stylesheet, split by domain. The parts live in ./styles/ and are
- * imported in the original cascade order — same-property conflicts resolve
- * exactly as they did in the monolith, so rule order is load-bearing here:
- * keep the list below in document order when adding a domain.
+ * Global stylesheet, in layers from general to specific:
+ *   tokens      raw values (colour, type, space, motion), the only place they live
+ *   base        reset, element defaults, utilities
+ *   components  the shared vocabulary: buttons, cards, timeline, form…
+ *   editorial   the page layout: bar, hero, sections, 3D window, transitions
+ *   studio      the homepage room
  */
 @import "./styles/tokens.css";
-@import "./styles/document.css";
-@import "./styles/pages.css";
-@import "./styles/city.css";
-@import "./styles/blog.css";
-@import "./styles/admin.css";
-@import "./styles/footer.css";
-@import "./styles/legacy-shared.css";
+@import "./styles/base.css";
+@import "./styles/components.css";
+@import "./styles/editorial.css";
+@import "./styles/studio.css";

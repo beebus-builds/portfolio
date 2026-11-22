@@ -1,6 +1,5 @@
-import type { ReactNode } from "react";
-import SiteFooter from "./SiteFooter";
-import SiteNavbar from "./SiteNavbar";
+import type { CSSProperties, ReactNode } from "react";
+import PageBar from "./PageBar";
 
 export function PageHero({
   kicker,
@@ -29,16 +28,37 @@ export function PageHero({
   );
 }
 
-/** Classic page shell: navbar, document main, footer. */
-export default function SitePage({ hero, children }: { hero: ReactNode; children: ReactNode }) {
+/**
+ * Page shell: the quiet top bar, the reading column and, when a page has
+ * one, its 3D window. `accent` themes every component on the page.
+ */
+export default function SitePage({
+  hero,
+  children,
+  aside,
+  accent,
+  current,
+}: {
+  hero: ReactNode;
+  children: ReactNode;
+  aside?: ReactNode;
+  accent?: string;
+  current?: string;
+}) {
   return (
-    <div className="site">
-      <SiteNavbar />
-      <main className="site__main" id="document">
-        {hero}
-        {children}
-      </main>
-      <SiteFooter />
+    <div
+      className="page"
+      data-stage={aside ? "" : undefined}
+      style={accent ? ({ "--accent": accent } as CSSProperties) : undefined}
+    >
+      <PageBar current={current} />
+      <div className="page__grid">
+        <main className="page__main" id="document">
+          {hero}
+          {children}
+        </main>
+        {aside}
+      </div>
     </div>
   );
 }

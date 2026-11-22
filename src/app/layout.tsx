@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { Fraunces, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import { profile } from "@/lib/profile";
 import { personJsonLd } from "@/lib/jsonld";
 import { siteUrl } from "@/lib/site";
@@ -14,12 +14,19 @@ const display = Space_Grotesk({
 const mono = IBM_Plex_Mono({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-mono",
+  variable: "--font-code-face",
+  display: "swap",
+});
+
+// Editorial serif for page titles and section headings.
+const editorial = Fraunces({
+  subsets: ["latin"],
+  variable: "--font-editorial",
   display: "swap",
 });
 
 const title = `${profile.name} — ${profile.role} in ${profile.location}`;
-const description = `Explore Bibashville, an interactive city-builder portfolio by ${profile.name}, a ${profile.role} based in ${profile.location}. Wander through districts for the about page, skills, projects, contact and resume.`;
+const description = `Step into the 3D studio of ${profile.name}, a ${profile.role} based in ${profile.location}. Explore the room to see the work, the skills and the story behind it.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -35,7 +42,7 @@ export const metadata: Metadata = {
     "full-stack developer",
     "Next.js",
     "TypeScript",
-    "city builder",
+    "3D portfolio",
     "interactive portfolio",
     "Nepal",
   ],
@@ -76,11 +83,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={`${display.variable} ${mono.variable}`}>
+    <html lang="en" className={`${display.variable} ${mono.variable} ${editorial.variable}`} suppressHydrationWarning>
+      <body>
         <script
           dangerouslySetInnerHTML={{
-            __html: 'document.documentElement.setAttribute("data-js","on");try{var t=localStorage.getItem("theme");if(t)document.documentElement.setAttribute("data-theme",t)}catch(e){}',
+            __html: 'document.documentElement.setAttribute("data-js","on")',
           }}
         />
         <a className="skip-link" href="#document">

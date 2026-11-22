@@ -72,13 +72,13 @@ export const sitePages: Record<PageSlug, PageContent> = {
   about: {
     kicker: "01 / ORIGIN",
     title: "About",
-    lede: "A short, honest account of who is behind the city and what goes into the work.",
+    lede: "A short, honest account of who is behind the desk and what goes into the work.",
     meta: [profile.name, profile.role, profile.location],
     sections: [
       {
         id: "origin",
         kicker: "Origin",
-        title: "Who built this city",
+        title: "Who sits at this desk",
         blocks: [{ kind: "prose", paragraphs: profile.bio }],
       },
       {
@@ -100,13 +100,13 @@ export const sitePages: Record<PageSlug, PageContent> = {
       },
       {
         id: "flight",
-        kicker: "The city",
-        title: "Why the site is a city",
+        kicker: "The studio",
+        title: "Why the homepage is a studio",
         blocks: [
           {
             kind: "prose",
             paragraphs: [
-              "The homepage is not a brochure — it is a place. You arrive in a growing city and wander between districts for each section. It is a slightly ridiculous idea, but it makes the portfolio memorable and it forces every piece of content to earn its place.",
+              "The homepage is not a brochure — it is a place. You drop into my studio while I am coding, the music changes as the day goes on, and you get around by typing a command or taking me up on an offer to show you something. It is a slightly ridiculous idea, but it makes the portfolio memorable and it forces every piece of content to earn its place.",
               "These classic pages are the quiet alternative. Same person, same work, no heavy 3D runtime required. Pick whichever suits the mood you are in.",
             ],
           },
@@ -192,7 +192,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
               { q: "Are you available for work?", a: `Yes — ${profile.status.toLowerCase()}. Send a note and I will get back to you ${profile.responseWindow.toLowerCase()}.` },
               { q: "Do you only work with React?", a: "No. React and Next.js are where I spend most time, but the same care applies to PHP, WordPress, plain TypeScript and the database underneath." },
               { q: "Can you work with our timezone?", a: `I am based at ${profile.timezone}. Overlap is handled by writing things down and keeping the handoffs clear.` },
-              { q: "Is the city really necessary?", a: "No, and that is the point. There is a whole text-based site behind it for anyone who would rather just read." },
+              { q: "Is the 3D studio really necessary?", a: "No, and that is the point. There is a whole text-based site behind it for anyone who would rather just read." },
             ],
           },
         ],
@@ -405,7 +405,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "prose",
             paragraphs: [
-              "The portfolio itself is a useful stress test: a responsive city sim, a database, and a chat layer all have to stay smooth on an ordinary laptop. That pressure produced the deferred scene loading, the pooled materials and the update rhythm that keeps the city responsive without hammering the database.",
+              "The portfolio itself is a useful stress test: a real-time 3D studio, a synthesised soundtrack, a database and a chat layer all have to stay smooth on an ordinary laptop. That pressure produced the deferred scene loading, the procedural audio scheduler and the update rhythm that keeps the scene responsive without hammering the database.",
             ],
           },
         ],
@@ -699,11 +699,11 @@ export const sitePages: Record<PageSlug, PageContent> = {
       {
         id: "medals",
         kicker: "Extras",
-        title: "City milestones",
+        title: "Site milestones",
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["Even the portfolio has a scoreboard. These milestones are earned by exploring the city — a small reminder that the site is meant to be played with."],
+            paragraphs: ["Even the portfolio has a scoreboard. These milestones are earned by exploring the site — a small reminder that the site is meant to be played with."],
           },
           { kind: "chips", items: achievements.map((achievement) => achievement.title) },
         ],
@@ -737,7 +737,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
   experience: {
     kicker: "06 / HISTORY",
     title: "Experience",
-    lede: "The path from a custom WordPress theme to full-stack systems and a city you can explore.",
+    lede: "The path from a custom WordPress theme to full-stack systems and a studio you can step into.",
     meta: ["2020 — Present", `${experience.length} chapters`, "Remote-friendly"],
     sections: [
       {
@@ -883,7 +883,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
   stats: {
     kicker: "07 / TELEMETRY",
     title: "Stats",
-    lede: "Live city telemetry — visitors, districts explored, milestones and messages.",
+    lede: "Live site telemetry — visitors, pages explored, milestones and messages.",
     meta: ["Live from the database", "Refreshed on load", "Anonymous by design"],
     sections: [
       {
@@ -894,7 +894,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "prose",
             paragraphs: [
-              "These numbers come from the same database that powers the city. They describe what visitors do on the site — arriving, exploring districts and sending a message — not anything about who they are.",
+              "These numbers come from the same database that powers the site. They describe what visitors do on the site — arriving, exploring pages and sending a message — not anything about who they are.",
             ],
           },
         ],
@@ -929,7 +929,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           { kind: "chips", items: achievements.map((achievement) => achievement.title) },
           {
             kind: "prose",
-            paragraphs: ["The medals are small milestones baked into the city: first arrival, explore a district, visit every district, run the tour, and open the contact form."],
+            paragraphs: ["The medals are small milestones baked into the site: first arrival, explore a page, visit every page, run the tour, and open the contact form."],
           },
         ],
       },
@@ -940,7 +940,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["The live ordering appears in the city dashboard. It is a curiosity, not a competition — there is nothing to win except a slightly warmer feeling about exploration."],
+            paragraphs: ["The live ordering appears in the site dashboard. It is a curiosity, not a competition — there is nothing to win except a slightly warmer feeling about exploration."],
           },
         ],
       },
@@ -978,7 +978,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
         blocks: [
           {
             kind: "prose",
-            paragraphs: ["The arcade mini-game keeps its own score list. It is deliberately separate from the progress counters — playing badly in an arcade game should not change your city statistics."],
+            paragraphs: ["The arcade mini-game keeps its own score list. It is deliberately separate from the progress counters — playing badly in an arcade game should not change your site statistics."],
           },
         ],
       },
@@ -990,7 +990,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "bullets",
             items: [
-              "No account, email or name is attached to city progress.",
+              "No account, email or name is attached to site progress.",
               "No third-party analytics script runs on these pages.",
               "Chat lines in Cheer Park are stored only to deliver the chat and are pruned as the log grows.",
             ],
@@ -1011,8 +1011,8 @@ export const sitePages: Record<PageSlug, PageContent> = {
     ],
     end: {
       title: "Add to the numbers",
-      body: "Explore a few districts of the city. The counters update on the next page load.",
-      primary: { href: "/", label: "Explore the city" },
+      body: "Explore a few pages from the studio. The counters update on the next page load.",
+      primary: { href: "/", label: "Back to the studio" },
       secondary: { href: "/contact", label: "Get in touch" },
     },
   },
@@ -1094,7 +1094,7 @@ export const sitePages: Record<PageSlug, PageContent> = {
           {
             kind: "prose",
             paragraphs: [
-              "Interactive systems for experiences that need presence rather than another scrolling page. This portfolio is the largest example: a responsive city sim with procedurally laid-out districts, an interactive camera and a live social layer — all built to stay smooth on an ordinary laptop.",
+              "Interactive systems for experiences that need presence rather than another scrolling page. This portfolio is the largest example: a hand-built 3D studio with an animated character, procedural lo-fi music and a keyboard-driven terminal — all built to stay smooth on an ordinary laptop.",
             ],
           },
         ],

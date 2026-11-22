@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import ContactForm from "@/components/space/ContactForm";
+import { anchorId } from "@/lib/anchors";
 
 /**
  * The content primitives used by the standard pages. Every block is a server
@@ -35,7 +36,7 @@ function Cards({ items }: { items: Card[] }) {
   return (
     <ul className="site-grid" style={{ listStyle: "none", padding: 0 }}>
       {items.map((item) => (
-        <li className="site-card" key={item.title}>
+        <li className="site-card" key={item.title} id={anchorId(item.title)}>
           {item.kicker && <p className="site-card__kicker">{item.kicker}</p>}
           {item.href ? (
             <h3>
@@ -115,7 +116,7 @@ export function Block({ block }: { block: Block }) {
       return (
         <ol className="site-timeline" style={{ listStyle: "none", padding: 0 }}>
           {block.items.map((item) => (
-            <li key={item.when + item.title}>
+            <li key={item.when + item.title} id={anchorId(item.title)}>
               <span className="site-timeline__when">{item.when}</span>
               <h3>{item.title}</h3>
               <p>{item.body}</p>
