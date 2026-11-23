@@ -72,6 +72,8 @@ export default function Studio() {
   const [hired, setHired] = useState(false);
   /** The room whose blurb is showing under the dock. */
   const [hint, setHint] = useState<string | null>(null);
+  /** Temporary hint shown when clicking desk gadgets (weather, clock). */
+  const [tempHint, setTempHint] = useState<string | null>(null);
   const player = useRef<LofiPlayer | null>(null);
 
   const [coffee, setCoffee] = useState(1);
@@ -269,9 +271,25 @@ export default function Studio() {
       } else if (target.kind === "character") {
         // Get up and stretch, or sit back down.
         roamToken.current = roamToken.current + 1;
+      } else if (target.kind === "weather") {
+        if (weather) {
+          const words = { clear: "clear skies", cloudy: "cloudy", fog: "foggy", rain: "raining", storm: "stormy", snow: "snowing" }[weather.kind];
+          const temp = weather.tempC !== null ? `${weather.tempC}°C · ` : "";
+          setTempHint(`Sindhuli right now: ${temp}${words}`);
+        } else {
+          setTempHint("No weather data for Sindhuli yet.");
+        }
+        later(() => setTempHint(null), 4000);
+      } else if (target.kind === "clock") {
+        if (clock) {
+          setTempHint(`Sindhuli time: ${String(clock.hours).padStart(2, "0")}:${String(clock.minutes).padStart(2, "0")}`);
+        } else {
+          setTempHint("Reading Sindhuli's clock…");
+        }
+        later(() => setTempHint(null), 4000);
       }
     },
-    [drinkCoffee, later, leaving, reduced, router]
+    [drinkCoffee, later, leaving, reduced, router, clock, weather]
   );
 
   // Numbers jump straight to a room: 1 About … 7 Contact.
@@ -415,7 +433,7 @@ export default function Studio() {
           </li>
         </ol>
         <p className="studio__dock-hint" aria-live="polite">
-          {hint ?? "Pick a room — or press 1–7"}
+          {tempHint ?? hint ?? "Pick a room — or press 1–7"}
         </p>
       </nav>
 

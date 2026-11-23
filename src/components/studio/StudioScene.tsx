@@ -28,7 +28,9 @@ export type SceneTarget =
   | { kind: "coffee" }
   | { kind: "music" }
   | { kind: "media" }
-  | { kind: "character" };
+  | { kind: "character" }
+  | { kind: "weather" }
+  | { kind: "clock" };
 
 export type StudioSceneProps = {
   phase: DayPhase;
@@ -949,6 +951,11 @@ function Character({
       const drink = sipT > 0.34 && sipT < 0.66 ? Math.sin(((sipT - 0.34) / 0.32) * Math.PI) : 0;
       headPitch = -0.02 + drink * 0.32;
       headYaw = 0.1;
+    } else if (seated && !asking && !sipping && !sleeping) {
+      // Idle at the desk: right hand taps on the surface now and then.
+      const tap = Math.abs(Math.sin(t * 3)) > 0.95 ? 0.015 : 0;
+      scratch.targetR.set(0.16, 0.82 + tap * 0.5, 0.13 + tap);
+      scratch.targetL.set(-0.11, 0.8, 0.13);
     }
 
     hands.l.lerp(scratch.targetL, k);
@@ -1517,8 +1524,12 @@ function Room({
       </RoundedBox>
 
       {/* live desk gadgets: Sindhuli's clock and the weather outside */}
-      <DeskClock position={[0.6, DESK_TOP + 0.002, 0.31]} rotationY={-0.22} />
-      <WeatherStation position={[0.8, DESK_TOP + 0.002, 0.14]} rotationY={-0.42} weather={weather ?? null} />
+      <Hotspot spot="clock" label="Sindhuli time ↗" labelAt={[0.6, 1.0, 0.31]} onSelect={() => onTarget({ kind: "clock" })}>
+        <DeskClock position={[0.6, DESK_TOP + 0.002, 0.31]} rotationY={-0.22} />
+      </Hotspot>
+      <Hotspot spot="weather" label="Sindhuli weather ↗" labelAt={[0.8, 1.0, 0.14]} onSelect={() => onTarget({ kind: "weather" })}>
+        <WeatherStation position={[0.8, DESK_TOP + 0.002, 0.14]} rotationY={-0.42} weather={weather ?? null} />
+      </Hotspot>
 
       {/* desk lamp → services */}
       <Hotspot
@@ -2069,7 +2080,9 @@ export default function StudioScene(props: StudioSceneProps) {
           onDoor={onDoor}
           onSeated={onSeated}
         />
-        <WallClock />
+        <Hotspot spot="clock" label="Wall clock ↗" labelAt={[0.12, 2.5, -0.7]} onSelect={() => onTarget({ kind: "clock" })}>
+          <WallClock />
+        </Hotspot>
         {sleeping && !asking && (
           <Html position={[0.12, 1.38, 0.42]} center style={{ pointerEvents: "none" }} zIndexRange={[5, 0]}>
             <span className="studio__zzz" aria-hidden="true">
