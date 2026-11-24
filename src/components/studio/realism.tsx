@@ -453,3 +453,315 @@ export function WeatherStation({ position, rotationY, weather }: { position: [nu
     </group>
   );
 }
+
+/* ---------- peripherals ---------- */
+
+/** High-end mechanical keyboard with RGB backlight */
+export function KeyboardPeripheral({ position }: { position: [number, number, number] }) {
+  const keys = useMemo(() => {
+    const rows = [17, 17, 16, 16, 11]; // 60% keyboard style
+    const keys: { x: number; z: number; w: number; h: number }[] = [];
+    rows.forEach((count, row) => {
+      const width = count * (KEY + KEY_GAP);
+      for (let i = 0; i < count; i++) {
+        keys.push({ 
+          x: -width / 2 + i * (KEY + KEY_GAP) + KEY / 2 + (row % 2) * 0.002, 
+          z: -0.055 + row * (KEY + KEY_GAP), 
+          w: KEY,
+          h: row === 4 ? KEY * 1.2 : KEY // Space bar wider
+        });
+      }
+    });
+    return keys;
+  }, []);
+
+  const caps = useRef<THREE.InstancedMesh>(null);
+  const rgbColors = useMemo(() => {
+    // Create gradient RGB pattern
+    return keys.map((_, i) => {
+      const hue = (i % 360) / 360;
+      return `hsl(${hue * 360}, 80%, 60%)`;
+    });
+  }, [keys]);
+
+  useEffect(() => {
+    const mesh = caps.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4();
+    keys.forEach((key, i) => {
+      m.compose(
+        new THREE.Vector3(key.x, 0, key.z), 
+        new THREE.Quaternion(), 
+        new THREE.Vector3(key.w / KEY, 1, key.h / KEY)
+      );
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, new THREE.Color(rgbColors[i]!));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    mesh.instanceColor!.needsUpdate = true;
+  }, [keys, rgbColors]);
+
+  return (
+    <group position={position}>
+      {/* Keyboard base */}
+      <RoundedBox args={[0.48, 0.014, 0.18]} radius={0.007} smoothness={3} position={[0, 0.007, 0]}>
+        <meshStandardMaterial color="#2a2e38" metalness={0.5} roughness={0.4} />
+      </RoundedBox>
+      {/* Keycaps with RGB backlight */}
+      <instancedMesh ref={caps} args={[undefined, undefined, keys.length]} position={[0, 0.015, 0]}>
+        <boxGeometry args={[KEY, 0.008, KEY]} />
+        <meshStandardMaterial 
+          color="#3a3f4b" 
+          metalness={0.2} 
+          roughness={0.6}
+          emissive="#2a5258"
+          emissiveIntensity={0.3}
+        />
+      </instancedMesh>
+      {/* RGB backlight glow */}
+      <mesh position={[0, 0.012, 0]} rotation={[-Math.PI / 2, 0, 0]}>
+        <planeGeometry args={[0.44, 0.15]} />
+        <meshBasicMaterial 
+          color="#2a5258" 
+          transparent 
+          opacity={0.25}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      {/* Keyboard stand/legs */}
+      {[-0.18, 0.18].map((x) => (
+        <group key={x}>
+          <mesh position={[x, 0.007, 0.095]}>
+            <cylinderGeometry args={[0.006, 0.006, 0.012, 12]} />
+            <meshStandardMaterial color="#2a2e38" metalness={0.5} roughness={0.4} />
+          </mesh>
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/** High-end gaming mouse */
+export function Mouse({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Mouse body */}
+      <mesh castShadow receiveShadow>
+        <RoundedBox args={[0.065, 0.028, 0.11]} radius={0.012} smoothness={4} />
+        <meshStandardMaterial 
+          color="#181c24" 
+          metalness={0.6} 
+          roughness={0.25}
+        />
+      </mesh>
+      {/* Mouse buttons */}
+      <mesh position={[-0.018, 0.018, 0]} castShadow receiveShadow>
+        <RoundedBox args={[0.032, 0.012, 0.035]} radius={0.006} />
+        <meshStandardMaterial color="#0f141b" metalness={0.5} roughness={0.3} />
+      </mesh>
+      {/* Scroll wheel */}
+      <mesh position={[0.02, 0.022, 0]} rotation={[Math.PI / 2, 0, 0]}>
+        <cylinderGeometry args={[0.018, 0.018, 0.006, 16]} />
+        <meshStandardMaterial 
+          color="#2d3a4f" 
+          metalness={0.4} 
+          roughness={0.35}
+        />
+      </mesh>
+      {/* Side buttons */}
+      {[-0.018, 0.018].map((z, i) => (
+        <mesh key={i} position={[z > 0 ? 0.032 : -0.032, 0.014, -0.032]} castShadow receiveShadow>
+          <RoundedBox args={[0.008, 0.006, 0.014]} radius={0.003} />
+          <meshStandardMaterial color="#181c24" metalness={0.5} roughness={0.35} />
+        </mesh>
+      ))}
+      {/* Mouse RGB light (left side) */}
+      <mesh position={[-0.038, 0.018, -0.02]}>
+        <cylinderGeometry args={[0.015, 0.015, 0.008, 12]} />
+        <meshBasicMaterial 
+          color="#ff0055"
+          transparent
+          opacity={0.7}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+    </group>
+  );
+}
+
+/** Mid-tower PC case with RGB */
+export function PCTower({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Main case */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[0.22, 0.36, 0.42]} />
+        <meshStandardMaterial 
+          color="#14181f" 
+          metalness={0.5} 
+          roughness={0.2}
+          emissive="#0a101a"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+      {/* Transparent side panel (tempered glass effect) */}
+      <mesh position={[0.115, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.002, 0.36, 0.42]} />
+        <meshStandardMaterial 
+          color="#e0e8f0" 
+          metalness={0.1} 
+          roughness={0.05}
+          transparent
+          opacity={0.35}
+          emissive="#7fe3ff"
+          emissiveIntensity={0.2}
+        />
+      </mesh>
+      {/* Top cover */}
+      <mesh position={[0, 0.19, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.22, 0.02, 0.42]} />
+        <meshStandardMaterial color="#14181f" metalness={0.5} roughness={0.25} />
+      </mesh>
+      {/* RGB strip at top */}
+      <mesh position={[0, 0.205, 0]}>
+        <boxGeometry args={[0.22, 0.008, 0.018]} />
+        <meshBasicMaterial 
+          color="#00ffff"
+          transparent
+          opacity={0.7}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      {/* PSU shroud at bottom */}
+      <mesh position={[-0.123, -0.17, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.08, 0.34, 0.14]} />
+        <meshStandardMaterial color="#14181f" metalness={0.5} roughness={0.2} />
+      </mesh>
+      {/* USB ports on front */}
+      <mesh position={[0, -0.165, 0.205]} castShadow receiveShadow>
+        <boxGeometry args={[0.08, 0.015, 0.025]} />
+        <meshStandardMaterial color="#0f141b" metalness={0.6} roughness={0.25} />
+      </mesh>
+      {/* GPU shroud */}
+      <mesh position={[0.115, -0.1, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.02, 0.28, 0.12]} />
+        <meshStandardMaterial color="#14181f" metalness={0.6} roughness={0.2} />
+      </mesh>
+      {/* GPU RGB light */}
+      <mesh position={[0.12, -0.12, 0.06]}>
+        <boxGeometry args={[0.04, 0.02, 0.008]} />
+        <meshBasicMaterial 
+          color="#ff0066"
+          transparent
+          opacity={0.7}
+          blending={THREE.AdditiveBlending}
+        />
+      </mesh>
+      {/* Ventilation grills */}
+      <mesh position={[-0.12, 0.12, 0.2]}>
+        <boxGeometry args={[0.08, 0.008, 0.02]} />
+        <meshStandardMaterial color="#0f141b" metalness={0.6} roughness={0.3} />
+      </mesh>
+      <mesh position={[-0.12, -0.2, 0.2]}>
+        <boxGeometry args={[0.08, 0.008, 0.02]} />
+        <meshStandardMaterial color="#0f141b" metalness={0.6} roughness={0.3} />
+      </mesh>
+    </group>
+  );
+}
+
+/** External GPU enclosure */
+export function GPU({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Main case */}
+      <mesh castShadow receiveShadow>
+        <boxGeometry args={[0.16, 0.28, 0.32]} />
+        <meshStandardMaterial 
+          color="#14181f" 
+          metalness={0.6} 
+          roughness={0.18}
+          emissive="#0a101a"
+          emissiveIntensity={0.1}
+        />
+      </mesh>
+      {/* Transparent side panel */}
+      <mesh position={[0.08, 0, 0]} castShadow receiveShadow>
+        <boxGeometry args={[0.002, 0.28, 0.32]} />
+        <meshStandardMaterial 
+          color="#e0e8f0" 
+          metalness={0.1} 
+          roughness={0.05}
+          transparent
+          opacity={0.3}
+          emissive="#00ffff"
+          emissiveIntensity={0.15}
+        />
+      </mesh>
+      {/* LED logo at top front */}
+      <mesh position={[0, 0.12, 0.15]}>
+        <boxGeometry args={[0.12, 0.02, 0.01]} />
+        <meshBasicMaterial 
+          color="#00ffff"
+          transparent
+          opacity={0.8}
+        />
+      </mesh>
+      {/* Connection port */}
+      <mesh position={[0, -0.12, -0.15]} castShadow receiveShadow>
+        <boxGeometry args={[0.06, 0.012, 0.012]} />
+        <meshStandardMaterial color="#181c24" metalness={0.6} roughness={0.25} />
+      </mesh>
+      {/* Ventilation */}
+      {[-0.06, 0.06].map((z) => (
+        <mesh key={z} position={[z, 0, 0.12]}>
+          <boxGeometry args={[0.006, 0.2, 0.012]} />
+          <meshStandardMaterial color="#0f141b" metalness={0.6} roughness={0.35} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+/** Studio monitor arms (dual monitor setup) */
+export function MonitorArms({ position }: { position: [number, number, number] }) {
+  return (
+    <group position={position}>
+      {/* Base plate */}
+      <mesh castShadow receiveShadow>
+        <RoundedBox args={[0.22, 0.012, 0.22]} radius={0.006} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Left arm pole */}
+      <mesh position={[-0.078, 0.108, 0]}>
+        <cylinderGeometry args={[0.006, 0.006, 0.216, 12]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Right arm pole */}
+      <mesh position={[0.078, 0.108, 0]}>
+        <cylinderGeometry args={[0.006, 0.006, 0.216, 12]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Left articulated arm */}
+      <mesh position={[-0.078, 0.29, 0]} rotation={[0.3, 0, 0]}>
+        <cylinderGeometry args={[0.008, 0.008, 0.08, 12]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Right articulated arm */}
+      <mesh position={[0.078, 0.29, 0]} rotation={[0.3, 0, 0]}>
+        <cylinderGeometry args={[0.008, 0.008, 0.08, 12]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Left monitor pivot */}
+      <mesh position={[-0.078, 0.35, 0.07]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.012, 16]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+      {/* Right monitor pivot */}
+      <mesh position={[0.078, 0.35, -0.07]}>
+        <cylinderGeometry args={[0.012, 0.012, 0.012, 16]} />
+        <meshStandardMaterial color="#1a1e25" metalness={0.7} roughness={0.25} />
+      </mesh>
+    </group>
+  );
+}

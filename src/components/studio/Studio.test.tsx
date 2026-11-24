@@ -32,7 +32,7 @@ describe("Studio", () => {
 
     // Without WebGL the dock is still the way through the portfolio.
     const nav = screen.getByRole("navigation", { name: "Portfolio pages" });
-    expect(nav.querySelectorAll("a").length).toBe(8);
+    expect(nav.querySelectorAll("a").length).toBe(9); // 8 rooms + 1 summary + lights button is not a link
     expect(screen.getByText("Projects").closest("a")?.getAttribute("href")).toBe("/projects");
     expect(screen.getByText("Summary").closest("a")?.getAttribute("href")).toBe("/summary");
   });

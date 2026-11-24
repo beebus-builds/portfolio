@@ -1,0 +1,553 @@
+/*
+ * Photobooth — the desktop studio camera wall and the phone that becomes it.
+ * Same tokens as the rest of the site; only the layout is new.
+ */
+
+.photobooth,
+.phonecam {
+  --accent: #ffb27a;
+  --accent-line: color-mix(in srgb, var(--accent) 45%, transparent);
+  --accent-soft: color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+/* ---------- desktop: the page ---------- */
+
+.photobooth {
+  display: grid;
+  gap: var(--space-6);
+  min-height: 100dvh;
+  padding: var(--space-5) var(--gutter) var(--space-8);
+  background:
+    radial-gradient(60rem 30rem at 80% -10%, var(--accent-soft), transparent 60%),
+    var(--bg);
+}
+
+.photobooth__bar {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.photobooth__home {
+  color: var(--text-muted);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.photobooth__home:hover {
+  color: var(--accent);
+}
+
+.photobooth__title {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-lg);
+  letter-spacing: var(--tracking-tight);
+}
+
+.photobooth__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(16rem, 1fr);
+  gap: var(--space-6);
+  align-items: start;
+}
+
+/* ---------- desktop: the live view ---------- */
+
+.photobooth__stage {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.photobooth__screen {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(30rem 20rem at 50% 0%, var(--surface-raised), var(--surface-sunken));
+  box-shadow: var(--shadow-2);
+}
+
+.photobooth__feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+/* The frame dims when the phone has gone quiet for a while. */
+.photobooth__feed:not([data-fresh]) {
+  opacity: 0.55;
+}
+
+.photobooth__placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+  padding: var(--space-5);
+}
+
+.photobooth__flash,
+.phonecam__flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  animation: photobooth-flash 180ms ease-out forwards;
+  pointer-events: none;
+}
+
+@keyframes photobooth-flash {
+  from {
+    opacity: 0.9;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.photobooth__live-dot {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: var(--radius-pill);
+  background: var(--text-faint);
+  box-shadow: 0 0 0 0 var(--accent-soft);
+}
+
+.photobooth__live-dot[data-on] {
+  background: var(--success);
+  animation: photobooth-pulse 1.8s ease-out infinite;
+}
+
+@keyframes photobooth-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 60%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+  100% {
+    box-shadow: 0 0 0 0 transparent;
+  }
+}
+
+.photobooth__controls {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.photobooth__shutter {
+  min-width: 14rem;
+}
+
+.photobooth__shutter:disabled {
+  opacity: 0.5;
+  transform: none;
+  cursor: not-allowed;
+}
+
+/* ---------- desktop: the join panel ---------- */
+
+.photobooth__join {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.photobooth__qr {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  width: min(100%, 15rem);
+  margin-inline: auto;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: #fff;
+}
+
+.photobooth__qr img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.photobooth__steps {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: step;
+}
+
+.photobooth__steps li {
+  counter-increment: step;
+  display: flex;
+  gap: var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.photobooth__steps li::before {
+  content: counter(step);
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  font: var(--weight-semibold) var(--text-xs) / 1 var(--font-mono);
+  color: var(--text-faint);
+}
+
+.photobooth__steps li[data-done] {
+  color: var(--text);
+}
+
+.photobooth__steps li[data-done]::before {
+  content: "✓";
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.photobooth__code {
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border);
+}
+
+.photobooth__code > span {
+  color: var(--text-faint);
+  font: var(--weight-medium) var(--text-xs) / 1 var(--font-mono);
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+}
+
+.photobooth__code strong {
+  font: var(--weight-semibold) var(--text-xl) / 1.1 var(--font-mono);
+  letter-spacing: 0.18em;
+  word-break: break-all;
+}
+
+.photobooth__code-link {
+  justify-self: start;
+  margin-top: var(--space-1);
+  color: var(--accent);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono);
+}
+
+.photobooth__error {
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+/* ---------- desktop: the strip of shots ---------- */
+
+.photobooth__strip {
+  display: grid;
+  gap: var(--space-4);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--border);
+}
+
+.photobooth__strip-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.photobooth__strip-head h2 {
+  margin: 0;
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+}
+
+.photobooth__count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  margin-left: var(--space-2);
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--on-accent);
+  font: var(--weight-semibold) var(--text-xs) / 1 var(--font-mono);
+  vertical-align: middle;
+}
+
+.photobooth__download-all {
+  color: var(--accent);
+  font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono);
+  border-bottom: 1px solid var(--accent-line);
+}
+
+.photobooth__strip-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.photobooth__photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.photobooth__photo {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  aspect-ratio: 4 / 3;
+  animation: photobooth-pop var(--duration-base) var(--ease-out);
+}
+
+@keyframes photobooth-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.photobooth__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.photobooth__photo-download {
+  position: absolute;
+  right: var(--space-2);
+  bottom: var(--space-2);
+  display: grid;
+  place-items: center;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: var(--radius-pill);
+  background: rgb(4 5 12 / 70%);
+  color: #fff;
+  font-size: var(--text-sm);
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.photobooth__photo:hover .photobooth__photo-download,
+.photobooth__photo:focus-within .photobooth__photo-download {
+  opacity: 1;
+}
+
+/* ---------- shared spinner ---------- */
+
+.photobooth__spinner,
+.phonecam__spinner {
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: photobooth-spin 0.8s linear infinite;
+}
+
+@keyframes photobooth-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ---------- phone: full-screen camera ---------- */
+
+.phonecam {
+  display: grid;
+  grid-template-rows: 1fr auto auto;
+  gap: var(--space-4);
+  min-height: 100dvh;
+  padding: var(--space-4);
+  background: var(--surface-sunken);
+}
+
+.phonecam__stage {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: #000;
+  min-height: 40dvh;
+}
+
+.phonecam__video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transform: scaleX(-1);
+}
+
+.phonecam__stage[data-facing="environment"] .phonecam__video {
+  transform: none;
+}
+
+.phonecam__overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  text-align: center;
+  color: var(--text);
+  background: rgb(3 4 10 / 85%);
+}
+
+.phonecam__hint {
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+.phonecam__error {
+  max-width: 22rem;
+  color: var(--danger);
+  font-size: var(--text-sm);
+}
+
+.phonecam__badge {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  background: rgb(4 5 12 / 60%);
+  color: var(--text-body);
+  font: var(--weight-medium) var(--text-xs) / 1 var(--font-mono);
+  backdrop-filter: blur(6px);
+}
+
+.phonecam__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-6);
+}
+
+.phonecam__flip {
+  display: grid;
+  place-items: center;
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  color: var(--text);
+  font-size: var(--text-lg);
+}
+
+.phonecam__flip:disabled {
+  opacity: 0.4;
+}
+
+.phonecam__shutter {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: transparent;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.phonecam__shutter:active {
+  transform: scale(0.92);
+}
+
+.phonecam__shutter:disabled {
+  opacity: 0.5;
+}
+
+.phonecam__shutter-inner {
+  width: 3.3rem;
+  height: 3.3rem;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.phonecam__spacer {
+  width: 3.25rem;
+}
+
+.phonecam__note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+/* ---------- phone: the closed / message screen ---------- */
+
+.phonecam--message {
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+}
+
+.phonecam__card {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  max-width: 24rem;
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+}
+
+.phonecam__card h1 {
+  font-family: var(--font-serif);
+  font-size: var(--text-xl);
+  font-weight: var(--weight-medium);
+}
+
+.phonecam__card p {
+  color: var(--text-muted);
+}
+
+/* ---------- responsive ---------- */
+
+@media (max-width: 860px) {
+  .photobooth__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .photobooth__qr {
+    width: min(60%, 13rem);
+  }
+}

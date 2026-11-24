@@ -15,7 +15,7 @@ import { useEffect, useRef } from "react";
 import type { MediaItem } from "@/lib/studio";
 
 /** The monitor's screen, in metres, measured on the model. */
-const SCREEN_W = 1.08;
+const SCREEN_W = 1.28;
 const SCREEN_H = 0.61;
 
 /** `distanceFactor={1}` makes one CSS pixel 1/400 of a metre. */
@@ -41,10 +41,34 @@ function Surface({ item, volume }: { item: MediaItem; volume: number }) {
   }, [volume]);
 
   if (item.kind === "audio") {
-    return <audio ref={audio} src={item.src} autoPlay loop className="studio__media-audio" />;
+    return (
+      <div className="studio__media-video studio__media--audio" role="document">
+        <audio ref={audio} src={item.src} autoPlay loop controls className="studio__media-element" />
+        <div className="studio__media-overlay">
+          <span className="studio__media-title">{item.title}</span>
+          {item.by && <span className="studio__media-artist">by {item.by}</span>}
+        </div>
+      </div>
+    );
   }
   if (item.kind === "video") {
-    return <video ref={video} src={item.src} autoPlay loop playsInline className="studio__media-video" />;
+    return (
+      <div className="studio__media-video" role="document">
+        <video 
+          ref={video} 
+          src={item.src} 
+          autoPlay 
+          loop 
+          playsInline 
+          controls
+          className="studio__media-element"
+        />
+        <div className="studio__media-overlay">
+          <span className="studio__media-title">{item.title}</span>
+          {item.by && <span className="studio__media-artist">by {item.by}</span>}
+        </div>
+      </div>
+    );
   }
   return (
     <iframe
@@ -76,10 +100,13 @@ export default function MonitorMedia({
       distanceFactor={1}
       position={[0, 0.385, 0.021]}
       zIndexRange={[40, 0]}
-      style={{ width: SCREEN_W * DPI, height: SCREEN_H * DPI }}
+      style={{ width: SCREEN_W * DPI, height: SCREEN_H * DPI, fontFamily: "system-ui, sans-serif" }}
       pointerEvents="auto"
     >
-      <div className="studio__media" role="document" aria-label={`${item.title} on the monitor`} onClick={() => onSelect(item.kind)}>
+      <div className="studio__media" role="document" aria-label={`${item.title} on the monitor`} onClick={(e) => {
+        e.stopPropagation();
+        onSelect(item.kind);
+      }}>
         <Surface key={item.id} item={item} volume={volume} />
       </div>
     </Html>

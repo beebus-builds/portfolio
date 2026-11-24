@@ -6,8 +6,9 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import * as THREE from "three";
 import { isClockGlance, nepalClock, type Weather, type WeatherKind } from "@/lib/live";
 import { HOME_HOUR, type DayPhase, type MediaItem } from "@/lib/studio";
-import { DeskClock, Keyboard, PostFX, ShadowSetup, StudioEnvironment, WeatherStation } from "./realism";
+import { DeskClock, KeyboardPeripheral, Mouse, PCTower, PostFX, ShadowSetup, StudioEnvironment, GPU, MonitorArms, WeatherStation } from "./realism";
 import MonitorMedia from "./MonitorMedia";
+import MonitorBrowser from "./MonitorBrowser";
 import {
   brushedMetal,
   brushedMetalRoughness,
@@ -28,6 +29,7 @@ export type SceneTarget =
   | { kind: "coffee" }
   | { kind: "music" }
   | { kind: "media" }
+  | { kind: "browser" }
   | { kind: "character" }
   | { kind: "weather" }
   | { kind: "clock" };
@@ -55,6 +57,8 @@ export type StudioSceneProps = {
   media?: MediaItem | null;
   /** Loudness of audio and video playing on the monitor. */
   volume?: number;
+  /** The browser is open on the monitor screen. */
+  browserOpen?: boolean;
   /** A line Bibash is saying, shown as a speech bubble above his head. */
   quip?: string | null;
   /** Bibash is at the office: the desk is empty until six. */
@@ -81,8 +85,8 @@ const KEYS_L = new THREE.Vector3(-0.11, 0.8, 0.13);
 const KEYS_R = new THREE.Vector3(0.11, 0.8, 0.13);
 const MUG_REST = new THREE.Vector3(0.42, DESK_TOP, 0.22);
 const MUG_GRIP = new THREE.Vector3(0.37, 0.82, 0.24);
-/** Wider, bigger monitor for a more premium feel */
-const SCREEN_W = 1.08;
+/** Wider, bigger monitor for a premium feel - Ultra-Wide 32:9 display */
+const SCREEN_W = 1.28;
 const SCREEN_H = 0.61;
 const SCREEN_CENTER = new THREE.Vector3(0, 1.15, -0.27);
 const CAMERA_HOME = new THREE.Vector3(2.3, 1.72, 2.4);
@@ -456,8 +460,8 @@ function drawCodeLine(ctx: CanvasRenderingContext2D, line: string, x: number, y:
 function useScreenTexture() {
   return useMemo(() => {
     const canvas = document.createElement("canvas");
-    // Wider resolution for the bigger, wider monitor
-    canvas.width = 1152;
+    // Wider resolution for the ultra-wide monitor - 32:9 aspect ratio
+    canvas.width = 1382;
     canvas.height = 650;
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
@@ -472,9 +476,11 @@ function Monitor({
   leaving,
   liveSnippet,
   media,
+  browserOpen = false,
   away,
   volume = 0.8,
   onSelect,
+  onTarget,
 }: {
   typing: boolean;
   terminalText: string | null;
@@ -483,11 +489,14 @@ function Monitor({
   liveSnippet?: string[] | null;
   /** What is playing on the monitor, if anything. */
   media?: MediaItem | null;
+  /** Whether the in-monitor browser is open. */
+  browserOpen?: boolean;
   /** Bibash is at the office: the screen says so instead of typing code. */
   away?: boolean;
   /** Loudness of audio and video playing on the monitor. */
   volume?: number;
   onSelect: () => void;
+  onTarget: (target: SceneTarget) => void;
 }) {
   const { canvas, texture } = useScreenTexture();
   const snippets = useMemo(() => (liveSnippet ? [liveSnippet, ...SNIPPETS] : SNIPPETS), [liveSnippet]);
@@ -670,7 +679,19 @@ function Monitor({
           </mesh>
         )}
         {/* when a video is playing, it is on the monitor, not on top of the page */}
-        {media && !away && <MonitorMedia item={media} volume={volume} onSelect={() => onSelect()} />}
+        {!browserOpen && media && !away && <MonitorMedia item={media} volume={volume} onSelect={() => onSelect()} />}
+        {/* The in-monitor browser takes over the screen when open. */}
+        {browserOpen && !away && (
+          <MonitorBrowser
+            open
+            onClose={() => onSelect()}
+            onOpenSite={(slug) => onTarget({ kind: "page", slug })}
+            onOpenExternal={(url) => {
+              window.open(url, "_blank");
+              onSelect();
+            }}
+          />
+        )}
       </group>
     </Hotspot>
   );
@@ -1676,20 +1697,10 @@ function Room({
         </mesh>
       ))}
 
-      {/* keyboard + mouse */}
-      <RoundedBox args={[0.72, 0.005, 0.3]} radius={0.004} smoothness={2} position={[0.04, DESK_TOP + 0.0025, 0.11]}>
-        <meshStandardMaterial color="#12161f" roughness={0.94} />
-      </RoundedBox>
-      <Keyboard position={[0, DESK_TOP, 0.12]} />
-      <RoundedBox
-        args={[0.062, 0.032, 0.1]}
-        radius={0.014}
-        smoothness={3}
-        position={[0.27, DESK_TOP + 0.021, 0.04]}
-        castShadow
-      >
-        <meshStandardMaterial color="#1c2130" roughness={0.45} metalness={0.2} />
-      </RoundedBox>
+      {/* Premium keyboard + gaming mouse setup */}
+      <KeyboardPeripheral position={[0, DESK_TOP, 0.12]} />
+      {/* Gaming mouse with RGB */}
+      <Mouse position={[-0.32, DESK_TOP + 0.008, 0.07]} />
 
       {/* live desk gadgets: Sindhuli's clock and the weather outside */}
       <Hotspot spot="clock" label="Sindhuli time ↗" labelAt={[0.6, 1.0, 0.31]} onSelect={() => onTarget({ kind: "clock" })}>
@@ -1698,6 +1709,53 @@ function Room({
       <Hotspot spot="weather" label="Sindhuli weather ↗" labelAt={[0.8, 1.0, 0.14]} onSelect={() => onTarget({ kind: "weather" })}>
         <WeatherStation position={[0.8, DESK_TOP + 0.002, 0.14]} rotationY={-0.42} weather={weather ?? null} />
       </Hotspot>
+
+      {/* CPU tower on the right side of the desk */}
+      <PCTower position={[0.68, DESK_TOP + 0.18, -0.38]} />
+      
+      {/* External GPU enclosure */}
+      <GPU position={[0.65, DESK_TOP + 0.18, -0.22]} />
+
+      {/* USB Hub / Docking Station */}
+      <group position={[0.52, DESK_TOP + 0.095, 0.08]}>
+        <mesh castShadow receiveShadow>
+          <RoundedBox args={[0.04, 0.018, 0.04]} radius={0.003} />
+          <meshStandardMaterial color="#181c24" metalness={0.6} roughness={0.28} />
+        </mesh>
+        {/* USB ports */}
+        {[0, 1, 2, 3].map((i, idx) => (
+          <mesh key={idx} position={[(i - 1.5) * 0.008, 0.018, 0.042]}>
+            <RoundedBox args={[0.006, 0.004, 0.008]} radius={0.001} />
+            <meshStandardMaterial color="#2a2e38" metalness={0.7} roughness={0.35} />
+          </mesh>
+        ))}
+      </group>
+
+      {/* Second monitor on articulated arms - for productivity */}
+      <MonitorArms position={[-1.25, DESK_TOP + 0.12, 0.15]} />
+      {/* Left monitor on the arms - smaller secondary display for terminal/notes */}
+      <group position={[-1.25, DESK_TOP + 0.18, 0.22]}>
+        {/* Secondary monitor bezel */}
+        <mesh position={[0, 0, 0.015]}>
+          <boxGeometry args={[0.28, 0.16, 0.008]} />
+          <meshStandardMaterial color="#0a0d18" metalness={0.8} roughness={0.4} />
+        </mesh>
+        {/* Secondary screen */}
+        <mesh position={[0, 0, 0.013]}>
+          <planeGeometry args={[0.26, 0.14]} />
+          <meshBasicMaterial map={paper} toneMapped={false} />
+        </mesh>
+        {/* Stand adapter */}
+        <mesh position={[0, 0.008, 0]}>
+          <boxGeometry args={[0.04, 0.008, 0.06]} />
+          <meshStandardMaterial color="#1a1f2b" metalness={0.7} roughness={0.25} />
+        </mesh>
+        {/* Screen glow */}
+        <mesh position={[0, 0, 0.025]}>
+          <planeGeometry args={[0.3, 0.17]} />
+          <meshBasicMaterial transparent opacity={0.15} blending={THREE.AdditiveBlending} color="#7fe3ff" />
+        </mesh>
+      </group>
 
       {/* desk lamp → services */}
       <Hotspot
@@ -2170,6 +2228,7 @@ export default function StudioScene(props: StudioSceneProps) {
     gitLog,
     media = null,
     volume = 0.8,
+    browserOpen = false,
     quip = null,
     away = false,
     commute = null,
@@ -2231,9 +2290,11 @@ export default function StudioScene(props: StudioSceneProps) {
           leaving={leaving}
           liveSnippet={gitLog}
           media={media}
+          browserOpen={browserOpen}
           away={away}
           volume={volume}
-          onSelect={() => onTarget({ kind: "media" })}
+          onSelect={() => onTarget({ kind: "browser" })}
+          onTarget={onTarget}
         />
         <Hotspot spot="coffee" label={coffeeLevel > 0 ? "Take a sip ☕" : "Refill ☕"} labelAt={[0.42, 1.0, 0.22]} onSelect={() => onTarget({ kind: "coffee" })}>
           <Mug mugRef={mugRef} level={coffeeLevel} />

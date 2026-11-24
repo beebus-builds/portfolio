@@ -109,6 +109,8 @@ export default function Studio() {
   const [gitLog, setGitLog] = useState<string[] | null>(null);
   const [party, setParty] = useState(false);
   const [hired, setHired] = useState(false);
+  /** The browser is open on the monitor screen. */
+  const [browserOpen, setBrowserOpen] = useState(false);
   /** The room whose blurb is showing under the dock. */
   const [hint, setHint] = useState<string | null>(null);
   /** Temporary hint shown when clicking desk gadgets (weather, clock). */
@@ -357,6 +359,9 @@ export default function Studio() {
         drinkCoffee();
       } else if (target.kind === "media") {
         setMediaDeckOpen(true);
+      } else if (target.kind === "browser") {
+        // Clicking the monitor toggles the browser on the screen.
+        setBrowserOpen((open) => !open);
       } else if (target.kind === "character") {
         // Get up and stretch, or sit back down — and say something first.
         roamToken.current = roamToken.current + 1;
@@ -441,6 +446,7 @@ export default function Studio() {
               sleeping={sleeping}
               media={mediaPlaying}
               volume={volume}
+              browserOpen={browserOpen}
               quip={quip}
               away={location === "office"}
               commute={commute}
@@ -543,6 +549,16 @@ export default function Studio() {
           <p className="studio__dock-hint" aria-live="polite">
             {tempHint ?? hint ?? "Pick a room — or press 1–7"}
           </p>
+          <Link
+            href="/photobooth"
+            className="studio__lights studio__lights--photo"
+            onPointerEnter={() => setHint("turn your phone into the studio camera")}
+            onPointerLeave={() => setHint(null)}
+            onFocus={() => setHint("turn your phone into the studio camera")}
+            onBlur={() => setHint(null)}
+          >
+            📸 photobooth
+          </Link>
           <button
             type="button"
             className="studio__lights"
