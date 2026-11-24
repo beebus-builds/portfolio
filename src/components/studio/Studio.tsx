@@ -43,9 +43,48 @@ const COMMUTE_LOADING_MS = 2_000;
 /** How often the room re-reads the Sindhuli clock, and refreshes live data. */
 const CLOCK_TICK_MS = 15_000;
 const LIVE_REFRESH_MS = 30 * 60 * 1000;
+/** The monitor remembers what was playing, and how loud, between visits. */
+const MEDIA_STORE = "studio.media.last";
+const VOLUME_STORE = "studio.media.volume";
+/** How long a speech bubble stays up when Bibash says something. */
+const QUIP_MS = 4200;
 
 function isTypingInField(target: EventTarget | null) {
   return target instanceof HTMLElement && (target.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(target.tagName));
+}
+
+/** A stored media item, validated just enough to hand back to the player. */
+function restoreMedia(): MediaItem | null {
+  try {
+    const raw = window.localStorage.getItem(MEDIA_STORE);
+    const item: unknown = raw ? JSON.parse(raw) : null;
+    if (typeof item !== "object" || item === null) return null;
+    const record = item as Record<string, unknown>;
+    const kinds = ["youtube", "vimeo", "audio", "video", "link", "radio"];
+    if (
+      typeof record.id !== "string" ||
+      typeof record.title !== "string" ||
+      typeof record.url !== "string" ||
+      typeof record.src !== "string" ||
+      typeof record.kind !== "string" ||
+      !kinds.includes(record.kind)
+    ) {
+      return null;
+    }
+    return item as MediaItem;
+  } catch {
+    return null;
+  }
+}
+
+function restoreVolume(): number {
+  try {
+    const raw = window.localStorage.getItem(VOLUME_STORE);
+    const value = raw === null ? Number.NaN : Number(raw);
+    return Number.isFinite(value) ? Math.min(1, Math.max(0, value)) : 0.8;
+  } catch {
+    return 0.8;
+  }
 }
 
 /**
@@ -131,11 +170,61 @@ export default function Studio() {
   /* ---------- media on the monitor ---------- */
   const [mediaDeckOpen, setMediaDeckOpen] = useState(false);
   const [mediaPlaying, setMediaPlaying] = useState<MediaItem | null>(null);
-  const playMedia = useCallback((item: MediaItem) => setMediaPlaying(item), []);
+  const [volume, setVolume] = useState(0.8);
+  const playMedia = useCallback((item: MediaItem) => {
+    if (item.kind === "radio") {
+      // The built-in stations are synthesised, not streamed.
+      const track = PLAYLIST.find((entry) => `radio-${entry.id}` === item.id);
+      if (track) {
+        player.current ??= createLofiPlayer();
+        player.current.play(track);
+      }
+    } else {
+      // A real file or embed takes over from the radio.
+      player.current?.pause();
+    }
+    setMediaPlaying(item);
+    try {
+      window.localStorage.setItem(MEDIA_STORE, JSON.stringify(item));
+    } catch {
+      /* private mode: the monitor just won't remember */
+    }
+  }, []);
 
   const stopMedia = useCallback(() => {
+    player.current?.pause();
     setMediaPlaying(null);
+    try {
+      window.localStorage.removeItem(MEDIA_STORE);
+    } catch {
+      /* private mode */
+    }
   }, []);
+
+  // Restore the last station and volume once, after hydration.
+  useEffect(() => {
+    setMediaPlaying(restoreMedia());
+    setVolume(restoreVolume());
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(VOLUME_STORE, String(volume));
+    } catch {
+      /* private mode */
+    }
+  }, [volume]);
+
+  /* ---------- Bibash says things ---------- */
+  const [quip, setQuip] = useState<string | null>(null);
+
+  const say = useCallback(
+    (line: string) => {
+      setQuip(line);
+      later(() => setQuip((current) => (current === line ? null : current)), QUIP_MS);
+    },
+    [later]
+  );
 
   useEffect(() => {
     // The room keeps Sindhuli's clock, not the visitor's, and keeps it live.
@@ -269,8 +358,15 @@ export default function Studio() {
       } else if (target.kind === "media") {
         setMediaDeckOpen(true);
       } else if (target.kind === "character") {
-        // Get up and stretch, or sit back down.
+        // Get up and stretch, or sit back down — and say something first.
         roamToken.current = roamToken.current + 1;
+        const lines = [
+          mediaPlaying ? "This one's on repeat." : "Good time for a stretch.",
+          coffee <= 0 ? "Out of coffee. Serious problem." : "Coffee's still warm, if you want some.",
+          phase === "night" ? "Burning the midnight oil." : phase === "morning" ? "Morning. Just woke the desk up." : "One more commit, then a break.",
+          location === "office" ? "Working from the office today." : "Sindhuli's quiet today, perfect for shipping.",
+        ];
+        say(lines[Math.floor(Math.random() * lines.length)]!);
       } else if (target.kind === "weather") {
         if (weather) {
           const words = { clear: "clear skies", cloudy: "cloudy", fog: "foggy", rain: "raining", storm: "stormy", snow: "snowing" }[weather.kind];
@@ -289,7 +385,7 @@ export default function Studio() {
         later(() => setTempHint(null), 4000);
       }
     },
-    [drinkCoffee, later, leaving, reduced, router, clock, weather]
+    [drinkCoffee, later, leaving, reduced, router, clock, weather, mediaPlaying, coffee, phase, location, say]
   );
 
   // Numbers jump straight to a room: 1 About … 7 Contact.
@@ -325,7 +421,14 @@ export default function Studio() {
           {webgl && (
             <StudioScene
               phase={phase}
-              musicBpm={party ? PARTY_BPM : null}
+              hour={clock ? clock.hours + clock.minutes / 60 : 12}
+              musicBpm={
+                party
+                  ? PARTY_BPM
+                  : mediaPlaying?.kind === "radio"
+                    ? (PLAYLIST.find((track) => `radio-${track.id}` === mediaPlaying.id)?.bpm ?? null)
+                    : null
+              }
               sipCount={sipCount}
               coffeeLevel={coffee}
               asking={greeting && !leaving}
@@ -337,6 +440,8 @@ export default function Studio() {
               gitLog={gitLog}
               sleeping={sleeping}
               media={mediaPlaying}
+              volume={volume}
+              quip={quip}
               away={location === "office"}
               commute={commute}
               roamToken={roamToken.current}
@@ -382,6 +487,8 @@ export default function Studio() {
         <MediaDeck
           open
           playing={mediaPlaying}
+          volume={volume}
+          onVolume={setVolume}
           onPlay={playMedia}
           onClose={() => setMediaDeckOpen(false)}
           onClear={stopMedia}
@@ -432,9 +539,21 @@ export default function Studio() {
             </Link>
           </li>
         </ol>
-        <p className="studio__dock-hint" aria-live="polite">
-          {tempHint ?? hint ?? "Pick a room — or press 1–7"}
-        </p>
+        <div className="studio__dock-foot">
+          <p className="studio__dock-hint" aria-live="polite">
+            {tempHint ?? hint ?? "Pick a room — or press 1–7"}
+          </p>
+          <button
+            type="button"
+            className="studio__lights"
+            data-override={lightsOverride ?? "live"}
+            onClick={() => hatch("lights")}
+            aria-label="Toggle the room lights"
+            title="Toggle the room lights"
+          >
+            {lightsOverride === "night" ? "☾ lights off" : lightsOverride ? "☀ lights on" : "◐ lights live"}
+          </button>
+        </div>
       </nav>
 
       {hired && (

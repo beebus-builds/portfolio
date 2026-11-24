@@ -28,12 +28,16 @@ function loadLinks(): { title?: string; url: string }[] {
 export default function MediaDeck({
   open,
   playing,
+  volume,
+  onVolume,
   onPlay,
   onClose,
   onClear,
 }: {
   open: boolean;
   playing: MediaItem | null;
+  volume: number;
+  onVolume: (value: number) => void;
   onPlay: (item: MediaItem) => void;
   onClose: () => void;
   onClear: () => void;
@@ -162,6 +166,19 @@ export default function MediaDeck({
           />
         </label>
         <div className="studio__deck-actions">
+          <label className="studio__deck-volume">
+            <span aria-hidden="true">{volume === 0 ? "🔇" : volume < 0.4 ? "🔈" : "🔊"}</span>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={volume}
+              onChange={(event) => onVolume(Number(event.target.value))}
+              aria-label="Volume"
+              onKeyDown={(event) => event.stopPropagation()}
+            />
+          </label>
           <button type="button" className="studio__deck-add" onClick={add} disabled={!draft.trim()}>
             Play on the monitor
           </button>

@@ -24,7 +24,9 @@ describe("Studio", () => {
 
     expect(screen.getByText(/Bibash is at the desk/)).toBeTruthy();
     expect(screen.queryByRole("textbox")).toBeNull();
-    expect(screen.queryByRole("button")).toBeNull();
+    // The only control in the room chrome is the lights toggle.
+    expect(screen.queryAllByRole("button")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Toggle the room lights" })).toBeTruthy();
     expect(screen.queryByText(/Now playing/)).toBeNull();
     expect(screen.queryByText(/Coffee/)).toBeNull();
 

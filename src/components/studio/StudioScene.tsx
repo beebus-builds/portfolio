@@ -5,7 +5,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import * as THREE from "three";
 import { isClockGlance, nepalClock, type Weather, type WeatherKind } from "@/lib/live";
-import { HOME_HOUR, PHASE_LOOK, type DayPhase, type MediaItem } from "@/lib/studio";
+import { HOME_HOUR, type DayPhase, type MediaItem } from "@/lib/studio";
 import { DeskClock, Keyboard, PostFX, ShadowSetup, StudioEnvironment, WeatherStation } from "./realism";
 import MonitorMedia from "./MonitorMedia";
 import {
@@ -34,6 +34,8 @@ export type SceneTarget =
 
 export type StudioSceneProps = {
   phase: DayPhase;
+  /** Sindhuli's wall-clock hour, fractional (14.5 = 2:30pm), so the sky can follow it. */
+  hour: number;
   /** BPM of the playing track, or null when the music is off. */
   musicBpm: number | null;
   /** Bumped each time the character should take a sip. */
@@ -51,6 +53,10 @@ export type StudioSceneProps = {
   gitLog?: string[] | null;
   /** What is playing on the monitor, if anything. */
   media?: MediaItem | null;
+  /** Loudness of audio and video playing on the monitor. */
+  volume?: number;
+  /** A line Bibash is saying, shown as a speech bubble above his head. */
+  quip?: string | null;
   /** Bibash is at the office: the desk is empty until six. */
   away?: boolean;
   /** Mid-commute, so the character walks to or from the door. */
@@ -75,7 +81,10 @@ const KEYS_L = new THREE.Vector3(-0.11, 0.8, 0.13);
 const KEYS_R = new THREE.Vector3(0.11, 0.8, 0.13);
 const MUG_REST = new THREE.Vector3(0.42, DESK_TOP, 0.22);
 const MUG_GRIP = new THREE.Vector3(0.37, 0.82, 0.24);
-const SCREEN_CENTER = new THREE.Vector3(0, 1.13, -0.27);
+/** Wider, bigger monitor for a more premium feel */
+const SCREEN_W = 1.08;
+const SCREEN_H = 0.61;
+const SCREEN_CENTER = new THREE.Vector3(0, 1.15, -0.27);
 const CAMERA_HOME = new THREE.Vector3(2.3, 1.72, 2.4);
 const CAMERA_LOOK = new THREE.Vector3(-0.05, 1.0, 0);
 const CAMERA_DIVE = new THREE.Vector3(0, 1.13, 0.2);
@@ -320,8 +329,10 @@ const SNIPPETS = [
 /** The panel drawn when the monitor plays something that is not an embed. */
 function drawNowPlaying(item: MediaItem, t: number) {
   return (ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement) => {
+    // Dark gradient background
     ctx.fillStyle = "#080c18";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Title bar
     ctx.fillStyle = "#101a2e";
     ctx.fillRect(0, 0, canvas.width, 44);
     ctx.fillStyle = "#7fe3ff";
@@ -331,32 +342,39 @@ function drawNowPlaying(item: MediaItem, t: number) {
     ctx.font = "400 18px monospace";
     ctx.fillText(item.kind === "radio" ? "lo-fi radio · synthesised in the browser" : "now playing", canvas.width - 420, 30);
 
+    // Title with glow effect
     ctx.fillStyle = "#e9f6ff";
-    ctx.font = "700 52px sans-serif";
-    ctx.fillText(fitText(ctx, item.title, canvas.width - 60), 46, 190);
+    ctx.font = "700 56px sans-serif";
+    const titleX = 46;
+    const titleY = 170;
+    const titleText = fitText(ctx, item.title, canvas.width - 60);
+    ctx.fillText(titleText, titleX, titleY);
+
     if (item.by) {
       ctx.fillStyle = "#8fa6c4";
-      ctx.font = "400 26px sans-serif";
-      ctx.fillText(fitText(ctx, item.by, canvas.width - 60), 46, 240);
+      ctx.font = "400 28px sans-serif";
+      ctx.fillText(fitText(ctx, item.by, canvas.width - 60), 46, 220);
     }
     if (item.blurb) {
       ctx.fillStyle = "#6b7f99";
-      ctx.font = "400 22px sans-serif";
-      ctx.fillText(item.blurb, 46, 284);
+      ctx.font = "400 24px sans-serif";
+      ctx.fillText(item.blurb, 46, 264);
     }
 
     // Equaliser: the bars dance, so the screen is never a still frame.
-    const barWidth = 14;
-    const bars = 40;
+    // Extended bars for a wider display
+    const barWidth = 16;
+    const bars = Math.min(48, Math.floor((canvas.width - 100) / (barWidth + 6)));
     for (let i = 0; i < bars; i++) {
       const level = 0.35 + Math.abs(Math.sin(t * 2.6 + i * 0.55)) * (0.35 + 0.3 * Math.sin(i * 1.7));
-      const height = Math.max(6, level * 130);
-      ctx.fillStyle = i % 7 === 0 ? "#ff8fc7" : "#7fe3ff";
-      ctx.fillRect(46 + i * (barWidth + 6), canvas.height - 46 - height, barWidth, height);
+      const height = Math.max(6, level * 120);
+      ctx.fillStyle = i % 6 === 0 ? "#ff8fc7" : "#7fe3ff";
+      const xPos = 50 + i * (barWidth + 6);
+      ctx.fillRect(xPos, canvas.height - 50 - height, barWidth, height);
     }
     ctx.fillStyle = "#3b4a63";
-    ctx.font = "400 20px monospace";
-    ctx.fillText(item.kind === "link" ? "opening in a new tab ↗" : "click the monitor for the full deck", 46, canvas.height - 16);
+    ctx.font = "400 22px monospace";
+    ctx.fillText(item.kind === "link" ? "opening in a new tab ↗" : "click the monitor for the full deck", 46, canvas.height - 22);
   };
 }
 
@@ -376,18 +394,18 @@ function drawAwayScreen(t: number) {
 
     const minutes = Math.floor((t / 60) % 60);
     ctx.fillStyle = "#e9f6ff";
-    ctx.font = "700 52px sans-serif";
-    ctx.fillText("Bibash is at the office", 46, 190);
+    ctx.font = "700 56px sans-serif";
+    ctx.fillText("Bibash is at the office", 46, 170);
     ctx.fillStyle = "#8fa6c4";
-    ctx.font = "400 26px sans-serif";
-    ctx.fillText(`back at the desk at ${formatHour(HOME_HOUR)} · driving ${minutes} min`, 46, 240);
+    ctx.font = "400 28px sans-serif";
+    ctx.fillText(`back at the desk at ${formatHour(HOME_HOUR)} · driving ${minutes} min`, 46, 220);
     ctx.fillStyle = "#3b4a63";
-    ctx.font = "400 20px monospace";
-    ctx.fillText("the deck, the radio and every room still work while he’s out", 46, 296);
+    ctx.font = "400 24px monospace";
+    ctx.fillText("the deck, the radio and every room still work while he's out", 46, 264);
     ctx.fillStyle = "#1a2438";
-    ctx.fillRect(46, canvas.height - 46, canvas.width - 92, 10);
+    ctx.fillRect(46, canvas.height - 50, canvas.width - 92, 10);
     ctx.fillStyle = Math.sin(t * 1.4) > 0 ? "#7fe3ff" : "#1a2438";
-    ctx.fillRect(46, canvas.height - 46, 130, 10);
+    ctx.fillRect(46, canvas.height - 50, 130, 10);
   };
 }
 
@@ -438,8 +456,9 @@ function drawCodeLine(ctx: CanvasRenderingContext2D, line: string, x: number, y:
 function useScreenTexture() {
   return useMemo(() => {
     const canvas = document.createElement("canvas");
-    canvas.width = 1024;
-    canvas.height = 600;
+    // Wider resolution for the bigger, wider monitor
+    canvas.width = 1152;
+    canvas.height = 650;
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
     texture.anisotropy = 4;
@@ -454,6 +473,7 @@ function Monitor({
   liveSnippet,
   media,
   away,
+  volume = 0.8,
   onSelect,
 }: {
   typing: boolean;
@@ -465,11 +485,16 @@ function Monitor({
   media?: MediaItem | null;
   /** Bibash is at the office: the screen says so instead of typing code. */
   away?: boolean;
+  /** Loudness of audio and video playing on the monitor. */
+  volume?: number;
   onSelect: () => void;
 }) {
   const { canvas, texture } = useScreenTexture();
   const snippets = useMemo(() => (liveSnippet ? [liveSnippet, ...SNIPPETS] : SNIPPETS), [liveSnippet]);
   const state = useRef({ snippet: 0, chars: 0, last: 0, pauseUntil: 0 });
+  /** Screen glow effect timing */
+  const glowTarget = useRef(0);
+  const lastGlowUpdate = useRef(0);
 
   useFrame(({ clock }) => {
     const now = clock.elapsedTime;
@@ -477,6 +502,16 @@ function Monitor({
     if (now - s.last < 1 / 14) return;
     const dt = now - s.last;
     s.last = now;
+
+    // Update glow effect for active media
+    if (media && !away) {
+      if (now - lastGlowUpdate.current > 0.1) {
+        glowTarget.current = 0.5 + Math.sin(now * 3) * 0.5;
+        lastGlowUpdate.current = now;
+      }
+    } else {
+      glowTarget.current = 0;
+    }
 
     if (s.snippet >= snippets.length) s.snippet = 0;
     let lines = snippets[s.snippet]!;
@@ -585,27 +620,57 @@ function Monitor({
     texture.needsUpdate = true;
   });
 
+  /** Glow effect material for the screen when media is playing */
+  const glowMaterial = useMemo(() => {
+    const mat = new THREE.MeshBasicMaterial({
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      opacity: 0,
+    });
+    return mat;
+  }, []);
+
+  useFrame(({ clock }) => {
+    if (media && !away) {
+      const t = clock.elapsedTime;
+      const glowIntensity = 0.3 + Math.sin(t * 2) * 0.15;
+      glowMaterial.color.set(`hsl(200, 80%, 60%, ${glowIntensity})`);
+      glowMaterial.opacity = glowTarget.current * 0.8;
+    }
+  });
+
   return (
     <Hotspot spot="projects" label="Open the media deck ▶" labelAt={[0, 1.5, -0.26]} onSelect={onSelect}>
-      <group position={[0, DESK_TOP, -0.28]}>
-        <mesh position={[0, 0.012, 0.02]}>
-          <boxGeometry args={[0.26, 0.024, 0.18]} />
-          <meshStandardMaterial color="#1a1f2b" metalness={0.5} roughness={0.4} />
+      <group position={[0, DESK_TOP, -0.27]}>
+        {/* Premium monitor base */}
+        <mesh position={[0, 0.015, 0.01]}>
+          <boxGeometry args={[1.12, 0.028, 0.22]} />
+          <meshStandardMaterial color="#1a1f2b" metalness={0.7} roughness={0.25} />
         </mesh>
-        <mesh position={[0, 0.17, 0]}>
-          <boxGeometry args={[0.05, 0.32, 0.03]} />
-          <meshStandardMaterial color="#1a1f2b" metalness={0.5} roughness={0.4} />
+        {/* Stand */}
+        <mesh position={[0, 0.055, 0.18]}>
+          <cylinderGeometry args={[0.008, 0.008, 0.12, 12]} />
+          <meshStandardMaterial color="#1a1f2b" metalness={0.7} roughness={0.25} />
         </mesh>
-        <mesh position={[0, SCREEN_CENTER.y - DESK_TOP, 0]}>
-          <boxGeometry args={[0.92, 0.55, 0.035]} />
-          <meshStandardMaterial color="#10141f" metalness={0.4} roughness={0.5} />
+        {/* Screen bezel - dark frame */}
+        <mesh position={[0, SCREEN_CENTER.y - DESK_TOP, 0.02]}>
+          <boxGeometry args={[SCREEN_W + 0.02, SCREEN_H + 0.02, 0.008]} />
+          <meshStandardMaterial color="#0a0d18" metalness={0.8} roughness={0.4} />
         </mesh>
-        <mesh position={[0, SCREEN_CENTER.y - DESK_TOP, 0.019]}>
-          <planeGeometry args={[0.88, 0.515]} />
+        {/* Main screen */}
+        <mesh position={[0, SCREEN_CENTER.y - DESK_TOP, 0.018]}>
+          <planeGeometry args={[SCREEN_W, SCREEN_H]} />
           <meshBasicMaterial map={texture} toneMapped={false} />
         </mesh>
+        {/* Screen glow effect when media is playing */}
+        {media && !away && (
+          <mesh position={[0, SCREEN_CENTER.y - DESK_TOP, 0.035]}>
+            <planeGeometry args={[SCREEN_W * 1.1, SCREEN_H * 1.1]} />
+            <meshBasicMaterial transparent opacity={0.3} blending={THREE.AdditiveBlending} color="#7fe3ff" />
+          </mesh>
+        )}
         {/* when a video is playing, it is on the monitor, not on top of the page */}
-        {media && !away && <MonitorMedia item={media} onSelect={() => onSelect()} />}
+        {media && !away && <MonitorMedia item={media} volume={volume} onSelect={() => onSelect()} />}
       </group>
     </Hotspot>
   );
@@ -687,6 +752,7 @@ function Character({
   away = false,
   commute = null,
   roamToken = 0,
+  quip = null,
   onWalk,
   onDoor,
   onSeated,
@@ -705,6 +771,8 @@ function Character({
   commute?: "out" | "in" | null;
   /** Bumped by the parent whenever Bibash should stretch his legs. */
   roamToken?: number;
+  /** A line he is saying, shown as a speech bubble. */
+  quip?: string | null;
   /** Clicking Bibash himself: he gets up, or sits back down. */
   onWalk?: () => void;
   /** Fired once the commute walk reaches the doorway. */
@@ -954,8 +1022,10 @@ function Character({
     } else if (seated && !asking && !sipping && !sleeping) {
       // Idle at the desk: right hand taps on the surface now and then.
       const tap = Math.abs(Math.sin(t * 3)) > 0.95 ? 0.015 : 0;
-      scratch.targetR.set(0.16, 0.82 + tap * 0.5, 0.13 + tap);
-      scratch.targetL.set(-0.11, 0.8, 0.13);
+      toRig(KEYS_L, scratch.targetL);
+      toRig(KEYS_R, scratch.targetR);
+      scratch.targetR.y += tap * 0.5;
+      scratch.targetR.z += tap;
     }
 
     hands.l.lerp(scratch.targetL, k);
@@ -1051,6 +1121,13 @@ function Character({
       onSelect={() => onWalk?.()}
     >
     <group ref={rig} position={SEAT.toArray()}>
+      {quip && (
+        <Html center position={[0, 1.64, -0.02]} style={{ pointerEvents: "none" }} zIndexRange={[30, 10]}>
+          <span className="studio__quip" role="status">
+            {quip}
+          </span>
+        </Html>
+      )}
       {/* the chair stays in the room, whether or not he is sitting in it */}
       <group ref={chair}>
       <RoundedBox args={[0.46, 0.06, 0.44]} radius={0.02} smoothness={3} position={[0, 0.46, 0]} castShadow>
@@ -1202,46 +1279,132 @@ function Character({
 
 /* ---------- the room ---------- */
 
-function useSkyTexture(phase: DayPhase) {
-  return useMemo(() => {
-    const look = PHASE_LOOK[phase];
-    const canvas = document.createElement("canvas");
-    canvas.width = 256;
-    canvas.height = 256;
-    const ctx = canvas.getContext("2d");
-    if (ctx) {
-      const gradient = ctx.createLinearGradient(0, 0, 0, 256);
-      gradient.addColorStop(0, look.sky[0]);
-      gradient.addColorStop(1, look.sky[1]);
-      ctx.fillStyle = gradient;
-      ctx.fillRect(0, 0, 256, 256);
-      if (look.stars) {
-        ctx.fillStyle = "#ffffff";
-        for (let i = 0; i < 70; i++) {
-          ctx.globalAlpha = 0.3 + ((i * 37) % 70) / 100;
-          ctx.fillRect((i * 97) % 256, (i * 53) % 170, 1.6, 1.6);
-        }
-        ctx.globalAlpha = 1;
-      }
-      ctx.fillStyle = look.orb;
-      ctx.shadowColor = look.orb;
-      ctx.shadowBlur = 30;
-      ctx.beginPath();
-      ctx.arc(phase === "evening" ? 70 : 180, phase === "evening" ? 190 : 70, phase === "night" ? 20 : 26, 0, Math.PI * 2);
-      ctx.fill();
-      // Distant hills: Sindhuli is in the mountains.
-      ctx.shadowBlur = 0;
-      ctx.fillStyle = phase === "night" ? "#0a0f22" : phase === "evening" ? "#2b1e45" : "#4d7a8c";
-      ctx.beginPath();
-      ctx.moveTo(0, 256);
-      for (let x = 0; x <= 256; x += 16) ctx.lineTo(x, 200 - Math.sin(x / 30) * 18 - Math.sin(x / 11) * 6);
-      ctx.lineTo(256, 256);
-      ctx.fill();
+/* ---------- the sky outside the window, keyed to Sindhuli's clock ---------- */
+
+type SkyStop = {
+  hour: number;
+  top: string;
+  bottom: string;
+  hills: string;
+  orb: string;
+  ambient: number;
+  sun: string;
+  sunIntensity: number;
+  stars: number;
+};
+
+/**
+ * The sky, and the light it throws into the room, sampled across the day.
+ * Everything between two stops is blended, so the window tracks the minute
+ * hand instead of snapping between four fixed looks.
+ */
+const SKY_STOPS: SkyStop[] = [
+  { hour: 0, top: "#04060f", bottom: "#141c3a", hills: "#080d1c", orb: "#e8eeff", ambient: 0.5, sun: "#9db8ff", sunIntensity: 0.55, stars: 1 },
+  { hour: 4.5, top: "#070b1c", bottom: "#1b2550", hills: "#0a0f22", orb: "#e8eeff", ambient: 0.5, sun: "#9db8ff", sunIntensity: 0.55, stars: 1 },
+  { hour: 5.5, top: "#1a2140", bottom: "#3d3358", hills: "#151530", orb: "#ffd9a0", ambient: 0.56, sun: "#c9a6ff", sunIntensity: 0.7, stars: 0.55 },
+  { hour: 6.5, top: "#4a5b96", bottom: "#ffb27a", hills: "#33324d", orb: "#ffe0a8", ambient: 0.66, sun: "#ffb487", sunIntensity: 1.05, stars: 0.1 },
+  { hour: 8, top: "#7fb2ea", bottom: "#ffe6c4", hills: "#4d7a8c", orb: "#fff6c9", ambient: 0.78, sun: "#fff1d6", sunIntensity: 1.3, stars: 0 },
+  { hour: 12, top: "#4ea8ff", bottom: "#bfe3ff", hills: "#4d7a8c", orb: "#fffbe6", ambient: 0.9, sun: "#ffffff", sunIntensity: 1.45, stars: 0 },
+  { hour: 16, top: "#5aa2e8", bottom: "#d6ecff", hills: "#4a7486", orb: "#fff4d0", ambient: 0.82, sun: "#fff1d6", sunIntensity: 1.3, stars: 0 },
+  { hour: 17.5, top: "#4a4a8a", bottom: "#ffb07a", hills: "#3a3050", orb: "#ffcf8a", ambient: 0.7, sun: "#ffb487", sunIntensity: 1.05, stars: 0 },
+  { hour: 18.5, top: "#2b2450", bottom: "#ff8a5c", hills: "#2b1e45", orb: "#ffc48a", ambient: 0.64, sun: "#ff8a5c", sunIntensity: 0.85, stars: 0.05 },
+  { hour: 19.5, top: "#151936", bottom: "#6b4266", hills: "#181530", orb: "#ffb487", ambient: 0.56, sun: "#b98bd8", sunIntensity: 0.65, stars: 0.45 },
+  { hour: 21, top: "#070b1c", bottom: "#1b2550", hills: "#0a0f22", orb: "#e8eeff", ambient: 0.5, sun: "#9db8ff", sunIntensity: 0.58, stars: 1 },
+  { hour: 24, top: "#04060f", bottom: "#141c3a", hills: "#080d1c", orb: "#e8eeff", ambient: 0.5, sun: "#9db8ff", sunIntensity: 0.55, stars: 1 },
+];
+
+function skyAt(hour: number) {
+  const h = ((hour % 24) + 24) % 24;
+  let a = SKY_STOPS[0]!;
+  let b = SKY_STOPS[SKY_STOPS.length - 1]!;
+  for (let i = 0; i < SKY_STOPS.length - 1; i++) {
+    const lo = SKY_STOPS[i]!;
+    const hi = SKY_STOPS[i + 1]!;
+    if (h >= lo.hour && h <= hi.hour) {
+      a = lo;
+      b = hi;
+      break;
     }
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.colorSpace = THREE.SRGBColorSpace;
-    return texture;
-  }, [phase]);
+  }
+  const t = b.hour === a.hour ? 0 : (h - a.hour) / (b.hour - a.hour);
+  const mix = (from: string, to: string) => new THREE.Color(from).lerp(new THREE.Color(to), t);
+  return {
+    top: mix(a.top, b.top),
+    bottom: mix(a.bottom, b.bottom),
+    hills: mix(a.hills, b.hills),
+    orb: mix(a.orb, b.orb),
+    sun: mix(a.sun, b.sun),
+    ambient: THREE.MathUtils.lerp(a.ambient, b.ambient, t),
+    sunIntensity: THREE.MathUtils.lerp(a.sunIntensity, b.sunIntensity, t),
+    stars: THREE.MathUtils.lerp(a.stars, b.stars, t),
+  };
+}
+
+/** The sun climbs from 6am to 6:30pm; the moon takes the rest of the night. */
+function orbArc(hour: number) {
+  const day = hour >= 6 && hour < 18.5;
+  const t = day ? (hour - 6) / 12.5 : (((hour < 6 ? hour + 24 : hour) - 18.5) % 24) / 11.5;
+  return { t: THREE.MathUtils.clamp(t, 0, 1), night: !day };
+}
+
+/** The window is repainted once a minute, so the light outside never jumps. */
+/** One canvas for the life of the room, repainted as the minute changes. */
+function useSkyTexture(hour: number) {
+  const minute = Math.floor((((hour % 24) + 24) % 24) * 60);
+  const { canvas, texture } = useMemo(() => {
+    const surface = document.createElement("canvas");
+    surface.width = 256;
+    surface.height = 256;
+    const tex = new THREE.CanvasTexture(surface);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    return { canvas: surface, texture: tex };
+  }, []);
+
+  useEffect(() => {
+    const sky = skyAt(minute / 60);
+    const arc = orbArc(minute / 60);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const gradient = ctx.createLinearGradient(0, 0, 0, 256);
+    gradient.addColorStop(0, sky.top.getStyle());
+    gradient.addColorStop(1, sky.bottom.getStyle());
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, 256, 256);
+
+    if (sky.stars > 0.02) {
+      ctx.fillStyle = "#ffffff";
+      for (let i = 0; i < 70; i++) {
+        ctx.globalAlpha = (0.3 + ((i * 37) % 70) / 100) * sky.stars;
+        ctx.fillRect((i * 97) % 256, (i * 53) % 170, 1.6, 1.6);
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // The sun (or the moon) rides an arc across the glass as the day passes.
+    const x = 30 + arc.t * 196;
+    const y = 206 - Math.sin(arc.t * Math.PI) * 150;
+    ctx.fillStyle = sky.orb.getStyle();
+    ctx.shadowColor = sky.orb.getStyle();
+    ctx.shadowBlur = arc.night ? 22 : 30;
+    ctx.beginPath();
+    ctx.arc(x, y, arc.night ? 17 : 24, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Distant hills: Sindhuli is in the mountains.
+    ctx.fillStyle = sky.hills.getStyle();
+    ctx.beginPath();
+    ctx.moveTo(0, 256);
+    for (let px = 0; px <= 256; px += 16) ctx.lineTo(px, 200 - Math.sin(px / 30) * 18 - Math.sin(px / 11) * 6);
+    ctx.lineTo(256, 256);
+    ctx.fill();
+
+    texture.needsUpdate = true;
+  }, [canvas, texture, minute]);
+
+  useEffect(() => () => texture.dispose(), [texture]);
+  return texture;
 }
 
 function usePosterTexture() {
@@ -1276,18 +1439,23 @@ const BOOK_COLORS = ["#e2572b", "#3d8bfd", "#f4c14d", "#46b98a", "#a974ff", "#ef
 
 function Room({
   phase,
+  hour,
   quality,
   weather,
   onTarget,
 }: {
   phase: DayPhase;
+  hour: number;
   quality: "high" | "low";
   weather?: Weather | null;
   onTarget: (target: SceneTarget) => void;
 }) {
-  const sky = useSkyTexture(phase);
+  const sky = useSkyTexture(hour);
   const poster = usePosterTexture();
-  const look = PHASE_LOOK[phase];
+  // The room's key light follows the same clock as the window.
+  const minute = Math.floor((((hour % 24) + 24) % 24) * 60);
+  const look = useMemo(() => skyAt(minute / 60), [minute]);
+  const arc = useMemo(() => orbArc(minute / 60), [minute]);
   const wall = phase === "night" ? "#1b2233" : "#2a3247";
 
   // Real materials, painted procedurally: boards underfoot, walnut on the
@@ -1621,12 +1789,12 @@ function Room({
         </group>
       </Hotspot>
 
-      {/* window light, room fill */}
+      {/* window light, room fill — both follow Sindhuli's hour */}
       <ambientLight intensity={look.ambient * 0.6} />
-      <hemisphereLight args={[look.sky[0], "#2a1c14", 0.5]} />
+      <hemisphereLight args={[look.top, "#2a1c14", 0.5]} />
       <directionalLight
-        position={[-2.6, 3.4, 0.8]}
-        intensity={night ? 0.55 : 1.45}
+        position={[-2.6 + arc.t * 1.2, 3.4, 0.8 - arc.t] as [number, number, number]}
+        intensity={look.sunIntensity}
         color={look.sun}
         castShadow={quality === "high"}
         shadow-mapSize={[1024, 1024]}
@@ -1640,7 +1808,7 @@ function Room({
         shadow-camera-far={9}
       />
       {/* cool rim from the window, to lift the character off the wall */}
-      <directionalLight position={[-1.2, 2.2, -1.6]} intensity={night ? 0.5 : 0.35} color="#9dc4ff" />
+      <directionalLight position={[-1.2, 2.2, -1.6]} intensity={0.3 + look.stars * 0.2} color="#9dc4ff" />
       <pointLight position={SCREEN_CENTER.clone().add(new THREE.Vector3(0, 0, 0.35)).toArray()} intensity={1.05} distance={1.7} color="#7fe3ff" />
     </>
   );
@@ -1786,7 +1954,8 @@ function WallClock() {
   useFrame(() => {
     const { hours, minutes, seconds } = nepalClock(Date.now());
     // Hands turn clockwise as seen from the room: negative z rotation.
-    if (second.current) second.current.rotation.z = -(seconds / 60) * Math.PI * 2;
+    // The second hand ticks; the others sweep, as a real clock does.
+    if (second.current) second.current.rotation.z = -(Math.floor(seconds) / 60) * Math.PI * 2;
     if (minute.current) minute.current.rotation.z = -((minutes + seconds / 60) / 60) * Math.PI * 2;
     if (hour.current) hour.current.rotation.z = -(((hours % 12) + minutes / 60) / 12) * Math.PI * 2;
   });
@@ -1988,6 +2157,7 @@ function CameraRig({
 export default function StudioScene(props: StudioSceneProps) {
   const {
     phase,
+    hour,
     musicBpm,
     sipCount,
     coffeeLevel,
@@ -1999,6 +2169,8 @@ export default function StudioScene(props: StudioSceneProps) {
     weather,
     gitLog,
     media = null,
+    volume = 0.8,
+    quip = null,
     away = false,
     commute = null,
     roamToken = 0,
@@ -2052,7 +2224,7 @@ export default function StudioScene(props: StudioSceneProps) {
       <HoverContext.Provider value={hoverApi}>
         <StudioEnvironment warm={phase === "night" || phase === "evening"} />
         <ShadowSetup />
-        <Room phase={phase} quality={quality} weather={weather} onTarget={onTarget} />
+        <Room phase={phase} hour={hour} quality={quality} weather={weather} onTarget={onTarget} />
         <Monitor
           typing={!asking && !leaving && !sleeping}
           terminalText={terminalText}
@@ -2060,6 +2232,7 @@ export default function StudioScene(props: StudioSceneProps) {
           liveSnippet={gitLog}
           media={media}
           away={away}
+          volume={volume}
           onSelect={() => onTarget({ kind: "media" })}
         />
         <Hotspot spot="coffee" label={coffeeLevel > 0 ? "Take a sip ☕" : "Refill ☕"} labelAt={[0.42, 1.0, 0.22]} onSelect={() => onTarget({ kind: "coffee" })}>
@@ -2075,6 +2248,7 @@ export default function StudioScene(props: StudioSceneProps) {
           away={away}
           commute={commute}
           roamToken={roamToken}
+          quip={quip}
           onWalk={() => onTarget({ kind: "character" })}
           focusRef={focusRef}
           onDoor={onDoor}

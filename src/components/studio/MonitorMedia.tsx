@@ -15,13 +15,13 @@ import { useEffect, useRef } from "react";
 import type { MediaItem } from "@/lib/studio";
 
 /** The monitor's screen, in metres, measured on the model. */
-const SCREEN_W = 0.88;
-const SCREEN_H = 0.515;
+const SCREEN_W = 1.08;
+const SCREEN_H = 0.61;
 
 /** `distanceFactor={1}` makes one CSS pixel 1/400 of a metre. */
 const DPI = 400;
 
-function Surface({ item }: { item: MediaItem }) {
+function Surface({ item, volume }: { item: MediaItem; volume: number }) {
   const audio = useRef<HTMLAudioElement | null>(null);
   const video = useRef<HTMLVideoElement | null>(null);
 
@@ -34,6 +34,11 @@ function Surface({ item }: { item: MediaItem }) {
       });
     start(audio.current ?? video.current);
   }, []);
+
+  useEffect(() => {
+    const element = audio.current ?? video.current;
+    if (element) element.volume = volume;
+  }, [volume]);
 
   if (item.kind === "audio") {
     return <audio ref={audio} src={item.src} autoPlay loop className="studio__media-audio" />;
@@ -53,7 +58,15 @@ function Surface({ item }: { item: MediaItem }) {
   );
 }
 
-export default function MonitorMedia({ item, onSelect }: { item: MediaItem | null; onSelect: (kind: string) => void }) {
+export default function MonitorMedia({
+  item,
+  volume = 0.8,
+  onSelect,
+}: {
+  item: MediaItem | null;
+  volume?: number;
+  onSelect: (kind: string) => void;
+}) {
   if (!item || (item.kind !== "youtube" && item.kind !== "vimeo" && item.kind !== "audio" && item.kind !== "video")) {
     return null;
   }
@@ -61,13 +74,13 @@ export default function MonitorMedia({ item, onSelect }: { item: MediaItem | nul
     <Html
       transform
       distanceFactor={1}
-      position={[0, 0.37, 0.021]}
+      position={[0, 0.385, 0.021]}
       zIndexRange={[40, 0]}
       style={{ width: SCREEN_W * DPI, height: SCREEN_H * DPI }}
       pointerEvents="auto"
     >
       <div className="studio__media" role="document" aria-label={`${item.title} on the monitor`} onClick={() => onSelect(item.kind)}>
-        <Surface key={item.id} item={item} />
+        <Surface key={item.id} item={item} volume={volume} />
       </div>
     </Html>
   );
