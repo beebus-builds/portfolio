@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { normaliseCode, requestCapture } from "@/lib/photobooth";
+import { tokenFromHeaders } from "@/lib/photoboothProtocol";
 import { clientIp, isRateLimited } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -12,12 +13,16 @@ type Context = { params: Promise<{ id: string }> };
 
 /** Ask the phone to take a shot (the big-screen shutter button). */
 export async function POST(req: NextRequest, { params }: Context) {
-  if (isRateLimited("photobooth-capture", clientIp(req), RATE_LIMIT, RATE_WINDOW_MS)) {
+  const id = normaliseCode((await params).id);
+  if (isRateLimited(`photobooth-capture:${id}`, clientIp(req), RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ error: "Slow down." }, { status: 429 });
   }
-  const id = normaliseCode((await params).id);
+  const desktopToken = tokenFromHeaders(req.headers);
+  if (!desktopToken) {
+    return NextResponse.json({ error: "That room has closed." }, { status: 404 });
+  }
   try {
-    const ok = await requestCapture(id);
+    const ok = await requestCapture(id, desktopToken);
     if (!ok) return NextResponse.json({ error: "That room has closed." }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (error) {

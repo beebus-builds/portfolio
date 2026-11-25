@@ -14,8 +14,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Too many rooms opened — try again later." }, { status: 429 });
   }
   try {
-    const id = await createSession();
-    return NextResponse.json({ id }, { headers: { "Cache-Control": "no-store" } });
+    const room = await createSession();
+    return NextResponse.json(room, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     console.error("POST /api/photobooth failed:", error);
     return NextResponse.json({ error: "The photobooth could not start." }, { status: 500 });

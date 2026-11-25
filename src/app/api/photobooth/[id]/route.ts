@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { closeSession, getSessionState, normaliseCode } from "@/lib/photobooth";
+import { tokenFromHeaders } from "@/lib/photoboothProtocol";
 import { clientIp, isRateLimited } from "@/lib/rateLimit";
 
 export const runtime = "nodejs";
@@ -13,12 +14,16 @@ type Context = { params: Promise<{ id: string }> };
 
 /** The desktop's view of a session: who's online, the live preview, the shots. */
 export async function GET(req: NextRequest, { params }: Context) {
-  if (isRateLimited("photobooth-get", clientIp(req), RATE_LIMIT, RATE_WINDOW_MS)) {
+  const id = normaliseCode((await params).id);
+  if (isRateLimited(`photobooth-get:${id}`, clientIp(req), RATE_LIMIT, RATE_WINDOW_MS)) {
     return NextResponse.json({ error: "Slow down." }, { status: 429 });
   }
-  const id = normaliseCode((await params).id);
+  const desktopToken = tokenFromHeaders(req.headers);
+  if (!desktopToken) {
+    return NextResponse.json({ error: "That room has closed." }, { status: 404 });
+  }
   try {
-    const state = await getSessionState(id);
+    const state = await getSessionState(id, desktopToken);
     if (!state) return NextResponse.json({ error: "That room has closed." }, { status: 404 });
     return NextResponse.json(state, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
@@ -29,12 +34,17 @@ export async function GET(req: NextRequest, { params }: Context) {
 
 /** Close the room and wipe its photos (privacy: shots are not kept around). */
 export async function DELETE(req: NextRequest, { params }: Context) {
-  if (isRateLimited("photobooth-close", clientIp(req), 60, 60 * 1000)) {
+  const id = normaliseCode((await params).id);
+  if (isRateLimited(`photobooth-close:${id}`, clientIp(req), 60, 60 * 1000)) {
     return NextResponse.json({ error: "Slow down." }, { status: 429 });
   }
-  const id = normaliseCode((await params).id);
+  const desktopToken = tokenFromHeaders(req.headers);
+  if (!desktopToken) {
+    return NextResponse.json({ error: "That room has closed." }, { status: 404 });
+  }
   try {
-    await closeSession(id);
+    const closed = await closeSession(id, desktopToken);
+    if (!closed) return NextResponse.json({ error: "That room has closed." }, { status: 404 });
     return NextResponse.json({ ok: true });
   } catch (error) {
     console.error("DELETE /api/photobooth/[id] failed:", error);

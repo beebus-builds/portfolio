@@ -1,4 +1,4 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { ensureSchema, query } from "@/lib/db";
 
 /**
@@ -19,8 +19,19 @@ const SCHEMA = `
     preview TEXT,
     preview_at TIMESTAMPTZ,
     capture_seq INTEGER NOT NULL DEFAULT 0,
-    status TEXT NOT NULL DEFAULT 'waiting'
+    status TEXT NOT NULL DEFAULT 'waiting',
+    desktop_token_hash TEXT NOT NULL,
+    join_token_hash TEXT,
+    phone_token_hash TEXT,
+    photo_count INTEGER NOT NULL DEFAULT 0,
+    photo_chars BIGINT NOT NULL DEFAULT 0
   );
+  ALTER TABLE photobooth_sessions ADD COLUMN IF NOT EXISTS desktop_token_hash TEXT;
+  ALTER TABLE photobooth_sessions ADD COLUMN IF NOT EXISTS join_token_hash TEXT;
+  ALTER TABLE photobooth_sessions ADD COLUMN IF NOT EXISTS phone_token_hash TEXT;
+  ALTER TABLE photobooth_sessions ADD COLUMN IF NOT EXISTS photo_count INTEGER NOT NULL DEFAULT 0;
+  ALTER TABLE photobooth_sessions ADD COLUMN IF NOT EXISTS photo_chars BIGINT NOT NULL DEFAULT 0;
+  DELETE FROM photobooth_sessions WHERE desktop_token_hash IS NULL;
   CREATE TABLE IF NOT EXISTS photobooth_photos (
     id UUID PRIMARY KEY,
     session_id TEXT NOT NULL REFERENCES photobooth_sessions(id) ON DELETE CASCADE,
@@ -29,6 +40,19 @@ const SCHEMA = `
   );
   CREATE INDEX IF NOT EXISTS photobooth_photos_session_idx
     ON photobooth_photos (session_id, created_at DESC);
+  UPDATE photobooth_sessions s
+     SET photo_count = totals.photo_count,
+         photo_chars = totals.photo_chars
+    FROM (
+      SELECT session_id,
+             COUNT(*)::integer AS photo_count,
+             COALESCE(SUM(LENGTH(image)), 0)::bigint AS photo_chars
+        FROM photobooth_photos
+       GROUP BY session_id
+    ) totals
+   WHERE s.id = totals.session_id
+     AND s.photo_count = 0
+     AND s.photo_chars = 0;
 `;
 
 /** Phone counts as "live" if it has checked in within this window. */
@@ -37,8 +61,14 @@ export const PHONE_ONLINE_MS = 15_000;
 export const PREVIEW_FRESH_MS = 20_000;
 /** How long a whole session lives before it is swept up. */
 export const SESSION_TTL_MS = 6 * 60 * 60 * 1000;
+/** The number of shots kept in one room. This also bounds database usage. */
+export const MAX_SESSION_PHOTOS = 24;
+/** The total encoded photo payload kept in one room. */
+export const MAX_SESSION_PHOTO_CHARS = 24_000_000;
 /** How many recent shots the desktop is told about per poll. */
-const MAX_PHOTOS = 24;
+const MAX_PHOTOS = MAX_SESSION_PHOTOS;
+/** How often an active server instance looks for expired rooms. */
+const SWEEP_INTERVAL_MS = 10 * 60 * 1000;
 
 export type SessionStatus = "waiting" | "live" | "closed";
 
@@ -72,28 +102,71 @@ function generateCode(length = 8): string {
   return code;
 }
 
+/** A high-entropy capability used for desktop or phone access. */
+function generateToken(): string {
+  return randomBytes(32).toString("base64url");
+}
+
+/** Only hashes of capabilities are stored in the database. */
+function hashToken(token: string): string {
+  return createHash("sha256").update(token).digest("hex");
+}
+
+/** Delete expired sessions (and, through the cascade, their photos). */
+async function deleteExpiredSessions(): Promise<void> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  await query(`DELETE FROM photobooth_sessions WHERE created_at < now() - ($1::text || ' milliseconds')::interval`, [
+    String(SESSION_TTL_MS),
+  ]);
+}
+
 /** Opportunistically clear out sessions (and their photos) that have expired. */
 export async function sweepExpiredSessions(): Promise<void> {
   try {
-    await ensureSchema("photobooth", SCHEMA);
-    await query(`DELETE FROM photobooth_sessions WHERE created_at < now() - ($1::text || ' milliseconds')::interval`, [
-      String(SESSION_TTL_MS),
-    ]);
+    await deleteExpiredSessions();
   } catch {
     // A failed sweep should never block opening the photobooth.
   }
 }
 
-/** Create a fresh session and return its short id. */
-export async function createSession(): Promise<string> {
-  await ensureSchema("photobooth", SCHEMA);
+/** Avoid a delete query on every poll while still expiring idle rooms. */
+let nextSweepAt = 0;
+async function sweepExpiredSessionsIfDue(): Promise<void> {
+  const now = Date.now();
+  if (now < nextSweepAt) return;
+  try {
+    await deleteExpiredSessions();
+    nextSweepAt = now + SWEEP_INTERVAL_MS;
+  } catch {
+    // Retry sooner after a transient database failure.
+    nextSweepAt = now + 60_000;
+  }
+}
+
+export type CreatedSession = {
+  id: string;
+  /** Kept by the desktop; required for state, captures, downloads and closing. */
+  desktopToken: string;
+  /** Put in the QR link; exchanged once for a phone-specific token. */
+  joinToken: string;
+};
+
+/** Create a fresh session and return its short id plus role capabilities. */
+export async function createSession(): Promise<CreatedSession> {
+  await ensureSchema("photobooth-v2", SCHEMA);
   await sweepExpiredSessions();
+  const desktopToken = generateToken();
+  const joinToken = generateToken();
   // Retry on the (astronomically unlikely) id collision.
   for (let attempt = 0; attempt < 5; attempt++) {
     const id = generateCode();
     try {
-      await query(`INSERT INTO photobooth_sessions (id) VALUES ($1)`, [id]);
-      return id;
+      await query(
+        `INSERT INTO photobooth_sessions (id, desktop_token_hash, join_token_hash)
+         VALUES ($1, $2, $3)`,
+        [id, hashToken(desktopToken), hashToken(joinToken)]
+      );
+      return { id, desktopToken, joinToken };
     } catch (error) {
       const code = (error as { code?: string })?.code;
       if (code !== "23505") throw error; // only retry unique violations
@@ -102,18 +175,10 @@ export async function createSession(): Promise<string> {
   throw new Error("Could not allocate a photobooth code.");
 }
 
-export async function sessionExists(id: string): Promise<boolean> {
-  await ensureSchema("photobooth", SCHEMA);
-  const rows = await query<{ exists: boolean }>(
-    `SELECT EXISTS (SELECT 1 FROM photobooth_sessions WHERE id = $1) AS exists`,
-    [id]
-  );
-  return rows[0]?.exists ?? false;
-}
-
 /** Mark the desktop as present and return the current shared state. */
-export async function getSessionState(id: string): Promise<SessionState | null> {
-  await ensureSchema("photobooth", SCHEMA);
+export async function getSessionState(id: string, desktopToken: string): Promise<SessionState | null> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  await sweepExpiredSessionsIfDue();
   const rows = await query<{
     id: string;
     status: string;
@@ -126,15 +191,17 @@ export async function getSessionState(id: string): Promise<SessionState | null> 
   }>(
     `UPDATE photobooth_sessions SET desktop_seen_at = now()
        WHERE id = $1
+       AND desktop_token_hash = $2
+       AND created_at >= now() - ($3::text || ' milliseconds')::interval
      RETURNING id, status, phone_seen_at, preview, preview_at, capture_seq,
-       (SELECT COUNT(*) FROM photobooth_photos WHERE session_id = photobooth_sessions.id) AS photo_count,
+       photo_count,
        (SELECT COALESCE(
           json_agg(json_build_object('id', id, 'created_at', created_at) ORDER BY created_at DESC)
           , '[]'::json)
         FROM (SELECT id, created_at FROM photobooth_photos
               WHERE session_id = photobooth_sessions.id
               ORDER BY created_at DESC LIMIT ${MAX_PHOTOS}) recent) AS photos`,
-    [id]
+    [id, hashToken(desktopToken), String(SESSION_TTL_MS)]
   );
   const row = rows[0];
   if (!row) return null;
@@ -156,22 +223,113 @@ export async function getSessionState(id: string): Promise<SessionState | null> 
   };
 }
 
+export type PhoneJoinResult = {
+  phoneToken: string;
+  captureSeq: number;
+  status: SessionStatus;
+};
+
+export type PhotoboothAccess = "active" | "closed" | "unauthorized";
+
+/** Distinguish an expired room from a phone with the wrong capability. */
+export async function getPhoneAccess(id: string, phoneToken: string): Promise<PhotoboothAccess> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  const rows = await query<{ authorized: boolean; active: boolean; status: string }>(
+    `SELECT phone_token_hash = $2 AS authorized,
+            created_at >= now() - ($3::text || ' milliseconds')::interval AS active,
+            status
+       FROM photobooth_sessions
+      WHERE id = $1`,
+    [id, hashToken(phoneToken), String(SESSION_TTL_MS)]
+  );
+  const session = rows[0];
+  if (!session || !session.active || session.status === "closed") return "closed";
+  return session.authorized ? "active" : "unauthorized";
+}
+
+/** Distinguish an expired room from a stale or already-claimed join link. */
+export async function getJoinAccess(id: string, joinToken: string): Promise<PhotoboothAccess> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  const rows = await query<{ authorized: boolean; available: boolean; active: boolean; status: string }>(
+    `SELECT join_token_hash = $2 AS authorized,
+            phone_token_hash IS NULL AS available,
+            created_at >= now() - ($3::text || ' milliseconds')::interval AS active,
+            status
+       FROM photobooth_sessions
+      WHERE id = $1`,
+    [id, hashToken(joinToken), String(SESSION_TTL_MS)]
+  );
+  const session = rows[0];
+  if (!session || !session.active || session.status === "closed") return "closed";
+  return session.authorized && session.available ? "active" : "unauthorized";
+}
+
+/** Exchange the QR join capability for a phone-only capability, once. */
+export async function joinPhone(id: string, joinToken: string): Promise<PhoneJoinResult | null> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  const phoneToken = generateToken();
+  const rows = await query<{ capture_seq: number; status: string }>(
+    `UPDATE photobooth_sessions
+        SET phone_token_hash = $2,
+            join_token_hash = NULL,
+            status = CASE WHEN status = 'waiting' THEN 'live' ELSE status END
+      WHERE id = $1
+        AND join_token_hash = $3
+        AND phone_token_hash IS NULL
+        AND status <> 'closed'
+        AND created_at >= now() - ($4::text || ' milliseconds')::interval
+      RETURNING capture_seq, status`,
+    [id, hashToken(phoneToken), hashToken(joinToken), String(SESSION_TTL_MS)]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return {
+    phoneToken,
+    captureSeq: Number(row.capture_seq ?? 0),
+    status: row.status as SessionStatus,
+  };
+}
+
+/** Read only the small phone-side state; previews and photos stay desktop-only. */
+export async function getPhoneState(
+  id: string,
+  phoneToken: string
+): Promise<{ captureSeq: number; status: SessionStatus } | null> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  const rows = await query<{ capture_seq: number; status: string }>(
+    `SELECT capture_seq, status
+     FROM photobooth_sessions
+     WHERE id = $1
+       AND phone_token_hash = $2
+       AND status <> 'closed'
+       AND created_at >= now() - ($3::text || ' milliseconds')::interval`,
+    [id, hashToken(phoneToken), String(SESSION_TTL_MS)]
+  );
+  const row = rows[0];
+  if (!row) return null;
+  return { captureSeq: Number(row.capture_seq ?? 0), status: row.status as SessionStatus };
+}
+
 /**
  * The phone checks in: store its latest preview frame and report back whether
  * the desktop (or anyone) has queued a shot since `knownSeq`.
  */
 export async function updatePreview(
   id: string,
+  phoneToken: string,
   preview: string
 ): Promise<{ captureSeq: number; status: SessionStatus } | null> {
-  await ensureSchema("photobooth", SCHEMA);
+  await ensureSchema("photobooth-v2", SCHEMA);
   const rows = await query<{ capture_seq: number; status: string }>(
     `UPDATE photobooth_sessions
-        SET preview = $2, preview_at = now(), phone_seen_at = now(),
+        SET preview = $3, preview_at = now(), phone_seen_at = now(),
             status = CASE WHEN status = 'waiting' THEN 'live' ELSE status END
-      WHERE id = $1 AND status <> 'closed'
+      WHERE id = $1
+        AND phone_token_hash = $2
+        AND status <> 'closed'
+        AND created_at >= now() - ($4::text || ' milliseconds')::interval
       RETURNING capture_seq, status`,
-    [id, preview]
+    [id, hashToken(phoneToken), preview, String(SESSION_TTL_MS)]
   );
   const row = rows[0];
   if (!row) return null;
@@ -179,50 +337,128 @@ export async function updatePreview(
 }
 
 /** Phone heartbeat without a frame (so "live" stays true even on a still shot). */
-export async function touchPhone(id: string): Promise<void> {
-  await ensureSchema("photobooth", SCHEMA);
-  await query(`UPDATE photobooth_sessions SET phone_seen_at = now() WHERE id = $1 AND status <> 'closed'`, [id]);
+export async function touchPhone(id: string, phoneToken: string): Promise<void> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  await query(
+    `UPDATE photobooth_sessions
+        SET phone_seen_at = now()
+      WHERE id = $1
+        AND phone_token_hash = $2
+        AND status <> 'closed'
+        AND created_at >= now() - ($3::text || ' milliseconds')::interval`,
+    [id, hashToken(phoneToken), String(SESSION_TTL_MS)]
+  );
 }
 
 /** Queue a shot: bump the sequence so the phone's next check-in sees it. */
-export async function requestCapture(id: string): Promise<boolean> {
-  await ensureSchema("photobooth", SCHEMA);
+export async function requestCapture(id: string, desktopToken: string): Promise<boolean> {
+  await ensureSchema("photobooth-v2", SCHEMA);
   const rows = await query<{ capture_seq: number }>(
     `UPDATE photobooth_sessions
         SET capture_seq = capture_seq + 1
-      WHERE id = $1 AND status <> 'closed'
+      WHERE id = $1
+        AND desktop_token_hash = $2
+        AND status <> 'closed'
+        AND created_at >= now() - ($3::text || ' milliseconds')::interval
       RETURNING capture_seq`,
-    [id]
+    [id, hashToken(desktopToken), String(SESSION_TTL_MS)]
   );
   return rows.length > 0;
 }
 
+export type AddPhotoResult = { id: string } | { reason: "unauthorized" | "closed" | "full" };
+
 /** Store a full-resolution shot and return its id. */
-export async function addPhoto(id: string, image: string): Promise<string | null> {
-  await ensureSchema("photobooth", SCHEMA);
+export async function addPhoto(id: string, phoneToken: string, image: string): Promise<AddPhotoResult> {
+  await ensureSchema("photobooth-v2", SCHEMA);
   const photoId = randomUUID();
+  const tokenHash = hashToken(phoneToken);
+
+  // Claim capacity on the session row before inserting. PostgreSQL serializes
+  // concurrent updates to that row, so two phone requests cannot both pass a
+  // count check and push the room over its limit. The insert is part of the
+  // same statement, so a failed insert also rolls back the capacity claim.
   const rows = await query<{ id: string }>(
-    `INSERT INTO photobooth_photos (id, session_id, image)
-     SELECT $1, id, $3 FROM photobooth_sessions WHERE id = $2 AND status <> 'closed'
+    `WITH claimed AS (
+       UPDATE photobooth_sessions
+          SET photo_count = photo_count + 1,
+              photo_chars = photo_chars + LENGTH($3::text)
+        WHERE id = $2
+          AND phone_token_hash = $4
+          AND status <> 'closed'
+          AND created_at >= now() - ($5::text || ' milliseconds')::interval
+          AND photo_count < $6
+          AND photo_chars + LENGTH($3::text) <= $7
+        RETURNING id
+     )
+     INSERT INTO photobooth_photos (id, session_id, image)
+     SELECT $1, id, $3 FROM claimed
      RETURNING id`,
-    [photoId, id, image]
+    [
+      photoId,
+      id,
+      image,
+      tokenHash,
+      String(SESSION_TTL_MS),
+      MAX_SESSION_PHOTOS,
+      MAX_SESSION_PHOTO_CHARS,
+    ]
   );
-  return rows[0]?.id ?? null;
+  if (rows[0]?.id) return { id: rows[0].id };
+
+  // A failed claim is either a full room or an invalid/expired phone. Read
+  // the current counters so the phone gets an actionable response.
+  const statusRows = await query<{
+    authorized: boolean;
+    active: boolean;
+    status: string;
+    photo_count: number;
+    photo_chars: string;
+  }>(
+    `SELECT phone_token_hash = $2 AS authorized,
+            created_at >= now() - ($3::text || ' milliseconds')::interval AS active,
+            status,
+            photo_count,
+            photo_chars
+       FROM photobooth_sessions
+      WHERE id = $1`,
+    [id, tokenHash, String(SESSION_TTL_MS)]
+  );
+  const session = statusRows[0];
+  if (!session || !session.authorized) return { reason: "unauthorized" };
+  if (!session.active || session.status === "closed") return { reason: "closed" };
+  if (
+    Number(session.photo_count) >= MAX_SESSION_PHOTOS ||
+    Number(session.photo_chars) + image.length > MAX_SESSION_PHOTO_CHARS
+  ) {
+    return { reason: "full" };
+  }
+  return { reason: "unauthorized" };
 }
 
-export async function getPhoto(id: string, photoId: string): Promise<string | null> {
-  await ensureSchema("photobooth", SCHEMA);
+export async function getPhoto(id: string, desktopToken: string, photoId: string): Promise<string | null> {
+  await ensureSchema("photobooth-v2", SCHEMA);
   const rows = await query<{ image: string }>(
-    `SELECT image FROM photobooth_photos WHERE session_id = $1 AND id = $2`,
-    [id, photoId]
+    `SELECT p.image
+     FROM photobooth_photos p
+     JOIN photobooth_sessions s ON s.id = p.session_id
+     WHERE p.session_id = $1
+       AND s.desktop_token_hash = $2
+       AND p.id = $3
+       AND s.created_at >= now() - ($4::text || ' milliseconds')::interval`,
+    [id, hashToken(desktopToken), photoId, String(SESSION_TTL_MS)]
   );
   return rows[0]?.image ?? null;
 }
 
 /** End a session and wipe everything tied to it (photos included). */
-export async function closeSession(id: string): Promise<void> {
-  await ensureSchema("photobooth", SCHEMA);
-  await query(`DELETE FROM photobooth_sessions WHERE id = $1`, [id]);
+export async function closeSession(id: string, desktopToken: string): Promise<boolean> {
+  await ensureSchema("photobooth-v2", SCHEMA);
+  const rows = await query<{ id: string }>(
+    `DELETE FROM photobooth_sessions WHERE id = $1 AND desktop_token_hash = $2 RETURNING id`,
+    [id, hashToken(desktopToken)]
+  );
+  return rows.length > 0;
 }
 
 /** Shape validation for a base64 data URL we accept from the phone. */

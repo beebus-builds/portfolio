@@ -251,8 +251,21 @@
 .photobooth__code-link {
   justify-self: start;
   margin-top: var(--space-1);
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--accent);
   font: var(--weight-medium) var(--text-sm) / 1 var(--font-mono);
+  cursor: pointer;
+}
+
+.photobooth__code-link:hover {
+  text-decoration: underline;
+}
+
+.photobooth__code-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
 }
 
 .photobooth__error {

@@ -10,8 +10,46 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { PHOTOBOOTH_TOKEN_HEADER } from "@/lib/photoboothProtocol";
 
-type Status = "starting" | "live" | "error" | "closed";
+type Status = "starting" | "live" | "error" | "closed" | "disconnected";
+
+type SavedPhone = {
+  token: string;
+  lastSeq: number;
+};
+
+function phoneStorageKey(id: string): string {
+  return `photobooth.phone.${id}`;
+}
+
+function readSavedPhone(id: string): SavedPhone | null {
+  try {
+    const raw = window.localStorage.getItem(phoneStorageKey(id));
+    if (!raw) return null;
+    const value = JSON.parse(raw) as Partial<SavedPhone>;
+    if (typeof value.token !== "string" || !Number.isFinite(value.lastSeq)) return null;
+    return { token: value.token, lastSeq: Math.max(0, Number(value.lastSeq)) };
+  } catch {
+    return null;
+  }
+}
+
+function savePhone(id: string, value: SavedPhone): void {
+  try {
+    window.localStorage.setItem(phoneStorageKey(id), JSON.stringify(value));
+  } catch {
+    /* Private mode: the camera still works until this page is closed. */
+  }
+}
+
+function removeSavedPhone(id: string): void {
+  try {
+    window.localStorage.removeItem(phoneStorageKey(id));
+  } catch {
+    /* The saved capability may be unavailable in private mode. */
+  }
+}
 
 /** Draw the current video frame into a JPEG data URL, scaled to `maxWidth`. */
 function drawFrame(
@@ -49,7 +87,10 @@ export default function PhoneCamera({ id }: { id: string }) {
   const mountedRef = useRef(true);
   const closedRef = useRef(false);
   const capturingRef = useRef(false);
-  const lastSeq = useRef(0);
+  const phoneToken = useRef<string | null>(null);
+  const acknowledgedSeq = useRef(0);
+  const pendingCaptures = useRef(0);
+  const connectRequest = useRef<Promise<boolean> | null>(null);
 
   const [status, setStatus] = useState<Status>("starting");
   const [error, setError] = useState<string | null>(null);
@@ -71,13 +112,113 @@ export default function PhoneCamera({ id }: { id: string }) {
     setStatus("closed");
   }, [stopStream]);
 
-  const startCamera = useCallback(async (mode: "user" | "environment") => {
+  const markDisconnected = useCallback(() => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    if (loopTimer.current) window.clearTimeout(loopTimer.current);
+    stopStream();
+    setStatus("disconnected");
+  }, [stopStream]);
+
+  /** Resume a camera that joined before, or exchange the QR capability once. */
+  const connectPhone = useCallback((): Promise<boolean> => {
+    if (connectRequest.current) return connectRequest.current;
+    const request = (async () => {
+      const saved = readSavedPhone(id);
+      if (saved) {
+        try {
+          const response = await fetch(`/api/photobooth/${id}/preview`, {
+            cache: "no-store",
+            headers: { [PHOTOBOOTH_TOKEN_HEADER]: saved.token },
+          });
+          if (response.ok) {
+            const data = (await response.json()) as { captureSeq?: number; status?: string };
+            const serverSeq = Math.max(0, Number(data.captureSeq ?? 0));
+            phoneToken.current = saved.token;
+            acknowledgedSeq.current = Math.min(saved.lastSeq, serverSeq);
+            pendingCaptures.current = Math.max(0, serverSeq - acknowledgedSeq.current);
+            return true;
+          }
+          if (response.status === 404) {
+            removeSavedPhone(id);
+            setError("This room has closed. Ask them to open a new one.");
+            markClosed();
+            return false;
+          }
+          if (response.status === 403) {
+            removeSavedPhone(id);
+          } else {
+            setError("Could not reconnect the camera. Check your connection and try again.");
+            setStatus("error");
+            return false;
+          }
+        } catch {
+          setError("Could not reconnect the camera. Check your connection and try again.");
+          setStatus("error");
+          return false;
+        }
+      }
+
+      const joinToken = new URLSearchParams(window.location.hash.slice(1)).get("join");
+      if (!joinToken) {
+        setError("This camera link is invalid or has already been claimed.");
+        markDisconnected();
+        return false;
+      }
+
+      try {
+        const response = await fetch(`/api/photobooth/${id}/join`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ joinToken }),
+        });
+        const data = (await response.json().catch(() => ({}))) as {
+          phoneToken?: string;
+          captureSeq?: number;
+          error?: string;
+        };
+        if (response.status === 404) {
+          setError("This room has closed. Ask them to open a new one.");
+          markClosed();
+          return false;
+        }
+        if (response.status === 429 || response.status >= 500) {
+          setError("Could not connect the camera. Check your connection and try again.");
+          setStatus("error");
+          return false;
+        }
+        if (!response.ok || !data.phoneToken) {
+          setError(data.error ?? "This room could not connect the camera.");
+          markDisconnected();
+          return false;
+        }
+        phoneToken.current = data.phoneToken;
+        acknowledgedSeq.current = Math.max(0, Number(data.captureSeq ?? 0));
+        pendingCaptures.current = 0;
+        savePhone(id, { token: data.phoneToken, lastSeq: acknowledgedSeq.current });
+        // Remove the one-time capability from the visible URL.
+        window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+        return true;
+      } catch {
+        setError("Could not connect the camera. Check your connection and try again.");
+        setStatus("error");
+        return false;
+      }
+    })();
+    connectRequest.current = request;
+    void request.finally(() => {
+      if (connectRequest.current === request) connectRequest.current = null;
+    });
+    return request;
+  }, [id, markClosed, markDisconnected]);
+
+  const startCamera = useCallback(async (mode: "user" | "environment"): Promise<boolean> => {
     stopStream();
     setError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
       setError("This browser can’t use a camera. Open the link in your phone’s browser over a secure (https) connection.");
       setStatus("error");
-      return;
+      return false;
     }
     setStatus("starting");
     try {
@@ -87,7 +228,7 @@ export default function PhoneCamera({ id }: { id: string }) {
       });
       if (!mountedRef.current || closedRef.current) {
         stream.getTracks().forEach((track) => track.stop());
-        return;
+        return false;
       }
       streamRef.current = stream;
       const video = videoRef.current;
@@ -100,60 +241,99 @@ export default function PhoneCamera({ id }: { id: string }) {
         }
       }
       setStatus("live");
+      return true;
     } catch (err) {
       setError(cameraError(err));
       setStatus("error");
+      return false;
     }
   }, [stopStream]);
 
   /** Grab a full-resolution frame and upload it to the room. */
-  const takePhoto = useCallback(async () => {
+  const takePhoto = useCallback(async (): Promise<boolean> => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (!video || !canvas || capturingRef.current || closedRef.current) return;
-    if (!video.videoWidth) return;
+    const token = phoneToken.current;
+    if (!video || !canvas || !token || capturingRef.current || closedRef.current) return false;
+    if (!video.videoWidth) return false;
     capturingRef.current = true;
     setSending(true);
     try {
       const image = drawFrame(video, canvas, 1600, 0.85);
-      if (!image) return;
+      if (!image) return false;
       const response = await fetch(`/api/photobooth/${id}/photo`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          [PHOTOBOOTH_TOKEN_HEADER]: token,
+        },
         body: JSON.stringify({ image }),
       });
       if (response.status === 404) {
         markClosed();
-        return;
+        return false;
+      }
+      if (response.status === 403) {
+        markDisconnected();
+        return false;
+      }
+      if (response.status === 409) {
+        pendingCaptures.current = 0;
+        setError("This room has reached its photo limit.");
+        return false;
       }
       if (!response.ok) throw new Error("upload failed");
+      setError(null);
       setShotCount((count) => count + 1);
       setFlash(true);
       window.setTimeout(() => setFlash(false), 170);
+      return true;
     } catch {
       setError("That shot didn’t upload — check your connection and try again.");
+      return false;
     } finally {
       capturingRef.current = false;
       setSending(false);
     }
-  }, [id, markClosed]);
+  }, [id, markClosed, markDisconnected]);
+
+  /** Take every remote shutter request that has not been acknowledged yet. */
+  const processPendingCaptures = useCallback(async () => {
+    if (closedRef.current || capturingRef.current) return;
+    while (pendingCaptures.current > 0 && !closedRef.current) {
+      const uploaded = await takePhoto();
+      if (!uploaded) break;
+      pendingCaptures.current -= 1;
+      acknowledgedSeq.current += 1;
+      const token = phoneToken.current;
+      if (token) savePhone(id, { token, lastSeq: acknowledgedSeq.current });
+    }
+  }, [id, takePhoto]);
 
   /** Push a small preview frame up; the reply tells us if a shot is queued. */
   const pump = useCallback(async () => {
     if (closedRef.current || !mountedRef.current) return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
-    if (video && canvas && video.videoWidth) {
+    const token = phoneToken.current;
+    if (video && canvas && token && video.videoWidth) {
       try {
         const preview = drawFrame(video, canvas, 360, 0.6);
         if (preview) {
           const response = await fetch(`/api/photobooth/${id}/preview`, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+              [PHOTOBOOTH_TOKEN_HEADER]: token,
+            },
             body: JSON.stringify({ preview }),
           });
           if (response.status === 404) {
             markClosed();
+            return;
+          }
+          if (response.status === 403) {
+            markDisconnected();
             return;
           }
           if (response.ok) {
@@ -163,10 +343,8 @@ export default function PhoneCamera({ id }: { id: string }) {
               return;
             }
             const seq = Number(data.captureSeq ?? 0);
-            if (seq > lastSeq.current) {
-              lastSeq.current = seq;
-              await takePhoto();
-            }
+            pendingCaptures.current = Math.max(pendingCaptures.current, seq - acknowledgedSeq.current);
+            await processPendingCaptures();
           }
         }
       } catch {
@@ -176,9 +354,9 @@ export default function PhoneCamera({ id }: { id: string }) {
     if (!closedRef.current && mountedRef.current) {
       loopTimer.current = window.setTimeout(() => void pump(), 700);
     }
-  }, [id, markClosed, takePhoto]);
+  }, [id, markClosed, markDisconnected, processPendingCaptures]);
 
-  /* ---------- boot: read state, then open the camera and start streaming ---------- */
+  /* ---------- boot: join the room, open the camera and start streaming ---------- */
   useEffect(() => {
     mountedRef.current = true;
     closedRef.current = false;
@@ -186,22 +364,10 @@ export default function PhoneCamera({ id }: { id: string }) {
     let cancelled = false;
 
     void (async () => {
-      try {
-        const response = await fetch(`/api/photobooth/${id}`, { cache: "no-store" });
-        if (response.status === 404) {
-          if (!cancelled) markClosed();
-          return;
-        }
-        if (response.ok) {
-          const state = (await response.json()) as { captureSeq?: number };
-          lastSeq.current = Number(state.captureSeq ?? 0);
-        }
-      } catch {
-        /* offline read is non-fatal; the camera can still try */
-      }
-      if (cancelled || !mountedRef.current || closedRef.current) return;
-      await startCamera("environment");
-      if (cancelled || !mountedRef.current || closedRef.current) return;
+      const connected = await connectPhone();
+      if (cancelled || !mountedRef.current || closedRef.current || !connected) return;
+      const started = await startCamera("environment");
+      if (!started || cancelled || !mountedRef.current || closedRef.current) return;
       void pump();
     })();
 
@@ -212,13 +378,36 @@ export default function PhoneCamera({ id }: { id: string }) {
       if (loopTimer.current) window.clearTimeout(loopTimer.current);
       stopStream();
     };
-  }, [id, markClosed, startCamera, pump, stopStream]);
+  }, [id, connectPhone, startCamera, pump, stopStream]);
+
+  const retry = useCallback(async () => {
+    setError(null);
+    setStatus("starting");
+    const connected = phoneToken.current ? true : await connectPhone();
+    if (!connected) return;
+    const started = await startCamera(facing);
+    if (started && !closedRef.current && mountedRef.current) void pump();
+  }, [connectPhone, facing, pump, startCamera]);
 
   const flip = useCallback(() => {
     const next = facing === "user" ? "environment" : "user";
     setFacing(next);
     void startCamera(next);
   }, [facing, startCamera]);
+
+  if (status === "disconnected") {
+    return (
+      <main className="phonecam phonecam--message">
+        <div className="phonecam__card">
+          <h1>This camera is disconnected</h1>
+          <p>{error ?? "The room closed or another camera claimed this link."}</p>
+          <Link href="/" className="btn">
+            Back to the portfolio
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   if (status === "closed") {
     return (
@@ -258,7 +447,7 @@ export default function PhoneCamera({ id }: { id: string }) {
             ) : (
               <>
                 <p className="phonecam__error">{error}</p>
-                <button type="button" className="btn" onClick={() => void startCamera(facing)}>
+                <button type="button" className="btn" onClick={() => void retry()}>
                   Try again
                 </button>
               </>

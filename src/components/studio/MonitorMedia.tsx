@@ -13,13 +13,7 @@
 import { Html } from "@react-three/drei";
 import { useEffect, useRef } from "react";
 import type { MediaItem } from "@/lib/studio";
-
-/** The monitor's screen, in metres, measured on the model. */
-const SCREEN_W = 1.28;
-const SCREEN_H = 0.61;
-
-/** `distanceFactor={1}` makes one CSS pixel 1/400 of a metre. */
-const DPI = 400;
+import { MONITOR_DPI, MONITOR_HTML_POSITION, MONITOR_SCREEN_H, MONITOR_SCREEN_W } from "./monitorGeometry";
 
 function Surface({ item, volume }: { item: MediaItem; volume: number }) {
   const audio = useRef<HTMLAudioElement | null>(null);
@@ -98,9 +92,9 @@ export default function MonitorMedia({
     <Html
       transform
       distanceFactor={1}
-      position={[0, 0.385, 0.021]}
+      position={MONITOR_HTML_POSITION}
       zIndexRange={[40, 0]}
-      style={{ width: SCREEN_W * DPI, height: SCREEN_H * DPI, fontFamily: "system-ui, sans-serif" }}
+      style={{ width: MONITOR_SCREEN_W * MONITOR_DPI, height: MONITOR_SCREEN_H * MONITOR_DPI, fontFamily: "system-ui, sans-serif" }}
       pointerEvents="auto"
     >
       <div className="studio__media" role="document" aria-label={`${item.title} on the monitor`} onClick={(e) => {

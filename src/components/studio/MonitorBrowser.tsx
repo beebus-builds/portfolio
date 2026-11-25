@@ -13,19 +13,15 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 import { Html } from "@react-three/drei";
 import { ROUTES } from "@/lib/studio";
+import { MONITOR_DPI, MONITOR_HTML_POSITION, MONITOR_SCREEN_H, MONITOR_SCREEN_W } from "./monitorGeometry";
 import {
   BROWSER_SITES,
+  HOME_KEY,
+  TV_KEY,
   type AddressTarget,
   addressFor,
   resolveAddress,
 } from "@/lib/browser";
-
-/** The monitor's screen, in metres, measured on the model. */
-const SCREEN_W = 1.08;
-const SCREEN_H = 0.61;
-
-/** `distanceFactor={1}` makes one CSS pixel 1/400 of a metre. */
-const DPI = 400;
 
 type BrowserTab = {
   key: string;
@@ -119,7 +115,9 @@ export default function MonitorBrowser({
   /** The visitor chose an external link: open it in a new tab. */
   onOpenExternal: (url: string) => void;
 }) {
-  const [history, setHistory] = useState<BrowserTab[]>([]);
+  const [history, setHistory] = useState<BrowserTab[]>([
+    { key: HOME_KEY, address: addressFor(HOME_KEY), target: { kind: "site", key: HOME_KEY } },
+  ]);
   const [draft, setDraft] = useState("");
   const [error, setError] = useState<string | null>(null);
   const addressInput = useRef<HTMLInputElement | null>(null);
@@ -130,6 +128,7 @@ export default function MonitorBrowser({
   const goBack = useCallback(() => {
     if (!canBack) return;
     setHistory((prev) => prev.slice(0, prev.length - 1));
+    setDraft("");
     setError(null);
   }, [canBack]);
 
@@ -143,6 +142,9 @@ export default function MonitorBrowser({
       setError(null);
       setDraft(addressForTarget(target));
       setHistory((prev) => {
+        const last = prev[prev.length - 1];
+        // Repeating the current address should not add a redundant history step.
+        if (last && targetKey(last.target) === targetKey(target)) return prev;
         const next = [...prev, { key: targetKey(target), address: addressForTarget(target), target }];
         return next.slice(-HISTORY_LIMIT);
       });
@@ -196,6 +198,7 @@ export default function MonitorBrowser({
   const externalUrl = externalEntry?.url ?? "";
   const siteTitle = siteEntry?.title ?? "";
   const siteKey = siteEntry?.key ?? "";
+  const showStartPage = !pageEntry && !externalEntry && (!siteEntry || siteKey === HOME_KEY);
 
   if (!open) return null;
 
@@ -203,9 +206,9 @@ export default function MonitorBrowser({
     <Html
       transform
       distanceFactor={1}
-      position={[0, 0.385, 0.021]}
+      position={MONITOR_HTML_POSITION}
       zIndexRange={[50, 0]}
-      style={{ width: SCREEN_W * DPI, height: SCREEN_H * DPI }}
+      style={{ width: MONITOR_SCREEN_W * MONITOR_DPI, height: MONITOR_SCREEN_H * MONITOR_DPI }}
       pointerEvents="auto"
     >
       <div className="studio__browser" role="document" aria-label="Browser on the monitor">
@@ -248,8 +251,6 @@ export default function MonitorBrowser({
 
         {/* Content */}
         <div className="studio__browser-body">
-          {!current && <div className="studio__browser-empty">Open a new tab and type an address.</div>}
-
           {pageRoute && (
             <section className="studio__browser-page">
               <h2>{pageTitle}</h2>
@@ -279,21 +280,19 @@ export default function MonitorBrowser({
             </section>
           )}
 
-          {siteEntry && (
+          {siteEntry && siteKey !== HOME_KEY && (
             <section className="studio__browser-page">
               <h2>{siteTitle}</h2>
               <p className="studio__browser-page-blurb">
-                {siteKey === "home"
-                  ? "The start page. Pick a tile below, or type an address."
-                  : siteKey === "studio.tv"
-                    ? "Lo-fi radio and your pinned links play on the monitor. Press m to open the media deck."
-                    : "Visit this page on the site."}
+                {siteKey === TV_KEY
+                  ? "Lo-fi radio and your pinned links play on the monitor. Press m to open the media deck."
+                  : "Visit this page on the site."}
               </p>
             </section>
           )}
 
           {/* Start page: tiles for everything we know. */}
-          {!pageEntry && !externalEntry && !siteEntry && (
+          {showStartPage && (
             <section className="studio__browser-start">
               <h2>start</h2>
               <p className="studio__browser-start-blurb">Sites you can visit from the monitor.</p>

@@ -34,6 +34,8 @@
 }
 
 .studio__media {
+  width: 100%;
+  height: 100%;
   border-radius: 8px;
   overflow: hidden;
   box-shadow:
@@ -1214,12 +1216,6 @@
   gap: 10px;
 }
 
-.studio__browser-empty {
-  color: #6b7f99;
-  text-align: center;
-  margin-top: 40px;
-}
-
 .studio__browser-page h2 {
   font: 600 13px/1 var(--font-mono);
   color: #eaf2f8;
@@ -1378,204 +1374,59 @@
   overflow: hidden;
 }
 
-.studio__media-video,
-.studio__media--audio,
-.studio__media-audio,
-.studio__media-video {
-  object-fit: contain;
-}
-
-.studio__media overlay {
+.studio__media-element {
   position: absolute;
   inset: 0;
-  pointer-events: none;
-  background: linear-gradient(180deg, #0b1020 0%, #1a202f 100%);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-}
-
-.studio__media-title {
-  color: #eaf2f8;
-  font: 700 28px/1 var(--font-sans);
-  text-align: center;
-  max-width: 90%;
-  letter-spcaing: -0.02em;
-}
-
-.studio__media-artist {
-  color: #a3c2d8;
-  font: 400 18px/1.2 var(--font-mono);
-  text-align: center;
-}
-
-.studio__media-element {
   width: 100%;
   height: 100%;
+  display: block;
+  object-fit: contain;
   background: #0b1020;
   border: none;
   outline: none;
 }
 
-.studio__media-element::-webkit-media-controls {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.studio__media-element::-webkit-media-controls-panel {
-  width: 100% !important;
-  height: 100% !important;
-  background: #0b1020 !important;
-}
-
-.studio__media-element::-webkit-media-controls-bar {
-  display: none !important;
-}
-
-/* Windows desktop icons overlay */
-.studio__media .desktop-icons {
+.studio__media-overlay {
   position: absolute;
-  bottom: 24px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 32px;
-  pointer-events: auto;
-}
-
-.studio__media .icon-item {
+  inset: 0;
+  pointer-events: none;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  cursor: pointer;
-  transition: transform 0.2s var(--ease-out);
-}
-
-.studio__media .icon-item:hover {
-  transform: translateY(-4px);
-}
-
-.studio__media .icon-bg {
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  font-size: 24px;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.studio__media .icon-label {
-  color: #a3c2d8;
-  font: 400 12px/1 var(--font-mono);
+  align-items: center;
+  gap: 6px;
+  padding: 18px;
   text-align: center;
-  max-width: 60px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  background:
+    radial-gradient(circle at 50% 45%, rgb(4 5 12 / 38%), transparent 62%),
+    linear-gradient(180deg, rgb(4 5 12 / 58%), transparent 36%);
 }
 
-/* Windows taskbar */
-.studio__media .taskbar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 48px;
-  background: #181a21;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-family: "Segoe UI", system-ui, sans-serif;
+.studio__media-video .studio__media-overlay {
+  justify-content: flex-start;
+  align-items: flex-start;
+  padding: 14px 16px;
+  text-align: left;
+  background: linear-gradient(180deg, rgb(4 5 12 / 78%), transparent 42%);
 }
 
-.studio__media .taskbar-start {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #3a3f4b;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  transition: background 0.2s var(--ease-out);
+.studio__media-title {
+  color: #eaf2f8;
+  font: 700 clamp(14px, 2.2vw, 24px) / 1.1 var(--font-sans);
+  max-width: 90%;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 65%);
 }
 
-.studio__media .taskbar-start:hover {
-  background: #5a5f6a;
+.studio__media-artist {
+  color: #b8cfe2;
+  font: 500 clamp(10px, 1.5vw, 16px) / 1.2 var(--font-mono);
+  text-shadow: 0 2px 10px rgb(0 0 0 / 65%);
 }
 
-.studio__media .taskbar-start-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 18px;
-  height: 18px;
-  background: #7fe3ff;
-  color: #1a1e25;
-  font: 700 10px/1 var(--font-mono);
-  border-radius: 3px;
-}
-
-.studio__media .taskbar-clock {
-  color: #e9f6ff;
-  font: 400 14px/1 var(--font-mono);
-}
-
-/* Windows title bar buttons */
-.studio__media .title-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 44px;
-  background: #101a2e;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 12px;
-  font-family: "Segoe UI", system-ui, sans-serif;
-}
-
-.studio__media .title-bar .app-title {
-  color: #e9f6ff;
-  font: 600 18px/1 var(--font-sans);
-}
-
-.studio__media .title-bar .window-controls {
-  display: flex;
-  gap: 4px;
-}
-
-.studio__media .window-btn {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: transform 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
-}
-
-.studio__media .window-btn:hover {
-  transform: scale(1.1);
-}
-
-.studio__media .window-btn--minimize {
-  background: #febc2e;
-}
-
-.studio__media .window-btn--maximize {
-  background: #28c840;
-}
-
-.studio__media .window-btn--close {
-  background: #ff5f57;
+.studio__media--audio .studio__media-element {
+  inset: auto 14px 14px;
+  width: calc(100% - 28px);
+  height: 38px;
+  background: transparent;
 }

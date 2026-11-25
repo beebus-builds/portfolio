@@ -10,6 +10,12 @@ import { DeskClock, KeyboardPeripheral, Mouse, PCTower, PostFX, ShadowSetup, Stu
 import MonitorMedia from "./MonitorMedia";
 import MonitorBrowser from "./MonitorBrowser";
 import {
+  MONITOR_DESK_TOP_Y,
+  MONITOR_SCREEN_CENTER_Y,
+  MONITOR_SCREEN_H,
+  MONITOR_SCREEN_W,
+} from "./monitorGeometry";
+import {
   brushedMetal,
   brushedMetalRoughness,
   deskTexture,
@@ -79,16 +85,16 @@ export type StudioSceneProps = {
 
 /* ---------- layout constants (metres, y up, the character faces -z) ---------- */
 
-const DESK_TOP = 0.76;
+const DESK_TOP = MONITOR_DESK_TOP_Y;
 const SEAT = new THREE.Vector3(0, 0, 0.62);
 const KEYS_L = new THREE.Vector3(-0.11, 0.8, 0.13);
 const KEYS_R = new THREE.Vector3(0.11, 0.8, 0.13);
 const MUG_REST = new THREE.Vector3(0.42, DESK_TOP, 0.22);
 const MUG_GRIP = new THREE.Vector3(0.37, 0.82, 0.24);
 /** Wider, bigger monitor for a premium feel - Ultra-Wide 32:9 display */
-const SCREEN_W = 1.28;
-const SCREEN_H = 0.61;
-const SCREEN_CENTER = new THREE.Vector3(0, 1.15, -0.27);
+const SCREEN_W = MONITOR_SCREEN_W;
+const SCREEN_H = MONITOR_SCREEN_H;
+const SCREEN_CENTER = new THREE.Vector3(0, MONITOR_SCREEN_CENTER_Y, -0.27);
 const CAMERA_HOME = new THREE.Vector3(2.3, 1.72, 2.4);
 const CAMERA_LOOK = new THREE.Vector3(-0.05, 1.0, 0);
 const CAMERA_DIVE = new THREE.Vector3(0, 1.13, 0.2);
@@ -649,7 +655,7 @@ function Monitor({
   });
 
   return (
-    <Hotspot spot="projects" label="Open the media deck ▶" labelAt={[0, 1.5, -0.26]} onSelect={onSelect}>
+    <Hotspot spot="projects" label="Open the in-room browser ▶" labelAt={[0, 1.5, -0.26]} onSelect={onSelect}>
       <group position={[0, DESK_TOP, -0.27]}>
         {/* Premium monitor base */}
         <mesh position={[0, 0.015, 0.01]}>
@@ -687,7 +693,7 @@ function Monitor({
             onClose={() => onSelect()}
             onOpenSite={(slug) => onTarget({ kind: "page", slug })}
             onOpenExternal={(url) => {
-              window.open(url, "_blank");
+              window.open(url, "_blank", "noopener,noreferrer");
               onSelect();
             }}
           />
