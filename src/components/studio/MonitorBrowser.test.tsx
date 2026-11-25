@@ -39,6 +39,25 @@ describe("MonitorBrowser", () => {
     expect(screen.getByRole("heading", { name: "start" })).toBeTruthy();
   });
 
+  it("navigates with the Go button after the address loses focus", () => {
+    render(
+      <MonitorBrowser
+        open
+        onClose={vi.fn()}
+        onOpenSite={vi.fn()}
+        onOpenExternal={vi.fn()}
+      />
+    );
+
+    const address = screen.getByLabelText("Address bar") as HTMLInputElement;
+    fireEvent.change(address, { target: { value: "about" } });
+    fireEvent.blur(address);
+    fireEvent.click(screen.getByRole("button", { name: "Go" }));
+
+    expect(address.value).toBe("about");
+    expect(screen.getByRole("heading", { name: "About" })).toBeTruthy();
+  });
+
   it("keeps the current page when an address cannot be resolved", () => {
     render(
       <MonitorBrowser

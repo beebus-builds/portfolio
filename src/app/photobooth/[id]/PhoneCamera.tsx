@@ -51,17 +51,19 @@ function removeSavedPhone(id: string): void {
   }
 }
 
-/** Draw the current video frame into a JPEG data URL, scaled to `maxWidth`. */
+/** Draw the current video frame into a JPEG data URL, bounded by its long edge. */
 function drawFrame(
   video: HTMLVideoElement,
   canvas: HTMLCanvasElement,
-  maxWidth: number,
+  maxSize: number,
   quality: number
 ): string | null {
   const vw = video.videoWidth;
   const vh = video.videoHeight;
   if (!vw || !vh) return null;
-  const scale = Math.min(1, maxWidth / vw);
+  // Bound both portrait and landscape frames; otherwise a tall phone image
+  // can exceed the upload limit even though its width is within the cap.
+  const scale = Math.min(1, maxSize / Math.max(vw, vh));
   canvas.width = Math.round(vw * scale);
   canvas.height = Math.round(vh * scale);
   const ctx = canvas.getContext("2d");

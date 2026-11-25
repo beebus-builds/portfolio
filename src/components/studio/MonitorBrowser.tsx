@@ -119,6 +119,7 @@ export default function MonitorBrowser({
     { key: HOME_KEY, address: addressFor(HOME_KEY), target: { kind: "site", key: HOME_KEY } },
   ]);
   const [draft, setDraft] = useState("");
+  const [addressFocused, setAddressFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const addressInput = useRef<HTMLInputElement | null>(null);
 
@@ -129,6 +130,7 @@ export default function MonitorBrowser({
     if (!canBack) return;
     setHistory((prev) => prev.slice(0, prev.length - 1));
     setDraft("");
+    setAddressFocused(false);
     setError(null);
   }, [canBack]);
 
@@ -140,6 +142,7 @@ export default function MonitorBrowser({
         return;
       }
       setError(null);
+      setAddressFocused(false);
       setDraft(addressForTarget(target));
       setHistory((prev) => {
         const last = prev[prev.length - 1];
@@ -227,7 +230,7 @@ export default function MonitorBrowser({
             ref={addressInput}
             className="studio__browser-address"
             type="text"
-            value={draft ? draft : current?.address ?? ""}
+            value={addressFocused ? draft : current?.address ?? ""}
             onChange={(event) => setDraft(event.target.value)}
             onKeyDown={(event) => {
               event.stopPropagation();
@@ -236,8 +239,11 @@ export default function MonitorBrowser({
                 submitDraft();
               }
             }}
-            onFocus={() => setDraft(draft ? draft : current?.address ?? "")}
-            onBlur={() => setDraft("")}
+            onFocus={() => {
+              setDraft(current?.address ?? "");
+              setAddressFocused(true);
+            }}
+            onBlur={() => setAddressFocused(false)}
             placeholder="studio://about · github · https://…"
             aria-label="Address bar"
           />
